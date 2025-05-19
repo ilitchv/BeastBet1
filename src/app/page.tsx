@@ -1,22 +1,23 @@
 
 "use client";
 
-import { useState, useMemo, useEffect } from 'react';
-import { DateRange } from "react-day-picker";
-import { addDays, format } from "date-fns";
+import { useState, useMemo, useEffect, useRef } from 'react';
+import type { DateRange } from "react-day-picker";
+import { format } from "date-fns";
 import { ImageUploadForm } from '@/components/lotto-look/ImageUploadForm';
 import { BetTable } from '@/components/lotto-look/BetTable';
 import { DatePickerWithRange } from '@/components/lotto-look/DatePickerWithRange';
 import { TrackSelector, type Track } from '@/components/lotto-look/TrackSelector';
 import { ThemeToggle } from '@/components/lotto-look/ThemeToggle';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Ticket, AlertCircle, DollarSign, CalendarDays, ListChecksIcon } from 'lucide-react';
+import { Loader2, Ticket, AlertCircle, CalendarDays, ListChecksIcon, Info } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import type { InterpretLotteryTicketOutput as AIOutputType } from '@/ai/flows/interpret-lottery-ticket';
+import type { InterpretLotteryTicketOutput as AIOutputType, ParsedBet } from '@/ai/flows/interpret-lottery-ticket';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
-type Bet = AIOutputType['bets'][0];
+// Updated Bet type to match ParsedBet from the AI flow
+export type Bet = ParsedBet;
 
 export default function LottoLookPage() {
   const [bets, setBets] = useState<Bet[]>([]);
@@ -26,6 +27,11 @@ export default function LottoLookPage() {
 
   const [selectedDates, setSelectedDates] = useState<DateRange | undefined>(undefined);
   const [selectedTracks, setSelectedTracks] = useState<Track[]>([]);
+  
+  // State for AI-identified ticket details
+  const [aiIdentifiedDate, setAiIdentifiedDate] = useState<string | undefined>(undefined);
+  const [aiIdentifiedTrack, setAiIdentifiedTrack] = useState<string | undefined>(undefined);
+
 
   useEffect(() => {
     // Initialize dates on the client-side to avoid hydration mismatch
@@ -33,18 +39,19 @@ export default function LottoLookPage() {
       from: new Date(),
       to: new Date(),
     });
-  }, []); // Empty dependency array ensures this runs once on mount
+  }, []);
 
-  const handleInterpretSuccess = (interpretedBets: Bet[]) => {
-    const processedBets = interpretedBets.map(bet => ({
-      ...bet,
-      betNumber: bet.betNumber || "",
-      gameMode: bet.gameMode || undefined,
-      straightAmount: typeof bet.straightAmount === 'number' ? bet.straightAmount : null,
-      boxAmount: typeof bet.boxAmount === 'number' ? bet.boxAmount : null,
-      comboAmount: typeof bet.comboAmount === 'number' ? bet.comboAmount : null,
+  const handleInterpretSuccess = (aiOutput: AIOutputType) => {
+    const processedBets = aiOutput.parsedBets.map(bet => ({
+      numeros: bet.numeros || "",
+      straight: typeof bet.straight === 'number' ? bet.straight : null,
+      box: typeof bet.box === 'number' ? bet.box : null,
+      combo: typeof bet.combo === 'number' ? bet.combo : null,
+      notas: bet.notas || undefined,
     }));
     setBets(processedBets);
+    setAiIdentifiedDate(aiOutput.ticketDate);
+    setAiIdentifiedTrack(aiOutput.identifiedTrack);
     setError(null);
     setIsLoading(false);
     toast({
@@ -57,6 +64,8 @@ export default function LottoLookPage() {
   const handleInterpretError = (errorMessage: string) => {
     setError(errorMessage);
     setBets([]);
+    setAiIdentifiedDate(undefined);
+    setAiIdentifiedTrack(undefined);
     setIsLoading(false);
     toast({
       variant: "destructive",
@@ -70,7 +79,8 @@ export default function LottoLookPage() {
   };
   
   const handleAddPlay = () => {
-    setBets(prevBets => [...prevBets, { betNumber: "", straightAmount: null, boxAmount: null, comboAmount: null, gameMode: undefined }]);
+    // Add new bet with the new structure, defaulting numeric fields to null and notas to undefined
+    setBets(prevBets => [...prevBets, { numeros: "", straight: null, box: null, combo: null, notas: undefined }]);
   };
 
   const handleRemoveLastPlay = () => {
@@ -82,6 +92,8 @@ export default function LottoLookPage() {
     // Re-initialize dates to today on reset, client-side
     setSelectedDates({ from: new Date(), to: new Date() });
     setSelectedTracks([]);
+    setAiIdentifiedDate(undefined);
+    setAiIdentifiedTrack(undefined);
     setError(null);
     setIsLoading(false);
     toast({
@@ -93,7 +105,8 @@ export default function LottoLookPage() {
 
   const overallTotal = useMemo(() => {
     return bets.reduce((acc, bet) => {
-      const rowTotal = (bet.straightAmount || 0) + (bet.boxAmount || 0) + (bet.comboAmount || 0);
+      // Use new field names for calculation
+      const rowTotal = (bet.straight || 0) + (bet.box || 0) + (bet.combo || 0);
       return acc + rowTotal;
     }, 0);
   }, [bets]);
@@ -116,7 +129,7 @@ export default function LottoLookPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-primary">
               <CalendarDays className="h-6 w-6" />
-              Bet Dates
+              Bet Dates (Your Selection)
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -158,6 +171,21 @@ export default function LottoLookPage() {
            </Alert>
         )}
 
+        {(aiIdentifiedDate || aiIdentifiedTrack) && !isLoading && !error && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sm text-primary">
+                <Info className="h-5 w-5" />
+                AI Identified from Ticket
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm space-y-1">
+              {aiIdentifiedDate && <p><strong>Ticket Date (from AI):</strong> {aiIdentifiedDate}</p>}
+              {aiIdentifiedTrack && <p><strong>Track (from AI):</strong> {aiIdentifiedTrack}</p>}
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-primary">
@@ -181,7 +209,6 @@ export default function LottoLookPage() {
             <Button onClick={handleAddPlay} variant="default">
               Add Play
             </Button>
-            {/* Wizard button placeholder */}
             <Button variant="outline" disabled>Wizard</Button> 
             <Button onClick={handleRemoveLastPlay} variant="destructive" disabled={bets.length === 0}>
               Remove Last Play

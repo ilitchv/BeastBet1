@@ -6,22 +6,21 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { InterpretLotteryTicketOutput } from '@/ai/flows/interpret-lottery-ticket';
-
-type Bet = InterpretLotteryTicketOutput['bets'][0];
+import type { Bet as BetType } from '@/app/page'; // Use the Bet type from page.tsx which matches ParsedBet
 
 interface BetTableProps {
-  bets: Bet[];
-  onBetsChange: (updatedBets: Bet[]) => void;
+  bets: BetType[];
+  onBetsChange: (updatedBets: BetType[]) => void;
 }
 
 export function BetTable({ bets, onBetsChange }: BetTableProps) {
   
-  const handleBetChange = (index: number, field: keyof Bet, value: string | number | null | undefined) => {
+  const handleBetChange = (index: number, field: keyof BetType, value: string | number | null | undefined) => {
     const updatedBets = bets.map((bet, i) => {
       if (i === index) {
-        if (field === 'straightAmount' || field === 'boxAmount' || field === 'comboAmount') {
-          const numericValue = typeof value === 'string' ? parseFloat(value) : value;
+        if (field === 'straight' || field === 'box' || field === 'combo') {
+          // Allow empty string to represent null for numeric inputs
+          const numericValue = typeof value === 'string' && value.trim() === '' ? null : (typeof value === 'string' ? parseFloat(value) : value);
           return { ...bet, [field]: isNaN(numericValue as number) || numericValue === null ? null : numericValue };
         }
         return { ...bet, [field]: value };
@@ -36,8 +35,8 @@ export function BetTable({ bets, onBetsChange }: BetTableProps) {
     onBetsChange(updatedBets);
   };
 
-  const calculateTotal = (bet: Bet) => {
-    return (bet.straightAmount || 0) + (bet.boxAmount || 0) + (bet.comboAmount || 0);
+  const calculateTotal = (bet: BetType) => {
+    return (bet.straight || 0) + (bet.box || 0) + (bet.combo || 0);
   };
 
   if (bets.length === 0) {
@@ -50,11 +49,11 @@ export function BetTable({ bets, onBetsChange }: BetTableProps) {
         <TableHeader>
           <TableRow>
             <TableHead className="w-[40px]">#</TableHead>
-            <TableHead className="min-w-[120px]">Bet Number</TableHead>
-            <TableHead className="min-w-[100px]">Game Mode</TableHead>
+            <TableHead className="min-w-[120px]">Bet Number (Numeros)</TableHead>
             <TableHead className="min-w-[100px] text-right">Straight ($)</TableHead>
             <TableHead className="min-w-[100px] text-right">Box ($)</TableHead>
             <TableHead className="min-w-[100px] text-right">Combo ($)</TableHead>
+            <TableHead className="min-w-[150px]">Notes (Notas)</TableHead>
             <TableHead className="min-w-[100px] text-right">Total ($)</TableHead>
             <TableHead className="w-[50px] text-right">Action</TableHead>
           </TableRow>
@@ -65,26 +64,17 @@ export function BetTable({ bets, onBetsChange }: BetTableProps) {
               <TableCell>{index + 1}</TableCell>
               <TableCell>
                 <Input
-                  value={bet.betNumber}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => handleBetChange(index, 'betNumber', e.target.value)}
+                  value={bet.numeros}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => handleBetChange(index, 'numeros', e.target.value)}
                   aria-label={`Bet number for row ${index + 1}`}
                   className="text-sm"
-                />
-              </TableCell>
-              <TableCell>
-                <Input
-                  value={bet.gameMode || ''}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => handleBetChange(index, 'gameMode', e.target.value)}
-                  aria-label={`Game mode for row ${index + 1}`}
-                  className="text-sm"
-                  placeholder="e.g. Pick 3"
                 />
               </TableCell>
               <TableCell className="text-right">
                 <Input
                   type="number"
-                  value={bet.straightAmount === null ? '' : String(bet.straightAmount)}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => handleBetChange(index, 'straightAmount', e.target.value)}
+                  value={bet.straight === null ? '' : String(bet.straight)}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => handleBetChange(index, 'straight', e.target.value)}
                   aria-label={`Straight amount for row ${index + 1}`}
                   className="text-sm text-right"
                   placeholder="0.00"
@@ -94,8 +84,8 @@ export function BetTable({ bets, onBetsChange }: BetTableProps) {
               <TableCell className="text-right">
                 <Input
                   type="number"
-                  value={bet.boxAmount === null ? '' : String(bet.boxAmount)}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => handleBetChange(index, 'boxAmount', e.target.value)}
+                  value={bet.box === null ? '' : String(bet.box)}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => handleBetChange(index, 'box', e.target.value)}
                   aria-label={`Box amount for row ${index + 1}`}
                   className="text-sm text-right"
                   placeholder="0.00"
@@ -105,12 +95,21 @@ export function BetTable({ bets, onBetsChange }: BetTableProps) {
               <TableCell className="text-right">
                 <Input
                   type="number"
-                  value={bet.comboAmount === null ? '' : String(bet.comboAmount)}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => handleBetChange(index, 'comboAmount', e.target.value)}
+                  value={bet.combo === null ? '' : String(bet.combo)}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => handleBetChange(index, 'combo', e.target.value)}
                   aria-label={`Combo amount for row ${index + 1}`}
                   className="text-sm text-right"
                   placeholder="0.00"
                   step="0.01"
+                />
+              </TableCell>
+              <TableCell>
+                <Input
+                  value={bet.notas || ''}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => handleBetChange(index, 'notas', e.target.value)}
+                  aria-label={`Notes for row ${index + 1}`}
+                  className="text-sm"
+                  placeholder="e.g. illegible"
                 />
               </TableCell>
               <TableCell className="text-right font-medium">
@@ -127,7 +126,7 @@ export function BetTable({ bets, onBetsChange }: BetTableProps) {
       </Table>
        {bets.length > 0 && (
             <p className="mt-4 text-sm text-muted-foreground">
-                You can edit the values directly in the table.
+                You can edit the values directly in the table. The AI will now try to provide "0.00" for amounts not present, but they can also be null.
             </p>
         )}
     </div>
