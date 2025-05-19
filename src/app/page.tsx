@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { DateRange } from "react-day-picker";
 import { addDays, format } from "date-fns";
 import { ImageUploadForm } from '@/components/lotto-look/ImageUploadForm';
@@ -24,11 +24,16 @@ export default function LottoLookPage() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const [selectedDates, setSelectedDates] = useState<DateRange | undefined>({
-    from: new Date(),
-    to: new Date(),
-  });
+  const [selectedDates, setSelectedDates] = useState<DateRange | undefined>(undefined);
   const [selectedTracks, setSelectedTracks] = useState<Track[]>([]);
+
+  useEffect(() => {
+    // Initialize dates on the client-side to avoid hydration mismatch
+    setSelectedDates({
+      from: new Date(),
+      to: new Date(),
+    });
+  }, []); // Empty dependency array ensures this runs once on mount
 
   const handleInterpretSuccess = (interpretedBets: Bet[]) => {
     const processedBets = interpretedBets.map(bet => ({
@@ -74,6 +79,7 @@ export default function LottoLookPage() {
 
   const handleResetForm = () => {
     setBets([]);
+    // Re-initialize dates to today on reset, client-side
     setSelectedDates({ from: new Date(), to: new Date() });
     setSelectedTracks([]);
     setError(null);
