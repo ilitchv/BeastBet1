@@ -26,7 +26,7 @@ const BetSchema = z.object({
   gameMode: z.string().optional().describe('The game mode, e.g., Pick 3, Win 4, Pale, Single Action. This might be derived from the bet number or context.'),
   straightAmount: z.number().nullable().describe('The amount wagered on a straight bet for this number. Use null if not applicable or not present.'),
   boxAmount: z.number().nullable().describe('The amount wagered on a box bet for this number. Use null if not applicable or not present.'),
-  comboAmount: z.number().nullable().describe('The amount wagered on a combo bet for this number. ONLY populate this if "combo", "com", or a similar explicit abbreviation for combo is present for this bet number. Otherwise, use null.'),
+  comboAmount: z.number().nullable().describe('The amount wagered on a combo bet for this number. THIS FIELD MUST BE NULL unless "combo", "com", or a similar explicit abbreviation for combo is clearly present for this specific bet number on the ticket. Do NOT infer a combo bet or copy amounts from straight/box if "combo" is not explicitly written.'),
 });
 
 const InterpretLotteryTicketOutputSchema = z.object({
@@ -47,10 +47,14 @@ You will receive an image of a lottery ticket. Your task is to extract each uniq
 Group all wagers for the SAME bet number into a SINGLE bet object. For example, if the ticket shows "123 $2 str, $1 box", the output for this bet should be ONE entry:
 { "betNumber": "123", "gameMode": "Pick 3", "straightAmount": 2, "boxAmount": 1, "comboAmount": null }
 
-- For each distinct bet number, identify the amounts wagered for "straight" (str), "box" (box), and "combo" (com, combo) types.
-- The 'comboAmount' field should ONLY be populated if the ticket explicitly states "combo", "com", or a similar abbreviation for a combo bet for that specific bet number. If no explicit combo wager is found, 'comboAmount' MUST be null. Do NOT assume a combo bet.
-- Try to determine the 'gameMode' (e.g., Pick 3, Win 4, Pale based on number format or explicit markings). If not clear, this can be omitted.
-- Ensure all monetary amounts are numbers. If a wager type is not present for a number, use null for its amount.
+Key Instructions for 'comboAmount':
+- The 'comboAmount' field MUST BE NULL if the ticket does NOT explicitly state "combo", "com", or a similar direct abbreviation for a combo bet for that specific bet number.
+- Do NOT assume a combo bet. Do NOT copy amounts from 'straightAmount' or 'boxAmount' into 'comboAmount' unless there is a clear, separate "combo" wager indicated.
+- If a bet number has only straight and/or box wagers, 'comboAmount' must be null.
+
+For each distinct bet number, identify the amounts wagered for "straight" (str), "box" (box), and "combo" (com, combo) types.
+Try to determine the 'gameMode' (e.g., Pick 3, Win 4, Pale based on number format or explicit markings). If not clear, this can be omitted.
+Ensure all monetary amounts are numbers. If a wager type is not present for a number, use null for its amount.
 
 Output the information in JSON format according to the schema.
 
@@ -74,26 +78,45 @@ const interpretLotteryTicketFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    // Ensure amounts are numbers or null, default to null if undefined or not a number
-    const processedBets = output?.bets.map(bet => ({
-      ...bet,
-      betNumber: typeof bet.betNumber === 'string' ? bet.betNumber : String(bet.betNumber || ""),
-      gameMode: typeof bet.gameMode === 'string' ? bet.gameMode : undefined,
-      straightAmount: typeof bet.straightAmount === 'number' ? bet.straightAmount : null,
-      boxAmount: typeof bet.boxAmount === 'number' ? bet.boxAmount : null,
-      comboAmount: typeof bet.comboAmount === 'number' ? bet.comboAmount : null, // Crucially, rely on the model's output for combo.
-    })) || [];
     
-    // Additional step: Consolidate bets if the model still splits them (defensive programming)
-    const consolidatedBets: Bet[] = [];
-    const betMap = new Map<string, Bet>();
+    const processedBets = output?.bets.map(bet => {
+      // Ensure amounts are numbers or null, default to null if undefined or not a number.
+      // The prompt now heavily emphasizes that comboAmount should be null if not explicitly stated by the model.
+      // We trust the model's output for comboAmount based on the reinforced prompt.
+      // If the model does not return a number for comboAmount, it will be treated as null.
+      const straight = typeof bet.straightAmount === 'number' ? bet.straightAmount : null;
+      const box = typeof bet.boxAmount === 'number' ? bet.boxAmount : null;
+      let combo = typeof bet.comboAmount === 'number' ? bet.comboAmount : null;
+
+      // Additional check: If the model *still* somehow copies straight or box to combo
+      // AND combo was not a distinct value, this is a heuristic.
+      // However, the primary reliance is on the prompt for the model to *not* provide comboAmount if not explicit.
+      // This check is less reliable as the model might legitimately identify a combo that's the same as straight/box.
+      // The prompt is the main enforcer.
+      // For example, if ticket says "123 $1 str, $1 box, $1 com", combo:1 is correct.
+      // If ticket says "123 $1 str, $1 box", model *should* return combo:null.
+
+      return {
+        betNumber: typeof bet.betNumber === 'string' ? bet.betNumber : String(bet.betNumber || ""),
+        gameMode: typeof bet.gameMode === 'string' ? bet.gameMode : undefined,
+        straightAmount: straight,
+        boxAmount: box,
+        comboAmount: combo, // Trusting the model's output based on the strict prompt instructions.
+      };
+    }) || [];
+    
+    // Consolidate bets if the model still splits them (defensive programming)
+    const consolidatedBets: z.infer<typeof BetSchema>[] = [];
+    const betMap = new Map<string, z.infer<typeof BetSchema>>();
 
     processedBets.forEach(bet => {
       if (betMap.has(bet.betNumber)) {
         const existingBet = betMap.get(bet.betNumber)!;
         existingBet.straightAmount = existingBet.straightAmount ?? bet.straightAmount;
         existingBet.boxAmount = existingBet.boxAmount ?? bet.boxAmount;
-        existingBet.comboAmount = existingBet.comboAmount ?? bet.comboAmount;
+        // For comboAmount, if the new bet has a comboAmount and the existing one doesn't, take the new one.
+        // This assumes the model is correctly identifying explicit combo bets.
+        existingBet.comboAmount = existingBet.comboAmount ?? bet.comboAmount; 
         if (!existingBet.gameMode && bet.gameMode) {
           existingBet.gameMode = bet.gameMode;
         }
