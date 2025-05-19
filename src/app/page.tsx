@@ -28,13 +28,11 @@ export default function LottoLookPage() {
   const [selectedDates, setSelectedDates] = useState<DateRange | undefined>(undefined);
   const [selectedTracks, setSelectedTracks] = useState<Track[]>([]);
   
-  // State for AI-identified ticket details
   const [aiIdentifiedDate, setAiIdentifiedDate] = useState<string | undefined>(undefined);
   const [aiIdentifiedTrack, setAiIdentifiedTrack] = useState<string | undefined>(undefined);
 
 
   useEffect(() => {
-    // Initialize dates on the client-side to avoid hydration mismatch
     setSelectedDates({
       from: new Date(),
       to: new Date(),
@@ -42,6 +40,27 @@ export default function LottoLookPage() {
   }, []);
 
   const handleInterpretSuccess = (aiOutput: AIOutputType) => {
+    setIsLoading(false); // Set loading to false immediately
+
+    if (!aiOutput) {
+      handleInterpretError("AI did not return a valid response structure (received undefined/null).");
+      return;
+    }
+
+    if (!Array.isArray(aiOutput.parsedBets)) {
+      console.error("AI response received, but 'parsedBets' is not an array or is missing. Received:", JSON.stringify(aiOutput, null, 2));
+      setBets([]);
+      setAiIdentifiedDate(aiOutput.ticketDate || undefined); 
+      setAiIdentifiedTrack(aiOutput.identifiedTrack || undefined);
+      setError("AI response structure was invalid (bets data is missing or not an array). Please try again.");
+      toast({
+        variant: "destructive",
+        title: "Interpretation Error",
+        description: "Received an invalid response from the AI (bets data is missing or malformed).",
+      });
+      return;
+    }
+
     const processedBets = aiOutput.parsedBets.map(bet => ({
       numeros: bet.numeros || "",
       straight: typeof bet.straight === 'number' ? bet.straight : null,
@@ -49,11 +68,11 @@ export default function LottoLookPage() {
       combo: typeof bet.combo === 'number' ? bet.combo : null,
       notas: bet.notas || undefined,
     }));
+
     setBets(processedBets);
     setAiIdentifiedDate(aiOutput.ticketDate);
     setAiIdentifiedTrack(aiOutput.identifiedTrack);
     setError(null);
-    setIsLoading(false);
     toast({
       title: "Success!",
       description: "Lottery ticket interpreted. Review and edit bets.",
@@ -79,7 +98,6 @@ export default function LottoLookPage() {
   };
   
   const handleAddPlay = () => {
-    // Add new bet with the new structure, defaulting numeric fields to null and notas to undefined
     setBets(prevBets => [...prevBets, { numeros: "", straight: null, box: null, combo: null, notas: undefined }]);
   };
 
@@ -89,7 +107,6 @@ export default function LottoLookPage() {
 
   const handleResetForm = () => {
     setBets([]);
-    // Re-initialize dates to today on reset, client-side
     setSelectedDates({ from: new Date(), to: new Date() });
     setSelectedTracks([]);
     setAiIdentifiedDate(undefined);
@@ -105,7 +122,6 @@ export default function LottoLookPage() {
 
   const overallTotal = useMemo(() => {
     return bets.reduce((acc, bet) => {
-      // Use new field names for calculation
       const rowTotal = (bet.straight || 0) + (bet.box || 0) + (bet.combo || 0);
       return acc + rowTotal;
     }, 0);
