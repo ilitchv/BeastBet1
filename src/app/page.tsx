@@ -1,17 +1,21 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { GuidanceSection } from '@/components/lotto-look/GuidanceSection';
+import { useState, useMemo } from 'react';
+import { DateRange } from "react-day-picker";
+import { addDays, format } from "date-fns";
 import { ImageUploadForm } from '@/components/lotto-look/ImageUploadForm';
 import { BetTable } from '@/components/lotto-look/BetTable';
+import { DatePickerWithRange } from '@/components/lotto-look/DatePickerWithRange';
+import { TrackSelector, type Track } from '@/components/lotto-look/TrackSelector';
+import { ThemeToggle } from '@/components/lotto-look/ThemeToggle';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Ticket, AlertCircle, DollarSign } from 'lucide-react';
+import { Loader2, Ticket, AlertCircle, DollarSign, CalendarDays, ListChecksIcon } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { InterpretLotteryTicketOutput as AIOutputType } from '@/ai/flows/interpret-lottery-ticket';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
-// This type will be inferred from the AI flow's output schema
 type Bet = AIOutputType['bets'][0];
 
 export default function LottoLookPage() {
@@ -20,12 +24,17 @@ export default function LottoLookPage() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
+  const [selectedDates, setSelectedDates] = useState<DateRange | undefined>({
+    from: new Date(),
+    to: new Date(),
+  });
+  const [selectedTracks, setSelectedTracks] = useState<Track[]>([]);
+
   const handleInterpretSuccess = (interpretedBets: Bet[]) => {
-    // Ensure amounts are numbers or null, default to null if undefined
     const processedBets = interpretedBets.map(bet => ({
       ...bet,
-      betNumber: bet.betNumber || "", // Ensure betNumber is always a string
-      gameMode: bet.gameMode || undefined, // Optional, so can be undefined
+      betNumber: bet.betNumber || "",
+      gameMode: bet.gameMode || undefined,
       straightAmount: typeof bet.straightAmount === 'number' ? bet.straightAmount : null,
       boxAmount: typeof bet.boxAmount === 'number' ? bet.boxAmount : null,
       comboAmount: typeof bet.comboAmount === 'number' ? bet.comboAmount : null,
@@ -35,14 +44,14 @@ export default function LottoLookPage() {
     setIsLoading(false);
     toast({
       title: "Success!",
-      description: "Lottery ticket interpreted. You can now review and edit the bets.",
+      description: "Lottery ticket interpreted. Review and edit bets.",
       className: "bg-green-500 text-white dark:bg-green-700",
     });
   };
 
   const handleInterpretError = (errorMessage: string) => {
     setError(errorMessage);
-    setBets([]); 
+    setBets([]);
     setIsLoading(false);
     toast({
       variant: "destructive",
@@ -54,6 +63,27 @@ export default function LottoLookPage() {
   const handleBetsChange = (updatedBets: Bet[]) => {
     setBets(updatedBets);
   };
+  
+  const handleAddPlay = () => {
+    setBets(prevBets => [...prevBets, { betNumber: "", straightAmount: null, boxAmount: null, comboAmount: null, gameMode: undefined }]);
+  };
+
+  const handleRemoveLastPlay = () => {
+    setBets(prevBets => prevBets.slice(0, -1));
+  };
+
+  const handleResetForm = () => {
+    setBets([]);
+    setSelectedDates({ from: new Date(), to: new Date() });
+    setSelectedTracks([]);
+    setError(null);
+    setIsLoading(false);
+    toast({
+      title: "Form Reset",
+      description: "All fields have been cleared.",
+    });
+  };
+
 
   const overallTotal = useMemo(() => {
     return bets.reduce((acc, bet) => {
@@ -64,21 +94,42 @@ export default function LottoLookPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center p-4 md:p-8 selection:bg-primary/20">
-      <main className="container mx-auto max-w-4xl w-full space-y-8">
-        <header className="text-center space-y-2 py-8">
-          <div className="inline-flex items-center justify-center p-3 bg-primary text-primary-foreground rounded-full shadow-md mb-4">
-            <Ticket className="h-10 w-10" />
-          </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-primary tracking-tight">
-            LottoLook
-          </h1>
-          <p className="text-lg md:text-xl text-muted-foreground">
-            Easily interpret your handwritten lottery tickets with AI.
-          </p>
-        </header>
+      <header className="w-full max-w-4xl mx-auto flex justify-between items-center py-4">
+        <div className="inline-flex items-center justify-center p-2 bg-primary text-primary-foreground rounded-full shadow-md">
+          <Ticket className="h-8 w-8" />
+        </div>
+        <h1 className="text-2xl md:text-4xl font-extrabold text-primary tracking-tight">
+          Beast Reader (Cricket) ENY
+        </h1>
+        <ThemeToggle />
+      </header>
 
-        <GuidanceSection />
+      <main className="container mx-auto max-w-4xl w-full space-y-6">
+        
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-primary">
+              <CalendarDays className="h-6 w-6" />
+              Bet Dates
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DatePickerWithRange
+              selectedDates={selectedDates}
+              onDatesChange={setSelectedDates}
+              className="w-full md:w-auto"
+            />
+             {selectedDates?.from && (
+              <p className="text-sm text-muted-foreground mt-2">
+                Selected: {format(selectedDates.from, "PPP")}
+                {selectedDates.to && selectedDates.to !== selectedDates.from ? ` - ${format(selectedDates.to, "PPP")}` : ""}
+              </p>
+            )}
+          </CardContent>
+        </Card>
 
+        <TrackSelector selectedTracks={selectedTracks} onTracksChange={setSelectedTracks} />
+        
         <ImageUploadForm
           setIsLoading={setIsLoading}
           onInterpretSuccess={handleInterpretSuccess}
@@ -101,35 +152,52 @@ export default function LottoLookPage() {
            </Alert>
         )}
 
-        {!isLoading && bets.length > 0 && (
-          <>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-primary">
+                <ListChecksIcon className="h-6 w-6"/>
+                Plays Table
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
             <BetTable bets={bets} onBetsChange={handleBetsChange} />
-            <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-primary">
-                  <DollarSign className="h-6 w-6" />
-                  Overall Total
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold text-accent text-right">
-                  ${overallTotal.toFixed(2)}
-                </p>
-              </CardContent>
-            </Card>
-          </>
-        )}
+            {bets.length === 0 && !isLoading && !error && (
+              <div className="text-center p-6 text-muted-foreground">
+                <Ticket className="h-12 w-12 mx-auto opacity-50 mb-2" />
+                <p>Upload a ticket image or add plays manually to see them here.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
         
-        {!isLoading && !error && bets.length === 0 && (
-            <div className="text-center p-10 bg-card rounded-lg shadow-lg">
-                <Ticket className="h-16 w-16 mx-auto text-muted-foreground opacity-50 mb-4" />
-                <p className="text-muted-foreground">Upload a ticket image to see your bets here.</p>
-            </div>
-        )}
+        <div className="flex flex-wrap justify-between items-center gap-4 mb-4 p-4 bg-card rounded-lg shadow">
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={handleAddPlay} variant="default">
+              Add Play
+            </Button>
+            {/* Wizard button placeholder */}
+            <Button variant="outline" disabled>Wizard</Button> 
+            <Button onClick={handleRemoveLastPlay} variant="destructive" disabled={bets.length === 0}>
+              Remove Last Play
+            </Button>
+            <Button onClick={handleResetForm} variant="outline">
+             Reset Form
+            </Button>
+          </div>
+          <div className="text-lg font-semibold text-primary">
+            Total Plays: <span className="text-accent">${overallTotal.toFixed(2)}</span>
+          </div>
+        </div>
+        
+        <Button size="lg" className="w-full bg-green-600 hover:bg-green-700 text-white" disabled>
+          <Ticket className="mr-2 h-5 w-5" /> Generate Ticket
+        </Button>
+
+
       </main>
       <footer className="w-full text-center py-8 mt-12 border-t border-border">
         <p className="text-sm text-muted-foreground">
-          LottoLook &copy; {new Date().getFullYear()} - Powered by AI
+          Beast Reader &copy; {new Date().getFullYear()} - Powered by AI
         </p>
       </footer>
     </div>
