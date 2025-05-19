@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { ChangeEvent, FormEvent } from 'react';
@@ -10,11 +11,12 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { UploadCloud, ScanLine, Loader2, AlertCircle } from 'lucide-react';
 import { interpretLotteryTicket, type InterpretLotteryTicketOutput } from '@/ai/flows/interpret-lottery-ticket';
 
-type Bet = InterpretLotteryTicketOutput['bets'][0];
+// type Bet = InterpretLotteryTicketOutput['bets'][0]; // This was for the complex prompt version
+type AIOutput = InterpretLotteryTicketOutput; // Reverted to previous AIOutput structure
 
 interface ImageUploadFormProps {
   setIsLoading: (loading: boolean) => void;
-  onInterpretSuccess: (bets: Bet[]) => void;
+  onInterpretSuccess: (output: AIOutput) => void; // Reverted signature
   onInterpretError: (error: string) => void;
 }
 
@@ -57,7 +59,7 @@ export function ImageUploadForm({ setIsLoading, onInterpretSuccess, onInterpretE
       const base64data = reader.result as string;
       try {
         const result = await interpretLotteryTicket({ photoDataUri: base64data });
-        onInterpretSuccess(result.bets);
+        onInterpretSuccess(result); // Pass the entire result (array of bets)
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to interpret ticket due to an unknown error.';
         onInterpretError(errorMessage);
@@ -121,3 +123,4 @@ export function ImageUploadForm({ setIsLoading, onInterpretSuccess, onInterpretE
     </Card>
   );
 }
+    

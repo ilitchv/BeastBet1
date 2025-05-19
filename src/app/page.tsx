@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { DateRange } from "react-day-picker";
 import { format } from "date-fns";
 import { ImageUploadForm } from '@/components/lotto-look/ImageUploadForm';
@@ -12,12 +12,12 @@ import { ThemeToggle } from '@/components/lotto-look/ThemeToggle';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Ticket, AlertCircle, CalendarDays, ListChecksIcon, Info } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import type { InterpretLotteryTicketOutput as AIOutputType, ParsedBet } from '@/ai/flows/interpret-lottery-ticket';
+import type { InterpretLotteryTicketOutput as AIOutputType, Bet as AIBetType } from '@/ai/flows/interpret-lottery-ticket';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
-// Updated Bet type to match ParsedBet from the AI flow
-export type Bet = ParsedBet;
+
+export type Bet = AIBetType; // Using the Bet type directly from the AI flow
 
 export default function LottoLookPage() {
   const [bets, setBets] = useState<Bet[]>([]);
@@ -28,11 +28,13 @@ export default function LottoLookPage() {
   const [selectedDates, setSelectedDates] = useState<DateRange | undefined>(undefined);
   const [selectedTracks, setSelectedTracks] = useState<Track[]>([]);
   
-  const [aiIdentifiedDate, setAiIdentifiedDate] = useState<string | undefined>(undefined);
-  const [aiIdentifiedTrack, setAiIdentifiedTrack] = useState<string | undefined>(undefined);
+  // State for AI identified data (not used by this reverted version of AI output)
+  // const [aiIdentifiedDate, setAiIdentifiedDate] = useState<string | undefined>(undefined);
+  // const [aiIdentifiedTrack, setAiIdentifiedTrack] = useState<string | undefined>(undefined);
 
 
   useEffect(() => {
+    // Initialize selectedDates on the client-side to avoid hydration mismatch
     setSelectedDates({
       from: new Date(),
       to: new Date(),
@@ -40,38 +42,34 @@ export default function LottoLookPage() {
   }, []);
 
   const handleInterpretSuccess = (aiOutput: AIOutputType) => {
-    setIsLoading(false); // Set loading to false immediately
+    setIsLoading(false);
 
-    if (!aiOutput) {
-      handleInterpretError("AI did not return a valid response structure (received undefined/null).");
-      return;
-    }
-
-    if (!Array.isArray(aiOutput.parsedBets)) {
-      console.error("AI response received, but 'parsedBets' is not an array or is missing. Received:", JSON.stringify(aiOutput, null, 2));
+    if (!Array.isArray(aiOutput)) {
+      console.error("AI response received, but it's not an array as expected. Received:", JSON.stringify(aiOutput, null, 2));
       setBets([]);
-      setAiIdentifiedDate(aiOutput.ticketDate || undefined); 
-      setAiIdentifiedTrack(aiOutput.identifiedTrack || undefined);
-      setError("AI response structure was invalid (bets data is missing or not an array). Please try again.");
+      // setAiIdentifiedDate(undefined); 
+      // setAiIdentifiedTrack(undefined);
+      setError("AI response structure was invalid (expected an array of bets). Please try again.");
       toast({
         variant: "destructive",
         title: "Interpretation Error",
-        description: "Received an invalid response from the AI (bets data is missing or malformed).",
+        description: "Received an invalid response from the AI (expected an array of bets).",
       });
       return;
     }
-
-    const processedBets = aiOutput.parsedBets.map(bet => ({
-      numeros: bet.numeros || "",
-      straight: typeof bet.straight === 'number' ? bet.straight : null,
-      box: typeof bet.box === 'number' ? bet.box : null,
-      combo: typeof bet.combo === 'number' ? bet.combo : null,
-      notas: bet.notas || undefined,
+    
+    // Ensure all fields are correctly typed or defaulted
+    const processedBets = aiOutput.map(bet => ({
+      betNumber: bet.betNumber || "",
+      gameMode: bet.gameMode || "Unknown",
+      straightAmount: typeof bet.straightAmount === 'number' ? bet.straightAmount : null,
+      boxAmount: typeof bet.boxAmount === 'number' ? bet.boxAmount : null,
+      comboAmount: typeof bet.comboAmount === 'number' ? bet.comboAmount : null,
     }));
-
+    
     setBets(processedBets);
-    setAiIdentifiedDate(aiOutput.ticketDate);
-    setAiIdentifiedTrack(aiOutput.identifiedTrack);
+    // setAiIdentifiedDate(undefined); // Not part of this AI output version
+    // setAiIdentifiedTrack(undefined); // Not part of this AI output version
     setError(null);
     toast({
       title: "Success!",
@@ -83,8 +81,8 @@ export default function LottoLookPage() {
   const handleInterpretError = (errorMessage: string) => {
     setError(errorMessage);
     setBets([]);
-    setAiIdentifiedDate(undefined);
-    setAiIdentifiedTrack(undefined);
+    // setAiIdentifiedDate(undefined);
+    // setAiIdentifiedTrack(undefined);
     setIsLoading(false);
     toast({
       variant: "destructive",
@@ -98,7 +96,7 @@ export default function LottoLookPage() {
   };
   
   const handleAddPlay = () => {
-    setBets(prevBets => [...prevBets, { numeros: "", straight: null, box: null, combo: null, notas: undefined }]);
+    setBets(prevBets => [...prevBets, { betNumber: "", gameMode: "Unknown", straightAmount: null, boxAmount: null, comboAmount: null }]);
   };
 
   const handleRemoveLastPlay = () => {
@@ -107,10 +105,10 @@ export default function LottoLookPage() {
 
   const handleResetForm = () => {
     setBets([]);
-    setSelectedDates({ from: new Date(), to: new Date() });
+    setSelectedDates({ from: new Date(), to: new Date() }); // Re-initialize dates
     setSelectedTracks([]);
-    setAiIdentifiedDate(undefined);
-    setAiIdentifiedTrack(undefined);
+    // setAiIdentifiedDate(undefined);
+    // setAiIdentifiedTrack(undefined);
     setError(null);
     setIsLoading(false);
     toast({
@@ -122,7 +120,7 @@ export default function LottoLookPage() {
 
   const overallTotal = useMemo(() => {
     return bets.reduce((acc, bet) => {
-      const rowTotal = (bet.straight || 0) + (bet.box || 0) + (bet.combo || 0);
+      const rowTotal = (bet.straightAmount || 0) + (bet.boxAmount || 0) + (bet.comboAmount || 0);
       return acc + rowTotal;
     }, 0);
   }, [bets]);
@@ -187,6 +185,7 @@ export default function LottoLookPage() {
            </Alert>
         )}
 
+        {/* AI Identified Info Card - Removed for this reverted version
         {(aiIdentifiedDate || aiIdentifiedTrack) && !isLoading && !error && (
           <Card>
             <CardHeader>
@@ -201,6 +200,7 @@ export default function LottoLookPage() {
             </CardContent>
           </Card>
         )}
+        */}
 
         <Card>
           <CardHeader>
@@ -252,3 +252,4 @@ export default function LottoLookPage() {
     </div>
   );
 }
+    
