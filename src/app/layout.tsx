@@ -1,22 +1,26 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Geist_Sans as GeistSans, Geist_Mono as GeistMono } from 'next/font/google'; // Corrected import
 import './globals.css';
+// Toaster and ThemeProvider might still be useful if any part of your jQuery app
+// or future Next.js pages (like API routes or other utility pages) need them.
+// If not, they can be removed.
 import { Toaster } from '@/components/ui/toaster';
-import { ThemeProvider } from '@/components/theme-provider'; // New import
+import { ThemeProvider } from '@/components/theme-provider';
 
-const geistSans = Geist({
+const geistSans = GeistSans({ // Corrected variable name
   variable: '--font-geist-sans',
   subsets: ['latin'],
 });
 
-const geistMono = Geist_Mono({
+const geistMono = GeistMono({ // Corrected variable name
   variable: '--font-geist-mono',
   subsets: ['latin'],
 });
 
+// Metadata can be simplified or made more generic if index.html handles its own title.
 export const metadata: Metadata = {
-  title: 'Beast Reader (Cricket) East New York',
-  description: 'Interpret handwritten lottery tickets with AI. Cricket version for East New York.',
+  title: 'Beast Bet App',
+  description: 'Lottery ticket interpretation and management tool.',
 };
 
 export default function RootLayout({
@@ -27,13 +31,18 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        {/* If your public/index.html defines the full page structure, 
+            children might not be directly rendered here for the root path.
+            However, ThemeProvider and Toaster can still wrap potential 
+            Next.js specific pages or future additions.
+        */}
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          {children} {/* This will render content from Next.js pages if any exist besides the root */}
           <Toaster />
         </ThemeProvider>
       </body>
