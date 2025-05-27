@@ -18,6 +18,15 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Removed rewrites to simplify, as page.tsx is still active.
+  // async rewrites() {
+  //   return [
+  //     {
+  //       source: '/',
+  //       destination: '/index.html',
+  //     },
+  //   ];
+  // },
 };
 
 export default nextConfig;

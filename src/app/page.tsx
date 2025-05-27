@@ -1,13 +1,19 @@
 
-// This file is for diagnostic purposes.
-
+// This page will attempt to load public/index.html in an iframe.
 export default function HomePage() {
   return (
-    <div style={{ padding: '20px', textAlign: 'center', backgroundColor: 'lightyellow', border: '2px solid orange', margin: '20px' }}>
-      <h1>Diagnostic Test Page</h1>
-      <p>This content is rendered from <strong>src/app/page.tsx</strong>.</p>
-      <p>If you are seeing this, the Next.js App Router and src/app/layout.tsx are functioning at a basic level.</p>
-      <p>The previous blank screen meant that either this page returning 'null' didn't cause a fallback to public/index.html, OR public/index.html itself (or its scripts) resulted in a blank page.</p>
+    <div style={{ margin: 0, padding: 0, overflow: 'hidden', height: '100vh', width: '100vw' }}>
+      <iframe
+        src="/index.html"
+        style={{
+          width: '100%',
+          height: '100%',
+          border: 'none',
+          margin: 0,
+          padding: 0,
+        }}
+        title="LottoLook App"
+      />
     </div>
   );
 }
