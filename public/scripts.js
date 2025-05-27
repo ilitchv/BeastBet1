@@ -17,8 +17,8 @@ $(document).ready(function() {
   let transactionDateTime = '';
   window.ticketImageDataUrl = null;
 
-  let selectedTracksCount = 0;
-  let selectedDaysCount = 0;
+  let selectedTracksCount = 1; // Default to 1 if no tracks selected for multiplier
+  let selectedDaysCount = 1;   // Default to 1 day if not selected for multiplier
   const MAX_PLAYS = 25;
 
   let playCount = 0;
@@ -47,7 +47,7 @@ $(document).ready(function() {
       "Georgia Night": "22:00",
       "Pensilvania AM": "12:45",
       "Pensilvania PM": "18:15",
-      "Venezuela": "00:00",
+      "Venezuela": "00:00", // No cutoff for Venezuela itself
       "Brooklyn Midday": "14:20",
       "Brooklyn Evening": "22:00",
       "Front Midday": "14:20",
@@ -67,10 +67,8 @@ $(document).ready(function() {
       "Lotedom": "16:50",
       "Primera Noche": "18:50",
       "Panama": "16:00"
-    },
-    "Venezuela": {
-      "Venezuela": "00:00"
     }
+    // Removed "Venezuela" as a top-level key, it's under USA
   };
 
   // (3) Init Flatpickr
@@ -83,19 +81,28 @@ $(document).ready(function() {
     allowInput: false,
     appendTo: document.body,
     onOpen: function() {
-      this.calendarContainer.style.transform = 'scale(2.0)';
-      this.calendarContainer.style.transformOrigin = 'top left';
+      if (this.calendarContainer) { // Check if calendarContainer exists
+        this.calendarContainer.style.transform = 'scale(2.0)';
+        this.calendarContainer.style.transformOrigin = 'top left';
+      }
     },
     onClose: function() {
-      this.calendarContainer.style.transform = '';
+      if (this.calendarContainer) { // Check if calendarContainer exists
+         this.calendarContainer.style.transform = '';
+      }
     },
     onReady: function(selectedDates, dateStr, instance){
       if(!dateStr || dateStr.trim()===""){
-        instance.setDate(new Date(), true);
+        instance.setDate(new Date(), true); // Set default date and trigger onChange
       }
+      // Initial count
+      selectedDaysCount = instance.selectedDates.length > 0 ? instance.selectedDates.length : 1;
+      calculateMainTotal();
+      disableTracksByTime();
+
     },
     onChange: (selectedDates) => {
-      selectedDaysCount = selectedDates.length;
+      selectedDaysCount = selectedDates.length > 0 ? selectedDates.length : 1;
       calculateMainTotal();
       storeFormState();
       disableTracksByTime();
@@ -108,9 +115,11 @@ $(document).ready(function() {
       .map(function(){return $(this).val();})
       .get();
     // "Venezuela" no cuenta en el multiplicador
-    selectedTracksCount = arr.filter(x => x !== "Venezuela").length || 1;
+    const countableTracks = arr.filter(x => x !== "Venezuela").length;
+    selectedTracksCount = countableTracks > 0 ? countableTracks : 1;
     calculateMainTotal();
-    disableTracksByTime();
+    disableTracksByTime(); // Call this to re-evaluate disabled state based on selection
+    storeFormState(); // Store state after track change
   });
 
   // (5) MAIN TABLE => Add/Remove
@@ -121,7 +130,7 @@ $(document).ready(function() {
 
   $("#eliminarJugada").click(function(){
     if(playCount === 0) {
-      alert("No plays to remove.");
+      // alert("No plays to remove."); // Replaced with toast or quieter feedback if preferred
       return;
     }
     $("#tablaJugadas tr:last").remove();
@@ -133,7 +142,7 @@ $(document).ready(function() {
 
   $("#tablaJugadas").on("click",".removeMainBtn",function(){
     $(this).closest("tr").remove();
-    playCount--;
+    playCount--; // playCount should be updated here
     renumberMainRows();
     calculateMainTotal();
     highlightDuplicatesInMain();
@@ -146,49 +155,58 @@ $(document).ready(function() {
     storeFormState();
   });
 
-  function addMainRow(){
+  function addMainRow(bet = null){ // bet is an optional object from OCR
     if(playCount >= MAX_PLAYS){
       alert("You have reached 25 plays in the main form.");
       return null;
     }
     playCount++;
     const rowIndex = playCount;
+    const betNumberVal = bet && bet.betNumber ? bet.betNumber : "";
+    // gameMode will be determined by recalcMainRow
+    const straightVal = bet && (typeof bet.straightAmount === 'number') ? bet.straightAmount.toFixed(2) : "";
+    const boxVal = bet && (typeof bet.boxAmount === 'number') ? bet.boxAmount.toFixed(2) : "";
+    const comboVal = bet && (typeof bet.comboAmount === 'number') ? bet.comboAmount.toFixed(2) : "";
+
+
     const rowHTML = `
-      <tr data-playIndex="${rowIndex}">
+      <tr data-playindex="${rowIndex}">
         <td>
           <button type="button" class="btnRemovePlay removeMainBtn" data-row="${rowIndex}">
             ${rowIndex}
           </button>
         </td>
         <td>
-          <input type="text" class="form-control betNumber" />
+          <input type="text" class="form-control betNumber" value="${betNumberVal}" />
         </td>
         <td class="gameMode">-</td>
         <td>
-          <input type="number" class="form-control straight" />
+          <input type="number" step="0.01" class="form-control straight" value="${straightVal}" />
         </td>
         <td>
-          <input type="text" class="form-control box" />
+          <input type="number" step="0.01" class="form-control box" value="${boxVal}" />
         </td>
         <td>
-          <input type="number" class="form-control combo" />
+          <input type="number" step="0.01" class="form-control combo" value="${comboVal}" />
         </td>
         <td class="total">0.00</td>
       </tr>
     `;
     $("#tablaJugadas").append(rowHTML);
-    return $("#tablaJugadas tr[data-playIndex='"+rowIndex+"']");
+    const newRow = $("#tablaJugadas tr[data-playindex='"+rowIndex+"']");
+    recalcMainRow(newRow); // Recalculate after adding, especially for gameMode
+    return newRow;
   }
 
   function renumberMainRows(){
     let i=0;
     $("#tablaJugadas tr").each(function(){
       i++;
-      $(this).attr("data-playIndex", i);
+      $(this).attr("data-playindex", i); // Corrected attribute name
       $(this).find(".removeMainBtn").attr("data-row", i).text(i);
     });
-    playCount = i;
-    storeFormState();
+    playCount = i; // Update playCount to the actual number of rows
+    // storeFormState(); // storing state is handled by other functions calling this
   }
 
   function recalcMainRow($row){
@@ -213,78 +231,60 @@ $(document).ready(function() {
       const val= parseFloat(totalCell)||0;
       sum+= val;
     });
-    if(selectedDaysCount===0){
-      // If no days selected, but plays exist, sum plays without multiplier
-      // If days ARE selected, apply multiplier.
-      // This logic might need refinement if selectedDaysCount can be 0 while form has plays.
-      // For now, if days=0, treat multiplier as 1 for sum of plays, otherwise apply full multiplier.
-      const daysMultiplier = selectedDaysCount > 0 ? selectedDaysCount : 1;
-      const tracksMultiplier = selectedTracksCount > 0 ? selectedTracksCount : 1;
-      sum = sum * tracksMultiplier * daysMultiplier;
 
-    } else {
-      sum = sum * selectedTracksCount * selectedDaysCount;
-    }
+    const currentSelectedDays = fp.selectedDates.length > 0 ? fp.selectedDates.length : 1;
+    const currentSelectedTracks = $(".track-checkbox:checked").filter(function(){ return $(this).val() !== "Venezuela"; }).length || 1;
+    
+    sum = sum * currentSelectedTracks * currentSelectedDays;
     $("#totalJugadas").text( sum.toFixed(2) );
-    storeFormState();
+    // storeFormState(); // Store form state handled by callers or specific state update functions
   }
 
   // (7) determineGameMode
   function determineGameMode(betNumber){
     if(!betNumber) return "-";
+    betNumber = betNumber.toString().trim(); // Ensure it's a string
 
     const tracks = $(".track-checkbox:checked")
       .map(function(){return $(this).val();})
       .get();
-    const isUSA = tracks.some(t => cutoffTimes.USA[t]);
+    const isUSA = tracks.some(t => cutoffTimes.USA[t] && t !== "Venezuela" && t !== "New York Horses");
     const isSD  = tracks.some(t => cutoffTimes["Santo Domingo"][t]);
     const includesVenezuela = tracks.includes("Venezuela");
     const includesHorses = tracks.includes("New York Horses");
 
-    // 1) "NY Horses"
     if(includesHorses){
       return "NY Horses";
     }
-
-    // 2) Single Action => 1 dígito, track de USA (except venezuela/horses)
-    if(isUSA && !includesVenezuela && betNumber.length===1){
-      return "Single Action";
-    }
-
-    // 3) Pale => (22-xx)
-    const paleRegex = /^(\d{2})(-|x|\+)(\d{2})$/; // Allow x and + as well
+    
+    const paleRegex = /^(\d{2})([x+-])(\d{2})$/;
     if(paleRegex.test(betNumber)){
-      if(includesVenezuela && isUSA) {
+      if(includesVenezuela && isUSA) { // Check if a USA track (not just Venezuela) is also selected
         return "Pale-Ven";
       }
-      if(isSD && !isUSA){
+      if(isSD){ // If any SD track is selected
         return "Pale-RD";
       }
-      // If only USA tracks are selected (and not Venezuela or NY Horses), it's a US Palé
-      if(isUSA && !isSD && !includesVenezuela && !includesHorses) {
-          return "Palé"; // Generic Palé for US
-      }
-      return "-"; // Needs specific context if mixed or unclear
+      return "Palé"; // Default Palé if specific region not clear or only USA/general tracks
     }
+    
+    if(betNumber.length===1 && isUSA && !includesVenezuela && !includesHorses){
+        return "Single Action";
+    }
+
 
     const length = betNumber.length;
-    if(length<1 || length>4) return "-"; // Allow 1 for SingleAction handled above
+    if(length<2 || length>4) return "-";
 
-    // 4) Venezuela => 2 dig + track USA
-    if(length===2 && includesVenezuela && isUSA){
-      return "Venezuela";
+    if(length===2){
+      if(includesVenezuela && isUSA) return "Venezuela";
+      if(isUSA && !isSD && !includesVenezuela) return "Pulito"; // Ensure Venezuela isn't also making it "Venezuela"
+      if(isSD && !isUSA) return "RD-Quiniela";
+      if(isUSA) return "Pulito"; // Default for 2 digits if USA track selected
+      if(isSD) return "RD-Quiniela"; // Default for 2 digits if SD track selected
     }
-    // 5) Pulito => 2 dig, track USA sin SD
-    if(isUSA && !isSD && length===2){
-      return "Pulito";
-    }
-    // 6) RD-Quiniela => 2 dig, track SD sin USA
-    if(length===2 && isSD && !isUSA){
-      return "RD-Quiniela";
-    }
-    // 7) 3 => pick3
+    
     if(length===3) return "Pick 3";
-    // 8) 4 => win4
     if(length===4) return "Win 4";
 
     return "-";
@@ -294,50 +294,40 @@ $(document).ready(function() {
   function calculateRowTotal(bn, gm, stVal, bxVal, coVal){
     if(!bn || gm==="-") return "0.00";
     const st = parseFloat(stVal)||0;
+    const bx = parseFloat(bxVal)||0; // For Pulito, this might be string "1,2,3" but we parse to number for SA/Horses
     const combo = parseFloat(coVal)||0;
 
-    // Pulito => st * #posiciones en box
     if(gm==="Pulito"){
-      if(bxVal){ // Box input for Pulito is treated as number of positions
-        const positions = parseFloat(bxVal) || 0; // Example: if box is "2", means 2 positions
-        return (st * positions).toFixed(2);
+       // For Pulito, boxVal is expected to be positions like "1,2" or just a single position.
+       // The amount is the straight amount. Box amount input is used for positions.
+      if(stVal && bxVal){ // Straight amount must be present, boxVal are positions
+        const positions = bxVal.toString().split(",").map(p => p.trim()).filter(Boolean);
+        return (st * positions.length).toFixed(2);
       }
-      return st.toFixed(2); // If no box value, just straight
+      return st.toFixed(2); // If only straight amount and no box positions, it's just straight.
     }
 
-    // Single Action => st+box+combo
-    if(gm==="Single Action"){
-      const numericBox = parseFloat(bxVal)||0;
-      return (st + numericBox + combo).toFixed(2);
+    if(gm==="Single Action" || gm==="NY Horses"){
+      return (st + bx + combo).toFixed(2);
     }
 
-    // NY Horses => st+box+combo
-    if(gm==="NY Horses"){
-      const numericBox = parseFloat(bxVal)||0;
-      return (st + numericBox + combo).toFixed(2);
+    if(["Venezuela","Pale-RD","Pale-Ven","RD-Quiniela", "Palé"].includes(gm)){
+      // For Palé, Box can also be used, and Combo. Let's adjust.
+      // Typically Palé is straight, but if box/combo amounts are provided, they should be included.
+      return (st + bx + combo).toFixed(2);
     }
 
-    // Venezuela, Pale-Ven, Pale-RD, RD-Quiniela => solo st
-     if(["Venezuela","Pale-RD","Pale-Ven","RD-Quiniela", "Palé"].includes(gm)){
-      return st.toFixed(2);
-    }
-
-
-    // Win4 / Pick3 => combosCount
     if(gm==="Win 4" || gm==="Pick 3"){
-      const numericBox = parseFloat(bxVal)||0;
       const combosCount = calcCombos(bn);
-      let total = st + numericBox + (combo*combosCount);
+      let total = st + bx + (combo * combosCount);
       return total.toFixed(2);
     }
 
-    // default => st+box+combo
-    const numericBox = parseFloat(bxVal)||0;
-    return (st + numericBox + combo).toFixed(2);
+    return (st + bx + combo).toFixed(2);
   }
 
   function calcCombos(str){
-    if (!str) return 1; // Avoid errors with empty bet numbers
+    if (typeof str !== 'string') return 1; // Should not happen with proper input
     const freq = {};
     for(let c of str){
       freq[c] = (freq[c]||0)+1;
@@ -352,9 +342,15 @@ $(document).ready(function() {
 
   // (9) store/load FormState
   function storeFormState(){
+    const currentSelectedDates = fp.selectedDates.map(date => dayjs(date).format("MM-DD-YYYY"));
+    const currentSelectedTracks = $(".track-checkbox:checked").map(function(){ return $(this).val(); }).get();
+
     const st = {
-      selectedTracks: $(".track-checkbox:checked").map(function(){ return $(this).val(); }).get(),
-      selectedDays: $("#fecha").val(),
+      // selectedTracksCount: selectedTracksCount, // Derived on load
+      // selectedDaysCount: selectedDaysCount, // Derived on load
+      dateVal: currentSelectedDates.join(", "), // Store formatted dates
+      selectedTrackValues: currentSelectedTracks, // Store actual selected track values
+      playCount,
       plays: []
     };
     $("#tablaJugadas tr").each(function(){
@@ -379,75 +375,68 @@ $(document).ready(function() {
   function loadFormState(){
     const dataStr = localStorage.getItem("formState");
     if(!dataStr) {
-        autoSelectNYTrackAndVenezuela(); // Apply defaults if no stored state
-        disableTracksByTime(); // Ensure tracks are correctly disabled on first load
+        autoSelectNYTrackAndVenezuela(); // Auto-select if no saved state
+        if (fp && fp.selectedDates.length === 0) { // Ensure default date if none selected
+            fp.setDate([new Date()], true);
+        }
+        disableTracksByTime(); // Initial check
         return;
     }
-    const data = JSON.parse(dataStr);
-
-    if (data.selectedDays) {
-        fp.setDate(data.selectedDays.split(", "), true);
-        selectedDaysCount = data.selectedDays.split(", ").length;
-    } else {
-        fp.setDate([new Date()], true); // Default to today if no date stored
-        selectedDaysCount = 1;
+    const data=JSON.parse(dataStr);
+    if(!data) {
+        autoSelectNYTrackAndVenezuela();
+        if (fp && fp.selectedDates.length === 0) {
+            fp.setDate([new Date()], true);
+        }
+        disableTracksByTime();
+        return;
     }
 
-    if (data.selectedTracks && data.selectedTracks.length > 0) {
+    // Restore dates
+    if (data.dateVal && fp) {
+        const datesToSet = data.dateVal.split(", ").map(ds => dayjs(ds, "MM-DD-YYYY").toDate());
+        fp.setDate(datesToSet, true); // Set dates and trigger onChange
+    } else if (fp) {
+        fp.setDate([new Date()], true); // Default to today if no saved dates
+    }
+    selectedDaysCount = fp.selectedDates.length > 0 ? fp.selectedDates.length : 1;
+
+
+    // Restore tracks
+    if (data.selectedTrackValues && data.selectedTrackValues.length > 0) {
         $(".track-checkbox").prop("checked", false); // Uncheck all first
-        data.selectedTracks.forEach(trackVal => {
+        data.selectedTrackValues.forEach(trackVal => {
             $(`.track-checkbox[value="${trackVal}"]`).prop("checked", true);
         });
-        selectedTracksCount = data.selectedTracks.filter(x => x !== "Venezuela").length || 1;
     } else {
-        autoSelectNYTrackAndVenezuela(); // Apply defaults if no tracks stored
+       autoSelectNYTrackAndVenezuela(); // Auto-select if no tracks saved
     }
+    const countableTracks = $(".track-checkbox:checked").filter(function() { return $(this).val() !== "Venezuela"; }).length;
+    selectedTracksCount = countableTracks > 0 ? countableTracks : 1;
 
 
+    playCount = 0; // Reset before adding plays
     $("#tablaJugadas").empty();
-    let i=0;
     if (data.plays) {
         data.plays.forEach((p)=>{
-          i++;
-          const rowHTML=`
-            <tr data-playIndex="${i}">
-              <td>
-                <button type="button" class="btnRemovePlay removeMainBtn" data-row="${i}">
-                  ${i}
-                </button>
-              </td>
-              <td>
-                <input type="text" class="form-control betNumber" value="${p.betNumber||""}" />
-              </td>
-              <td class="gameMode">${p.gameMode||"-"}</td>
-              <td>
-                <input type="number" class="form-control straight" value="${p.straight||""}" />
-              </td>
-              <td>
-                <input type="text" class="form-control box" value="${p.box||""}" />
-              </td>
-              <td>
-                <input type="number" class="form-control combo" value="${p.combo||""}" />
-              </td>
-              <td class="total">${p.total||"0.00"}</td>
-            </tr>
-          `;
-          $("#tablaJugadas").append(rowHTML);
+          // Use addMainRow to ensure consistency and correct playCount update
+          const newRow = addMainRow();
+          if (newRow) {
+            newRow.find(".betNumber").val(p.betNumber || "");
+            // gameMode will be set by recalcMainRow
+            newRow.find(".straight").val(p.straight || "");
+            newRow.find(".box").val(p.box || "");
+            newRow.find(".combo").val(p.combo || "");
+            recalcMainRow(newRow); // This will set gameMode and total
+          }
         });
     }
-    playCount = i;
-    recalcAllMainRows(); // Recalculate all rows after loading
-    calculateMainTotal(); // Recalculate grand total
+    
+    calculateMainTotal(); // Recalculate total based on restored state
     highlightDuplicatesInMain();
-    disableTracksByTime(); // Apply track disabling after loading state
+    disableTracksByTime(); // Check cutoffs after loading state
   }
-
-
-  function recalcAllMainRows(){
-    $("#tablaJugadas tr").each(function(){
-      recalcMainRow($(this));
-    });
-  }
+  
 
   // (10) resetForm
   $("#resetForm").click(function(){
@@ -455,28 +444,30 @@ $(document).ready(function() {
       resetForm();
     }
   });
+
   function resetForm(){
-    $("#lotteryForm")[0].reset();
+    $("#lotteryForm")[0].reset(); // Resets form inputs, but not dynamically added rows or checkboxes
+    $(".track-checkbox").prop("checked", false); // Uncheck all track checkboxes
     $("#tablaJugadas").empty();
     playCount=0;
-    // selectedTracksCount=0; // Will be set by autoSelectNYTrackAndVenezuela
-    // selectedDaysCount=0; // Will be set by fp.setDate
+    
     window.ticketImageDataUrl=null;
-    $("#totalJugadas").text("0.00");
     localStorage.removeItem("formState");
 
     if(fp) {
       fp.clear();
-      fp.setDate([ new Date() ], true); // This will trigger onChange and set selectedDaysCount
+      fp.setDate([ new Date() ], true); // Set to today and trigger events
     }
+    selectedDaysCount = 1; // Reset to 1 after clearing
     
-    autoSelectNYTrackAndVenezuela(); // This will trigger change on checkboxes and set selectedTracksCount
-    // calculateMainTotal(); // Should be called by the above triggers
-    // highlightDuplicatesInMain(); // Not needed on reset
-    // showCutoffTimes(); // Already called at the end
-    disableTracksByTime(); // Call this explicitly after resetting tracks and date
+    autoSelectNYTrackAndVenezuela(); // This will also trigger track change and update selectedTracksCount
+    
+    // Explicitly call calculateMainTotal after all resets
+    calculateMainTotal(); 
+    showCutoffTimes(); // Recalculate and display cutoff times
+    disableTracksByTime(); // Re-check track availability
+    $("#totalJugadas").text("0.00"); // Ensure total display is reset
   }
-
 
   // (11) Generate Ticket
   $("#generarTicket").click(function(){
@@ -484,8 +475,8 @@ $(document).ready(function() {
   });
 
   function doGenerateTicket(){
-    const dateVal = $("#fecha").val()||"";
-    if(!dateVal){
+    const dateVal = fp.selectedDates.map(d => dayjs(d).format("MM-DD-YYYY")).join(", ");
+    if(!dateVal || fp.selectedDates.length === 0){
       alert("Please select at least one date.");
       return;
     }
@@ -501,23 +492,32 @@ $(document).ready(function() {
     $("#ticketTracks").text(chosenTracks.join(", "));
 
     if (userChoseToday()) {
-        for(let t of chosenTracks){
-          if(t==="Venezuela") continue; // Skip Venezuela for cutoff check as per original logic
-          const rawCutoff = getTrackCutoff(t);
-          if(rawCutoff){
-            let cutoffTimeMoment = dayjs(rawCutoff, "HH:mm");
-            // Original logic: if cutoff is after 9:30 PM, consider it 10:00 PM, otherwise 10 mins before actual.
-            let effectiveCutoff = cutoffTimeMoment.isAfter(dayjs("21:30","HH:mm")) ? dayjs().hour(22).minute(0) : cutoffTimeMoment.subtract(10,"minute");
-            
-            if(dayjs().isSame(effectiveCutoff) || dayjs().isAfter(effectiveCutoff)){
-              alert(`Track "${t}" is closed for today (Cutoff: ${effectiveCutoff.format("hh:mm A")}).`);
-              return;
+        let closedTrackFound = false;
+        for (let t of chosenTracks) {
+            if (t === "Venezuela") continue;
+            const rawCutoff = getTrackCutoff(t);
+            if (rawCutoff) {
+                const now = dayjs();
+                // Assuming cutoff is HH:mm format
+                let cutoffTimeToday = dayjs(now.format("YYYY-MM-DD") + " " + rawCutoff); 
+                // If cutoff is late (e.g. 22:00), it's effectively 10 PM. 
+                // If cutoff is early (e.g. 02:00 AM for a "night" draw that's technically next day morning), adjust.
+                // For simplicity here, directly compare.
+                // Subtract 10 minutes as a buffer
+                cutoffTimeToday = cutoffTimeToday.subtract(10, 'minute'); 
+
+                if (now.isAfter(cutoffTimeToday)) {
+                    alert(`Track "${t}" is closed for today (cutoff: ${cutoffTimeToday.format("hh:mm A")}).`);
+                    closedTrackFound = true;
+                    break; 
+                }
             }
-          }
         }
-      }
+        if (closedTrackFound) return;
+    }
 
 
+    // Validar filas
     const rows= $("#tablaJugadas tr");
     let valid=true;
     const errors=[];
@@ -526,85 +526,98 @@ $(document).ready(function() {
     });
 
     rows.each(function(){
-      const rowIndex= parseInt($(this).attr("data-playIndex"));
+      const rowIndex= parseInt($(this).attr("data-playindex")); // Corrected attribute
       const bn= $(this).find(".betNumber").val().trim();
       const gm= $(this).find(".gameMode").text();
       const st= parseFloat($(this).find(".straight").val().trim()||"0");
-      const bx= parseFloat($(this).find(".box").val().trim()||"0"); // Assuming box can be non-numeric for Pulito originally
+      const bx= parseFloat($(this).find(".box").val().trim()||"0");
       const co= parseFloat($(this).find(".combo").val().trim()||"0");
 
       let errorHere=false;
       if(!bn){
         errorHere=true;
-        // errors.push(rowIndex);
+        errors.push(rowIndex);
         $(this).find(".betNumber").addClass("error-field");
       }
       if(hasBrooklynOrFront(chosenTracks) && bn.length!==3){
         errorHere=true;
-        // errors.push(rowIndex);
+        errors.push(rowIndex);
         $(this).find(".betNumber").addClass("error-field");
       }
       if(gm==="-"){
         errorHere=true;
-        // errors.push(rowIndex);
+        errors.push(rowIndex);
         $(this).find(".gameMode").addClass("error-field");
       }
 
       if(["Venezuela","Pale-Ven","Pulito","RD-Quiniela","Pale-RD", "Palé"].includes(gm)){
-        if(st<=0){
+        if(st<=0 && bx<=0 && co<=0){ // For these modes, at least one wager type should be > 0
           errorHere=true;
-          // errors.push(rowIndex);
-          $(this).find(".straight").addClass("error-field");
+          errors.push(rowIndex);
+          $(this).find(".straight, .box, .combo").addClass("error-field");
         }
       }
       if(["Win 4","Pick 3"].includes(gm)){
-        if(st<=0 && (parseFloat(bx)||0)<=0 && co<=0){ // Check if bx is a valid number or 0
+        if(st<=0 && bx<=0 && co<=0){
           errorHere=true;
-          // errors.push(rowIndex);
+          errors.push(rowIndex);
           $(this).find(".straight,.box,.combo").addClass("error-field");
         }
       }
       if(gm==="Single Action"){
-         if(st<=0 && (parseFloat(bx)||0)<=0 && co<=0){
+        if(st<=0 && bx<=0 && co<=0){ // Allow box/combo for SA if needed by user
           errorHere=true;
-          // errors.push(rowIndex);
+          errors.push(rowIndex);
           $(this).find(".straight,.box,.combo").addClass("error-field");
         }
       }
       if(gm==="NY Horses"){
-        if(st<=0 && (parseFloat(bx)||0)<=0 && co<=0){
+        if(st<=0 && bx<=0 && co<=0){
           errorHere=true;
-          // errors.push(rowIndex);
+          errors.push(rowIndex);
           $(this).find(".straight,.box,.combo").addClass("error-field");
         }
       }
 
-      // Límites (simplified, can be expanded as per original script)
-      if(gm==="Win 4" && (st > 6 || co > 6 || (parseFloat(bx)||0) > 40)) { errorHere=true; $(this).find(".straight,.box,.combo").addClass("error-field"); }
-      if(gm==="Pick 3" && (st > 35 || co > 35 || (parseFloat(bx)||0) > 100)) { errorHere=true; $(this).find(".straight,.box,.combo").addClass("error-field");}
-      if((gm==="Venezuela" || gm==="Pulito") && st > 100) { errorHere=true; $(this).find(".straight").addClass("error-field");}
-
-
-      if(errorHere) {
-        valid=false;
-        errors.push(rowIndex); // Add to error list only if errorHere is true
+      // Límites (example, adjust as needed)
+      if(gm==="Win 4"){
+        if(st>10) { errorHere=true; $(this).find(".straight").addClass("error-field");} // Example limit
+        if(bx>62) { errorHere=true; $(this).find(".box").addClass("error-field");}
+        if(co>10) { errorHere=true; $(this).find(".combo").addClass("error-field");}
       }
+      if(gm==="Pick 3"){
+         if(st>35) { errorHere=true; $(this).find(".straight").addClass("error-field");}
+         if(bx>105) { errorHere=true; $(this).find(".box").addClass("error-field");}
+         if(co>35) { errorHere=true; $(this).find(".combo").addClass("error-field");}
+      }
+      if(["Venezuela", "Pulito", "RD-Quiniela"].includes(gm)){
+         if(st>100) { errorHere=true; $(this).find(".straight").addClass("error-field");}
+         if(bx>100) { errorHere=true; $(this).find(".box").addClass("error-field");} // If box is allowed
+      }
+       if(gm==="Single Action"){
+         if(st>600) { errorHere=true; $(this).find(".straight").addClass("error-field");}
+      }
+
+
+      if(errorHere && !errors.includes(rowIndex)) errors.push(rowIndex); // Add only if not already present
+      if(errorHere) valid=false;
     });
 
     if(!valid){
-      const uniqueErr=[...new Set(errors)].join(", ");
+      const uniqueErr=[...new Set(errors)].sort((a,b)=>a-b).join(", ");
       alert(`Some plays have errors or exceed limits (row(s): ${uniqueErr}). Please fix them.`);
       return;
     }
 
+    // Llenar ticket
     $("#ticketJugadas").empty();
     rows.each(function(){
-      const rowIndex= $(this).attr("data-playIndex");
+      const rowIndex= $(this).attr("data-playindex"); // Corrected attribute
       const bn= $(this).find(".betNumber").val().trim();
       const gm= $(this).find(".gameMode").text();
       let stVal= $(this).find(".straight").val().trim()||"0.00";
-      let bxVal= $(this).find(".box").val().trim(); // Keep as is for display if text
-      let coVal= $(this).find(".combo").val().trim()||"0.00";
+      let bxVal= $(this).find(".box").val().trim()||"0.00"; // Default to 0.00 if empty
+      let coVal= $(this).find(".combo").val().trim()||"0.00"; // Default to 0.00 if empty
       let totVal= $(this).find(".total").text()||"0.00";
 
       const rowHTML=`
@@ -613,7 +626,7 @@ $(document).ready(function() {
           <td>${bn}</td>
           <td>${gm}</td>
           <td>${parseFloat(stVal).toFixed(2)}</td>
-          <td>${(gm === "Pulito" || !parseFloat(bxVal)) ? bxVal : parseFloat(bxVal).toFixed(2)}</td>
+          <td>${parseFloat(bxVal).toFixed(2)}</td>
           <td>${parseFloat(coVal).toFixed(2)}</td>
           <td>${parseFloat(totVal).toFixed(2)}</td>
         </tr>
@@ -631,7 +644,7 @@ $(document).ready(function() {
     $("#confirmarTicket").prop("disabled",false);
     fixTicketLayoutForMobile();
     ticketModal.show();
-    storeFormState();
+    // storeFormState(); // State stored by individual actions
   }
 
   $("#confirmarTicket").click(function(){
@@ -640,9 +653,10 @@ $(document).ready(function() {
 
     const uniqueTicket= generateUniqueTicketNumber();
     $("#numeroTicket").text(uniqueTicket);
-    transactionDateTime= dayjs().format("MM/DD/YYYY hh:mm A");
+    transactionDateTime= dayjs().format("MM/DD/YYYY hh:mm A"); // Use global so it's consistent
     $("#ticketTransaccion").text(transactionDateTime);
 
+    // QR
     $("#qrcode").empty();
     new QRCode(document.getElementById("qrcode"),{
       text: uniqueTicket,
@@ -681,16 +695,16 @@ $(document).ready(function() {
 
         alert("Your ticket image was downloaded successfully (JPEG).");
 
-        saveBetDataToSheetDB(uniqueTicket, success=>{ // Or adapt to MongoDB later
+        saveBetDataToSheetDB(uniqueTicket, success=>{ // Pass uniqueTicket here
           if(success){
-            console.log("Bet data (placeholder) sent to SheetDB.");
+            console.log("Bet data sent to SheetDB.");
           } else {
-            console.error("Failed to send bet data (placeholder) to SheetDB.");
+            console.error("Failed to send bet data to SheetDB.");
           }
         });
       })
       .catch(err=>{
-        console.error(err);
+        console.error("Error generating ticket image:", err);
         alert("Problem generating final ticket image. Try again.");
       })
       .finally(()=>{
@@ -700,8 +714,11 @@ $(document).ready(function() {
   });
 
   $("#editButton").click(function(){
-    const ticketModal= bootstrap.Modal.getInstance(document.getElementById("ticketModal"));
-    ticketModal.hide();
+    const ticketModalEl = document.getElementById("ticketModal");
+    if (ticketModalEl) {
+        const ticketModal= bootstrap.Modal.getInstance(ticketModalEl);
+        if (ticketModal) ticketModal.hide();
+    }
   });
 
   $("#shareTicket").click(async function(){
@@ -709,7 +726,7 @@ $(document).ready(function() {
       alert("No ticket image is available to share.");
       return;
     }
-    if(navigator.canShare){
+    if(navigator.share && navigator.canShare){ // Check navigator.canShare first
       try{
         const resp=await fetch(window.ticketImageDataUrl);
         const blob=await resp.blob();
@@ -717,10 +734,11 @@ $(document).ready(function() {
         if(navigator.canShare({files:[file]})){
           await navigator.share({files:[file], title:"Ticket", text:"Sharing Ticket"});
         } else {
-          alert("Your browser does not support file sharing. Please share the downloaded image manually.");
+          // Fallback or message if specific file sharing not supported
+          alert("File sharing not supported. Please share the downloaded image manually.");
         }
       } catch(e){
-        console.error(e);
+        console.error("Share API error:", e);
         alert("Could not share the ticket image. Please try manually.");
       }
     } else {
@@ -733,13 +751,14 @@ $(document).ready(function() {
   }
 
   function fixTicketLayoutForMobile(){
-    $("#preTicket table, #preTicket th, #preTicket td").css("white-space","nowrap");
-    $("#preTicket").css("overflow-x","auto");
+    // These styles might be better handled in CSS with media queries
+    // $("#preTicket table, #preTicket th, #preTicket td").css("white-space","nowrap");
+    // $("#preTicket").css("overflow-x","auto");
   }
 
-  function saveBetDataToSheetDB(uniqueTicket, callback){
-    const dateVal= $("#fecha").val()||"";
-    const chosenTracks= $(".track-checkbox:checked")
+  function saveBetDataToSheetDB(ticketNum, callback){ // Added ticketNum parameter
+    const dateVal = fp.selectedDates.map(d => dayjs(d).format("MM-DD-YYYY")).join(", ");
+    const chosenTracks = $(".track-checkbox:checked")
       .map(function(){return $(this).val();})
       .get();
     const joinedTracks= chosenTracks.join(", ");
@@ -747,7 +766,7 @@ $(document).ready(function() {
     let betData=[];
 
     $("#tablaJugadas tr").each(function(){
-      const rowIndex= $(this).attr("data-playIndex");
+      const rowIndex= $(this).attr("data-playindex"); // Corrected attribute
       const bn= $(this).find(".betNumber").val();
       const gm= $(this).find(".gameMode").text();
       const st= $(this).find(".straight").val();
@@ -755,10 +774,10 @@ $(document).ready(function() {
       const co= $(this).find(".combo").val();
       const tot= $(this).find(".total").text();
 
-      if(gm!=="-"){
+      if(gm!=="-"){ // Only save valid plays
         betData.push({
-          "Ticket Number": uniqueTicket,
-          "Transaction DateTime": transactionDateTime, // Use global var set on confirm
+          "Ticket Number": ticketNum, // Use passed ticketNum
+          "Transaction DateTime": transactionDateTime, // Use global transactionDateTime
           "Bet Dates": dateVal,
           "Tracks": joinedTracks,
           "Bet Number": bn||"",
@@ -773,19 +792,19 @@ $(document).ready(function() {
       }
     });
     
-    // For now, we are not implementing SheetDB or MongoDB here.
-    // This function will just log and callback.
-    console.log("Data to be saved (SheetDB/MongoDB):", betData);
-    callback(true); // Simulate success
-    
-    /*
+    if (betData.length === 0) {
+        console.log("No valid bet data to send to SheetDB.");
+        callback(true); // Consider this a "success" as there's nothing to fail on
+        return;
+    }
+
     fetch(SHEETDB_API_URL,{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ data: betData })
+      body: JSON.stringify({ data: betData }) // SheetDB expects an object with a 'data' property which is an array
     })
     .then(r=>{
-      if(!r.ok) throw new Error(`SheetDB error: ${r.status}`);
+      if(!r.ok) throw new Error(`SheetDB error: ${r.status} ${r.statusText}`);
       return r.json();
     })
     .then(d=>{
@@ -793,16 +812,14 @@ $(document).ready(function() {
       callback(true);
     })
     .catch(e=>{
-      console.error(e);
+      console.error("Error saving to SheetDB:", e);
       callback(false);
     });
-    */
   }
-
 
   function getTrackCutoff(tn){
     for(let region in cutoffTimes){
-      if(cutoffTimes[region] && cutoffTimes[region][tn]){ // Add check for region existence
+      if(cutoffTimes[region] && cutoffTimes[region][tn]){ // Check if region and track exist
         return cutoffTimes[region][tn];
       }
     }
@@ -815,52 +832,57 @@ $(document).ready(function() {
   }
 
   function userChoseToday(){
-    const val= $("#fecha").val();
-    if(!val) return false;
-    const arr= val.split(", ");
+    if (!fp || !fp.selectedDates || fp.selectedDates.length === 0) return false;
     const today= dayjs().startOf("day");
-    for(let ds of arr){
-      const [mm,dd,yy]= ds.split("-").map(Number);
-      const picked= dayjs(new Date(yy, mm-1, dd)).startOf("day");
-      if(picked.isSame(today,"day")) return true;
+    for(let d of fp.selectedDates){
+      if(dayjs(d).startOf("day").isSame(today,"day")) return true;
     }
     return false;
   }
 
   function disableTracksByTime(){
-    if(!userChoseToday()){
-      enableAllTracks();
-      return;
-    }
-    const now = dayjs();
+    const todaySelected = userChoseToday();
     $(".track-checkbox").each(function(){
-      const trackName = $(this).val();
-      if(trackName === "Venezuela") return; // Skip Venezuela
-
-      const rawCutoff = getTrackCutoff(trackName);
-      if(rawCutoff){
-        let cutoffTimeMoment = dayjs(rawCutoff, "HH:mm");
-        // Logic from original script: if cutoff is after 9:30 PM, consider it 10:00 PM, otherwise 10 mins before actual.
-        let effectiveCutoff = cutoffTimeMoment.isAfter(dayjs("21:30","HH:mm")) ? dayjs().hour(22).minute(0) : cutoffTimeMoment.subtract(10,"minute");
-
-        if(now.isSame(effectiveCutoff) || now.isAfter(effectiveCutoff)){
-          $(this).prop("checked", false).prop("disabled", true);
-          $(this).closest(".track-button-container").find(".track-button")
-            .css({ opacity:0.5, cursor:"not-allowed" });
-        } else {
+      const trackVal = $(this).val();
+      const $label = $(this).closest(".track-button-container").find(".track-button");
+      
+      if (trackVal === "Venezuela") { // Venezuela is never disabled by time
           $(this).prop("disabled", false);
-          $(this).closest(".track-button-container").find(".track-button")
-            .css({ opacity:1, cursor:"pointer" });
+          $label.css({ opacity: 1, cursor: "pointer" });
+          return; // Continue to next track
+      }
+
+      const rawCutoff = getTrackCutoff(trackVal);
+      if(rawCutoff && todaySelected){
+        const now = dayjs();
+        // Combine current date with cutoff time for accurate comparison
+        let cutoffTimeToday = dayjs(now.format("YYYY-MM-DD") + " " + rawCutoff, "YYYY-MM-DD HH:mm");
+        
+        // Apply 10-minute buffer before cutoff
+        cutoffTimeToday = cutoffTimeToday.subtract(10, 'minute');
+
+        if(now.isAfter(cutoffTimeToday)){
+          $(this).prop("checked",false).prop("disabled",true);
+          $label.css({ opacity:0.5, cursor:"not-allowed" });
+        } else {
+          $(this).prop("disabled",false);
+          $label.css({ opacity:1, cursor:"pointer" });
         }
+      } else { // If not today or no cutoff, ensure enabled
+        $(this).prop("disabled",false);
+        $label.css({ opacity:1, cursor:"pointer" });
       }
     });
-    // Trigger change on track checkboxes to update counts and totals if a track was disabled and unchecked
-    $(".track-checkbox:disabled").trigger("change");
-    storeFormState();
+    // After potentially disabling tracks, re-evaluate selectedTracksCount and total
+    const arr = $(".track-checkbox:checked").map(function(){return $(this).val();}).get();
+    const countableTracks = arr.filter(x => x !== "Venezuela").length;
+    selectedTracksCount = countableTracks > 0 ? countableTracks : 1;
+    calculateMainTotal();
+    // storeFormState(); // Storing state handled by callers or specific events
   }
 
 
-  function enableAllTracks(){
+  function enableAllTracks(){ // Not strictly needed if disableTracksByTime handles enabling
     $(".track-checkbox").each(function(){
       $(this).prop("disabled",false);
       $(this).closest(".track-button-container").find(".track-button").css({
@@ -873,49 +895,52 @@ $(document).ready(function() {
   function showCutoffTimes(){
     $(".cutoff-time").each(function(){
       const track= $(this).data("track");
-      if(track==="Venezuela")return;
-      let raw="";
-      if(cutoffTimes.USA && cutoffTimes.USA[track]) raw= cutoffTimes.USA[track];
-      else if(cutoffTimes["Santo Domingo"] && cutoffTimes["Santo Domingo"][track]) raw= cutoffTimes["Santo Domingo"][track];
-      else if(cutoffTimes.Venezuela && cutoffTimes.Venezuela[track]) raw= cutoffTimes.Venezuela[track];
+      if(track==="Venezuela") {
+          $(this).text(""); // No cutoff time displayed for Venezuela
+          return;
+      }
+      let rawCutoff = getTrackCutoff(track);
 
-      if(raw){
-        let co= dayjs(raw,"HH:mm");
-        let cf= co.isAfter(dayjs("21:30","HH:mm"))? dayjs().hour(22).minute(0): co.subtract(10,"minute");
-        const hh= cf.format("HH");
-        const mm= cf.format("mm");
-        $(this).text(`${hh}:${mm}`);
+      if(rawCutoff){
+        // Display cutoff time directly, e.g., 02:20 PM
+        $(this).text(dayjs(rawCutoff, "HH:mm").format("hh:mm A"));
+      } else {
+        $(this).text(""); // Clear if no cutoff
       }
     });
   }
-  
-  // Auto-Select NY + Venezuela por defecto
+
+
+  // Initial setup calls
+  loadFormState(); // Load saved state first (this will set dates and tracks)
+  // showCutoffTimes() and disableTracksByTime() are called within loadFormState or after its dependent state setters.
+  // autoSelectNYTrackAndVenezuela() is also called within loadFormState if no tracks are loaded.
+
+  setInterval(disableTracksByTime, 60000); // Check every minute
+
   function autoSelectNYTrackAndVenezuela(){
-    const anyChecked= $(".track-checkbox:checked").length>0;
-    if(anyChecked && localStorage.getItem("formState")) return; // Don't override if loading from state and tracks were stored
+    const anyChecked = $(".track-checkbox:checked").length > 0;
+    if(anyChecked && !localStorage.getItem("formState")) return; // If already checked by user (not from localStorage), don't override
+    if (anyChecked && localStorage.getItem("formState")) return; // If loaded from localStorage, respect that
 
-    // Elige NY Mid Day si es antes de 14:20, si no, NY Evening
-    const now= dayjs();
-    // Get cutoff for NY Mid Day to decide
-    const nyMidDayCutoffStr = getTrackCutoff("New York Mid Day"); // e.g., "14:20"
-    let middayCutoffTime = dayjs(nyMidDayCutoffStr, "HH:mm").subtract(10, "minute"); // Effective cutoff
+    const now = dayjs();
+    let middayCutoffMoment = dayjs(now.format("YYYY-MM-DD") + " " + (cutoffTimes.USA["New York Mid Day"] || "14:20"), "YYYY-MM-DD HH:mm").subtract(10, 'minute');
 
-    if(now.isBefore(middayCutoffTime)){
+    if(now.isBefore(middayCutoffMoment)){
       $("#trackNYMidDay").prop("checked",true);
     } else {
       $("#trackNYEvening").prop("checked",true);
     }
     $("#trackVenezuela").prop("checked",true);
 
-    // Trigger change to update selectedTracksCount and totals
-    $(".track-checkbox[value='New York Mid Day'], .track-checkbox[value='New York Evening'], .track-checkbox[value='Venezuela']")
-        .trigger("change");
+    // Trigger change to update counts and totals
+    $(".track-checkbox").trigger("change");
   }
 
 
   // Duplicates highlight en MAIN
   function highlightDuplicatesInMain(){
-    $("#tablaJugadas tr").find(".betNumber").removeClass("duplicado");
+    $("#tablaJugadas tr .betNumber").removeClass("duplicado"); // Target .betNumber input
     let counts={};
     $("#tablaJugadas tr").each(function(){
       const bn= $(this).find(".betNumber").val().trim();
@@ -932,15 +957,20 @@ $(document).ready(function() {
 
   /*
    =========================================================
-   WIZARD (copiado tal cual tu backup)
+   WIZARD
    =========================================================
   */
 
-  const wizardModal = new bootstrap.Modal(document.getElementById("wizardModal"));
+  const wizardModalEl = document.getElementById("wizardModal");
+  let wizardModalInstance = null;
+  if (wizardModalEl) {
+    wizardModalInstance = new bootstrap.Modal(wizardModalEl);
+  }
+
 
   $("#wizardButton").click(function(){
     resetWizard();
-    wizardModal.show();
+    if (wizardModalInstance) wizardModalInstance.show();
   });
 
   function resetWizard(){
@@ -949,14 +979,14 @@ $(document).ready(function() {
     lockedFields.straight=false;
     lockedFields.box=false;
     lockedFields.combo=false;
-    $("#lockStraight").html(`<i class="bi bi-unlock"></i>`);
-    $("#lockBox").html(`<i class="bi bi-unlock"></i>`);
-    $("#lockCombo").html(`<i class="bi bi-unlock"></i>`);
+    $("#lockStraight").html(`<i class="bi bi-unlock"></i>`).removeClass('active');
+    $("#lockBox").html(`<i class="bi bi-unlock"></i>`).removeClass('active');
+    $("#lockCombo").html(`<i class="bi bi-unlock"></i>`).removeClass('active');
     $("#wizardBetNumber").val("");
     $("#wizardStraight").val("");
     $("#wizardBox").val("");
     $("#wizardCombo").val("");
-    $("#qpGameMode").val("Pick 3");
+    $("#qpGameMode").val("Pick 3"); // Default
     $("#qpCount").val("5");
     $("#rdFirstNumber").val("");
     $("#rdLastNumber").val("");
@@ -966,17 +996,22 @@ $(document).ready(function() {
     const field = $(this).data("field");
     lockedFields[field] = !lockedFields[field];
     if(lockedFields[field]){
-      $(this).html(`<i class="bi bi-lock-fill"></i>`);
+      $(this).html(`<i class="bi bi-lock-fill"></i>`).addClass('active');
     } else {
-      $(this).html(`<i class="bi bi-unlock"></i>`);
+      $(this).html(`<i class="bi bi-unlock"></i>`).removeClass('active');
     }
   });
 
   $("#wizardAddNext").click(function(){
     const bn = $("#wizardBetNumber").val().trim();
+    if (!bn) {
+        alert("Please enter a Bet Number.");
+        $("#wizardBetNumber").focus();
+        return;
+    }
     const gm = determineGameMode(bn);
     if(gm==="-"){
-      alert(`Cannot determine game mode for "${bn}". Check tracks or length/format.`);
+      alert(`Cannot determine game mode for "${bn}". Check selected tracks or bet number length/format.`);
       return;
     }
     let stVal = $("#wizardStraight").val().trim();
@@ -998,7 +1033,7 @@ $(document).ready(function() {
     wizardCount++;
     const i = wizardCount;
     const rowHTML=`
-      <tr data-wizardIndex="${i}">
+      <tr data-wizardindex="${i}">
         <td>
           <button type="button" class="removeWizardBtn btnRemovePlay" data-row="${i}">${i}</button>
         </td>
@@ -1023,7 +1058,7 @@ $(document).ready(function() {
     let i=0;
     $("#wizardTableBody tr").each(function(){
       i++;
-      $(this).attr("data-wizardIndex", i);
+      $(this).attr("data-wizardindex", i); // Corrected attribute
       $(this).find(".removeWizardBtn").attr("data-row", i).text(i);
     });
     wizardCount=i;
@@ -1042,80 +1077,67 @@ $(document).ready(function() {
 
     for(let i=0;i<countVal;i++){
       let bn= generateRandomNumberForMode(gm);
-      bn= padNumberForMode(bn, gm);
+      // bn= padNumberForMode(bn, gm); // Padding will happen in determineGameMode if needed or display
 
-      let rowT= calculateRowTotal(bn, gm, stVal, bxVal, coVal);
-      addWizardRow(bn, gm, stVal, bxVal, coVal, rowT);
+      let currentGM = determineGameMode(bn.toString()); // determine game mode for the generated number
+      let rowT= calculateRowTotal(bn.toString(), currentGM, stVal, bxVal, coVal);
+      addWizardRow(bn.toString(), currentGM, stVal, bxVal, coVal, rowT);
     }
     highlightDuplicatesInWizard();
   });
 
-  function generateRandomNumberForMode(mode){
-    if(mode==="NY Horses"){
-      const length = Math.floor(Math.random()*4)+1;
-      const maxVal = Math.pow(10,length)-1;
-      return Math.floor(Math.random()*(maxVal+1));
+ function generateRandomNumberForMode(mode) {
+    let num;
+    let length;
+    switch (mode) {
+        case "Win 4": length = 4; break;
+        case "Pick 3": length = 3; break;
+        case "Venezuela": case "Pulito": case "RD-Quiniela": length = 2; break;
+        case "Single Action": length = 1; break;
+        case "NY Horses": length = Math.floor(Math.random() * 4) + 1; break; // 1 to 4 digits
+        case "Pale-Ven": case "Pale-RD": // e.g., 22-55
+            let p1 = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+            let p2 = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+            return `${p1}-${p2}`; // Specific format for Palé
+        default: length = 3; // Default to Pick 3 like
     }
-    if(mode==="Single Action"){
-      return Math.floor(Math.random()*10);
-    }
-    if(mode==="Win 4"||mode==="Pale-Ven"||mode==="Pale-RD"||mode==="Palé"){
-      return Math.floor(Math.random()*10000);
-    }
-    if(mode==="Pick 3"){
-      return Math.floor(Math.random()*1000);
-    }
-    if(mode==="Venezuela"||mode==="Pulito"||mode==="RD-Quiniela"){
-      return Math.floor(Math.random()*100);
-    }
-    return Math.floor(Math.random()*1000);
-  }
-  function padNumberForMode(num, mode){
-    let sNum = String(num);
-    if(mode==="NY Horses"||mode==="Single Action"){
-      return sNum;
-    }
-    if(mode==="Pale-Ven"||mode==="Pale-RD"||mode==="Win 4"||mode==="Palé"){
-      return sNum.padStart(4, '0');
-    }
-    if(mode==="Pulito"||mode==="RD-Quiniela"||mode==="Venezuela"){
-      return sNum.padStart(2, '0');
-    }
-    if(mode==="Pick 3"){
-      return sNum.padStart(3, '0');
-    }
-    return sNum.padStart(3, '0');
-  }
+    num = Math.floor(Math.random() * Math.pow(10, length));
+    return num.toString().padStart(length, '0');
+}
 
 
   $("#btnGenerateRoundDown").click(function(){
-    const firstNum= $("#rdFirstNumber").val().trim();
-    const lastNum = $("#rdLastNumber").val().trim();
-    if(!firstNum||!lastNum){
+    const firstNumStr= $("#rdFirstNumber").val().trim();
+    const lastNumStr = $("#rdLastNumber").val().trim();
+    if(!firstNumStr||!lastNumStr){
       alert("Please enter both first and last number for Round Down.");
       return;
     }
-    if(firstNum.length!==lastNum.length){
-      alert("First/Last must have the same length (2,3, or 4 digits).");
+    if(firstNumStr.length!==lastNumStr.length || ![2,3,4].includes(firstNumStr.length)){
+      alert("First/Last must have the same length (2, 3, or 4 digits).");
       return;
     }
-    let start= parseInt(firstNum,10);
-    let end= parseInt(lastNum,10);
+    let start= parseInt(firstNumStr,10);
+    let end= parseInt(lastNumStr,10);
+
     if(isNaN(start)||isNaN(end)){
       alert("Invalid numeric range for Round Down.");
       return;
     }
-    if(start> end){
-      [start,end]=[end,start]; // Swap if out of order
+    if(start> end){ // Swap if out of order
+      [start,end]=[end,start];
     }
     const stVal= $("#wizardStraight").val().trim();
     const bxVal= $("#wizardBox").val().trim();
     const coVal= $("#wizardCombo").val().trim();
 
     for(let i=start; i<=end; i++){
-      let bn= i.toString().padStart(firstNum.length,"0");
+      let bn= i.toString().padStart(firstNumStr.length,"0");
       let gm= determineGameMode(bn);
-      if(gm==="-") continue;
+      if(gm==="-") {
+          console.warn(`Could not determine game mode for Round Down number: ${bn}. Skipping.`);
+          continue; 
+      }
       const rowT= calculateRowTotal(bn, gm, stVal, bxVal, coVal);
       addWizardRow(bn, gm, stVal, bxVal, coVal, rowT);
     }
@@ -1125,43 +1147,60 @@ $(document).ready(function() {
   $("#btnPermute").click(function(){
     permuteWizardBetNumbers();
   });
+
   function permuteWizardBetNumbers(){
     const rows= $("#wizardTableBody tr");
     if(rows.length===0){
-      alert("No plays in the wizard table.");
+      alert("No plays in the wizard table to permute.");
       return;
     }
-    let allDigits=[];
-    let lengths=[];
+    let allDigitsPermute=[]; // Renamed to avoid conflict with other allDigits
+    let originalRowsData = [];
+
     rows.each(function(){
       const bn=$(this).find("td").eq(1).text().trim();
-      lengths.push(bn.length);
-      for(let c of bn) allDigits.push(c);
-    });
-    if(allDigits.length===0){
-      alert("No digits found to permute.");
-      return;
-    }
-    for(let i=allDigits.length-1;i>0;i--){
-      const j=Math.floor(Math.random()*(i+1));
-      [allDigits[i],allDigits[j]]=[allDigits[j],allDigits[i]];
-    }
-    let idx=0;
-    rows.each(function(i){
-      const needed= lengths[i];
-      const subset= allDigits.slice(idx, idx+needed);
-      idx+= needed;
-      const newBN= subset.join("");
-      const gm= determineGameMode(newBN);
       const stTd = $(this).find("td").eq(3).text().trim();
       const bxTd = $(this).find("td").eq(4).text().trim();
       const coTd = $(this).find("td").eq(5).text().trim();
+      originalRowsData.push({bn, stTd, bxTd, coTd});
+      for(let char of bn.replace(/-/g, '')) { // Remove hyphens for palé before collecting digits
+          if(!isNaN(parseInt(char))) allDigitsPermute.push(char);
+      }
+    });
 
+    if(allDigitsPermute.length===0){
+      alert("No digits found in bet numbers to permute.");
+      return;
+    }
+
+    // Fisher-Yates shuffle
+    for(let i=allDigitsPermute.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [allDigitsPermute[i],allDigitsPermute[j]]=[allDigitsPermute[j],allDigitsPermute[i]];
+    }
+    
+    let digitIdx=0;
+    rows.each(function(i){
+      const originalData = originalRowsData[i];
+      let newBN = "";
+      if (originalData.bn.includes('-')) { // Handle Palé format
+          let p1 = allDigitsPermute.slice(digitIdx, digitIdx + 2).join("");
+          digitIdx += 2;
+          let p2 = allDigitsPermute.slice(digitIdx, digitIdx + 2).join("");
+          digitIdx += 2;
+          newBN = `${p1.padStart(2,'0')}-${p2.padStart(2,'0')}`;
+      } else {
+          newBN = allDigitsPermute.slice(digitIdx, digitIdx + originalData.bn.length).join("");
+          digitIdx += originalData.bn.length;
+          newBN = newBN.padStart(originalData.bn.length, '0');
+      }
+
+      const gm= determineGameMode(newBN);
       const newTotal= calculateRowTotal(
         newBN, gm,
-        stTd==="-"?"0":stTd,
-        bxTd==="-"?"0":bxTd,
-        coTd==="-"?"0":coTd
+        originalData.stTd==="-"?"":originalData.stTd,
+        originalData.bxTd==="-"?"":originalData.bxTd,
+        originalData.coTd==="-"?"":originalData.coTd
       );
       $(this).find("td").eq(1).text(newBN);
       $(this).find("td").eq(2).text(gm);
@@ -1170,63 +1209,59 @@ $(document).ready(function() {
     highlightDuplicatesInWizard();
   }
 
+
   $("#wizardAddAllToMain").click(function(){
     const wizardRows= $("#wizardTableBody tr");
     if(wizardRows.length===0){
-      alert("No plays in the wizard table.");
+      alert("No plays in the wizard table to add.");
       return;
     }
     wizardRows.each(function(){
       if(playCount>=MAX_PLAYS){
-        alert("Reached 25 plays in the main form. Stopping import.");
-        return false; // break .each loop
+        alert("Reached 25 plays in the main form. Some plays from wizard were not added.");
+        return false; // Break .each loop
       }
       const tds=$(this).find("td");
       const bn=tds.eq(1).text();
-      const gm=tds.eq(2).text();
+      // gameMode will be determined by addMainRow -> recalcMainRow
       const stVal=(tds.eq(3).text()==="-"?"":tds.eq(3).text());
       const bxVal=(tds.eq(4).text()==="-"?"":tds.eq(4).text());
       const coVal=(tds.eq(5).text()==="-"?"":tds.eq(5).text());
-      const total=tds.eq(6).text();
-
-      // if(playCount<MAX_PLAYS){ // Check already done above
-        // playCount++; // Incremented by addMainRow
-        const newRow = addMainRow(); // This increments playCount
-        if (newRow) {
-            newRow.find(".betNumber").val(bn);
-            newRow.find(".gameMode").text(gm); // Set gameMode directly
-            newRow.find(".straight").val(stVal);
-            newRow.find(".box").val(bxVal);
-            newRow.find(".combo").val(coVal);
-            // recalcMainRow will set the total
-            recalcMainRow(newRow);
-        }
-      // }
+      
+      addMainRow({ // Pass data to addMainRow
+          betNumber: bn,
+          straightAmount: parseFloat(stVal) || null,
+          boxAmount: parseFloat(bxVal) || null,
+          comboAmount: parseFloat(coVal) || null
+      });
     });
-    $("#wizardTableBody").empty(); // Clear wizard table
-    wizardCount=0;
-    // recalcAllMainRows(); // Already done per row or not necessary if recalcMainRow is thorough
+
+    resetWizard(); // Clear wizard after adding
+    // recalcAllMainRows(); // addMainRow already calls recalcMainRow
     calculateMainTotal();
     highlightDuplicatesInMain();
     storeFormState();
+    if (wizardModalInstance) wizardModalInstance.hide(); // Hide after adding
   });
 
-
   $("#wizardGenerateTicket").click(function(){
-    $("#wizardAddAllToMain").trigger("click");
-    wizardModal.hide();
-    doGenerateTicket();
+    $("#wizardAddAllToMain").trigger("click"); // Add plays to main form
+    // doGenerateTicket is called if wizardAddAllToMain doesn't stop early
+    if ($("#wizardTableBody tr").length === 0) { // Check if wizard was actually emptied
+        if (wizardModalInstance) wizardModalInstance.hide();
+        doGenerateTicket();
+    }
   });
 
   $("#wizardEditMainForm").click(function(){
-    wizardModal.hide();
+    if (wizardModalInstance) wizardModalInstance.hide();
   });
 
   function highlightDuplicatesInWizard(){
-    $("#wizardTableBody tr").find("td:nth-child(2)").removeClass("duplicado");
+    $("#wizardTableBody tr td:nth-child(2)").removeClass("duplicado"); // Target 2nd td
     let counts={};
     $("#wizardTableBody tr").each(function(){
-      const bn=$(this).find("td").eq(1).text().trim();
+      const bn=$(this).find("td").eq(1).text().trim(); // Bet number is in 2nd td
       if(!bn)return;
       counts[bn]=(counts[bn]||0)+1;
     });
@@ -1238,34 +1273,14 @@ $(document).ready(function() {
     });
   }
 
-
-  const tutorialStepsEN = [
-    { intro: "Welcome! This tutorial will guide you through the main features." },
-    { element: "#fecha", title: "Bet Dates", intro: "Select one or more dates for your lottery bets." },
-    { element: ".accordion", title: "Tracks", intro: "Expand a section and pick the tracks you want to bet on." },
-    { element: "#agregarJugada", title: "Add Play", intro: "Click here to add a new play (row) to the table." },
-    { element: "#wizardButton", title: "Wizard", intro: "This button opens a modal for quick entry of multiple plays." },
-    { element: "#resetForm", title: "Reset Form", intro: "Clears everything and resets the form to default." },
-    { element: "#generarTicket", title: "Generate Ticket", intro: "Once everything is correct, generate your ticket here." }
-  ];
-  const tutorialStepsES = [
-    { intro: "¡Bienvenido! Este tutorial te mostrará cómo usar la aplicación." },
-    { element: "#fecha", title: "Fechas", intro: "Selecciona una o varias fechas para tus jugadas de lotería." },
-    { element: ".accordion", title: "Tracks", intro: "Despliega y marca los sorteos que te interesen." },
-    { element: "#agregarJugada", title: "Agregar Jugada", intro: "Presiona aquí para añadir una nueva línea de jugada." },
-    { element: "#wizardButton", title: "Asistente (Wizard)", intro: "Abre una ventana para entrar jugadas de forma rápida." },
-    { element: "#resetForm", title: "Resetear", intro: "Borra todo y restaura la forma a sus valores iniciales." },
-    { element: "#generarTicket", title: "Generar Ticket", intro: "Cuando todo esté listo, genera el ticket en esta sección." }
-  ];
-  const tutorialStepsHT = [
-    { intro: "Byenvini! Tutorial sa ap moutre w kijan pou itilize aplikasyon an." },
-    { element: "#fecha", title: "Dat", intro: "Chwazi youn oswa plizyè dat pou jwe." },
-    { element: ".accordion", title: "Tracks", intro: "Desann epi chwazi kisa w vle jwe." },
-    { element: "#agregarJugada", title: "Ajoute Jwe", intro: "Peze la pou ajoute yon nouvo ranje jwe." },
-    { element: "#wizardButton", title: "Asistan (Wizard)", intro: "Ou ka antre parye rapidman isi." },
-    { element: "#resetForm", title: "Reyinisyalize", intro: "Efase tout bagay epi retounen aplikasyonnan jan li te ye anvan." },
-    { element: "#generarTicket", title: "Fè Ticket", intro: "Lè ou fini tout jwe yo, kreye ticket la." }
-  ];
+  /*
+   =========================================================
+   Intro.js Tutorial & Manual (No changes needed for OCR logic)
+   =========================================================
+  */
+  const tutorialStepsEN = [ { intro: "Welcome! This tutorial will guide you through the main features." }, { element: "#fecha", title: "Bet Dates", intro: "Select one or more dates for your lottery bets." }, { element: "#tracksAccordion", title: "Tracks", intro: "Expand a section and pick the tracks you want to bet on." }, { element: "#agregarJugada", title: "Add Play", intro: "Click here to add a new play (row) to the table." }, { element: "#wizardButton", title: "Wizard", intro: "This button opens a modal for quick entry of multiple plays." }, { element: "#resetForm", title: "Reset Form", intro: "Clears everything and resets the form to default." }, { element: "#generarTicket", title: "Generate Ticket", intro: "Once everything is correct, generate your ticket here." }, { element: "#btnOcrModal", title: "OCR Capture", intro: "Click here to upload an image of a ticket and interpret it."} ];
+  const tutorialStepsES = [ { intro: "¡Bienvenido! Este tutorial te mostrará cómo usar la aplicación." }, { element: "#fecha", title: "Fechas", intro: "Selecciona una o varias fechas para tus jugadas de lotería." }, { element: "#tracksAccordion", title: "Tracks", intro: "Despliega y marca los sorteos que te interesen." }, { element: "#agregarJugada", title: "Agregar Jugada", intro: "Presiona aquí para añadir una nueva línea de jugada." }, { element: "#wizardButton", title: "Asistente (Wizard)", intro: "Abre una ventana para entrar jugadas de forma rápida." }, { element: "#resetForm", title: "Resetear", intro: "Borra todo y restaura la forma a sus valores iniciales." }, { element: "#generarTicket", title: "Generar Ticket", intro: "Cuando todo esté listo, genera el ticket en esta sección." }, { element: "#btnOcrModal", title: "Captura OCR", intro: "Haz clic para subir una imagen de un boleto e interpretarla."} ];
+  const tutorialStepsHT = [ { intro: "Byenvini! Tutorial sa ap moutre w kijan pou itilize aplikasyon an." }, { element: "#fecha", title: "Dat", intro: "Chwazi youn oswa plizyè dat pou jwe." }, { element: "#tracksAccordion", title: "Tracks", intro: "Desann epi chwazi kisa w vle jwe." }, { element: "#agregarJugada", title: "Ajoute Jwe", intro: "Peze la pou ajoute yon nouvo ranje jwe." }, { element: "#wizardButton", title: "Asistan (Wizard)", intro: "Ou ka antre parye rapidman isi." }, { element: "#resetForm", title: "Reyinisyalize", intro: "Efase tout bagay epi retounen aplikasyonnan jan li te ye anvan." }, { element: "#generarTicket", title: "Fè Ticket", intro: "Lè ou fini tout jwe yo, kreye ticket la." }, {element: "#btnOcrModal", title: "Kaptire OCR", intro: "Klike la a pou telechaje yon imaj yon tikè epi entèprete li."} ];
 
   function startTutorial(lang){
     let stepsToUse = tutorialStepsEN;
@@ -1283,102 +1298,111 @@ $(document).ready(function() {
   $("#helpSpanish").click(()=>startTutorial('es'));
   $("#helpCreole").click(()=>startTutorial('ht'));
 
-  $("#manualEnglishBtn").click(function(){
-    $("#manualEnglishText").removeClass("d-none");
-    $("#manualSpanishText").addClass("d-none");
-    $("#manualCreoleText").addClass("d-none");
-  });
-  $("#manualSpanishBtn").click(function(){
-    $("#manualEnglishText").addClass("d-none");
-    $("#manualSpanishText").removeClass("d-none");
-    $("#manualCreoleText").addClass("d-none");
-  });
-  $("#manualCreoleBtn").click(function(){
-    $("#manualEnglishText").addClass("d-none");
-    $("#manualSpanishText").addClass("d-none");
-    $("#manualCreoleText").removeClass("d-none");
-  });
+  $("#manualEnglishBtn").click(function(){ $("#manualEnglishText").removeClass("d-none"); $("#manualSpanishText").addClass("d-none"); $("#manualCreoleText").addClass("d-none"); });
+  $("#manualSpanishBtn").click(function(){ $("#manualEnglishText").addClass("d-none"); $("#manualSpanishText").removeClass("d-none"); $("#manualCreoleText").addClass("d-none"); });
+  $("#manualCreoleBtn").click(function(){ $("#manualEnglishText").addClass("d-none"); $("#manualSpanishText").addClass("d-none"); $("#manualCreoleText").removeClass("d-none"); });
 
 
-  let selectedFileGlobal = null;
-  let jugadasGlobalOCR = []; // Renamed to avoid conflict with other global 'jugadas'
+  /*
+     =========================================================
+     OCR: Conexión a Next.js API Route con Genkit
+     =========================================================
+  */
+
+  let selectedFileGlobalOCR = null;
+  let jugadasGlobalOCR = []; // Almacena las jugadas interpretadas por Genkit
   let ocrProgressInterval = null;
 
   window.abrirModalOCR = function() {
-    selectedFileGlobal = null;
+    selectedFileGlobalOCR = null;
     jugadasGlobalOCR = [];
     $("#ocrFile").val("");
     $("#ocrPreview").addClass("d-none").attr("src","");
-    $("#ocrJugadas").empty();
+    $("#ocrJugadas").html("<p>Sube una imagen para ver las jugadas detectadas.</p>");
     hideOcrLoading();
-    $("#ocrDebugPanel").addClass("d-none");
-    $("#ocrRawResponse").text("");
-    $("#ocrTextoCompleto").val("");
-    $("#ocrConfPct").text("-");
-    $("#ocrTotalWords").text("-");
+    $("#ocrDebugPanel").addClass("d-none"); // Debug panel might not be relevant in the same way
+    $("#btnProcesarOCR").prop("disabled", true); // Disable process button until file is selected
+    $("#btnCargarJugadas").prop("disabled", true); // Disable load button initially
 
 
-    const modal = new bootstrap.Modal(document.getElementById("modalOcr"));
-    modal.show();
+    const modalOcrEl = document.getElementById("modalOcr");
+    let modalOcrInstance = bootstrap.Modal.getInstance(modalOcrEl);
+    if (!modalOcrInstance) {
+        modalOcrInstance = new bootstrap.Modal(modalOcrEl);
+    }
+    modalOcrInstance.show();
   };
 
-  window.handleDragOver = function(e) {
-    e.preventDefault();
-    $("#ocrDropZone").addClass("dragover");
-  };
-  window.handleDragLeave = function(e) {
-    e.preventDefault();
-    $("#ocrDropZone").removeClass("dragover");
-  };
+  window.handleDragOver = function(e) { e.preventDefault(); $("#ocrDropZone").addClass("dragover"); };
+  window.handleDragLeave = function(e) { e.preventDefault(); $("#ocrDropZone").removeClass("dragover"); };
+
+  function handleFileSelection(file) {
+    if (file && file.type.startsWith("image/")) {
+        selectedFileGlobalOCR = file;
+        $("#ocrPreview").attr("src", URL.createObjectURL(selectedFileGlobalOCR)).removeClass("d-none");
+        $("#ocrJugadas").html("<p>Imagen cargada. Haz clic en 'Procesar OCR'.</p>");
+        $("#btnProcesarOCR").prop("disabled", false); // Enable process button
+    } else {
+        selectedFileGlobalOCR = null;
+        $("#ocrPreview").addClass("d-none").attr("src", "");
+        $("#ocrJugadas").html("<p>Por favor, selecciona un archivo de imagen válido.</p>");
+        $("#btnProcesarOCR").prop("disabled", true);
+        alert("Por favor, selecciona un archivo de imagen válido (JPEG, PNG, etc.).");
+    }
+  }
+
   window.handleDrop = function(e) {
     e.preventDefault();
     $("#ocrDropZone").removeClass("dragover");
     if(e.dataTransfer.files && e.dataTransfer.files[0]){
-      selectedFileGlobal = e.dataTransfer.files[0];
-      $("#ocrPreview").attr("src", URL.createObjectURL(selectedFileGlobal))
-                      .removeClass("d-none");
+      handleFileSelection(e.dataTransfer.files[0]);
     }
   };
 
   window.handleFileChange = function(e) {
     if(e.target.files && e.target.files[0]){
-      selectedFileGlobal = e.target.files[0];
-      $("#ocrPreview").attr("src", URL.createObjectURL(selectedFileGlobal))
-                      .removeClass("d-none");
+      handleFileSelection(e.target.files[0]);
     }
   };
 
   function showOcrLoading() {
     $("#ocrLoadingSection").removeClass("d-none");
-    $("#ocrProgressBar").css("width","0%");
-    $("#ocrProgressText").text("Subiendo/Procesando...");
+    $("#ocrProgressBar").css("width","0%").removeClass("bg-danger bg-success").addClass("bg-primary"); // Reset colors
+    $("#ocrProgressText").text("Subiendo y Procesando...");
+    $("#btnProcesarOCR").prop("disabled", true);
+    $("#btnCargarJugadas").prop("disabled", true);
+
 
     let progressValue = 0;
     ocrProgressInterval = setInterval(()=>{
-      progressValue += 5;
-      if(progressValue>80) progressValue=80;
-      $("#ocrProgressBar").css("width", progressValue+"%");
-    }, 500);
+      progressValue += 5; // Simulate progress
+      if(progressValue > 95) progressValue = 95; // Don't hit 100% until done
+      $("#ocrProgressBar").css("width", progressValue + "%");
+    }, 300); // Slower interval for better visual
   }
-  function hideOcrLoading() {
+
+  function hideOcrLoading(isError = false, message = "Completado") {
     if(ocrProgressInterval) {
       clearInterval(ocrProgressInterval);
       ocrProgressInterval=null;
     }
-    $("#ocrLoadingSection").addClass("d-none");
-    $("#ocrProgressBar").css("width","0%");
-  }
-  function finishOcrLoading(success = true) {
-    $("#ocrProgressBar").css("width","100%");
-    $("#ocrProgressText").text(success ? "Completado" : "Error en OCR");
-    setTimeout(()=>{
-      // Do not hide immediately if error, let user see the message
-      // if (success) hideOcrLoading();
-    }, success ? 800 : 3000);
+    if (isError) {
+        $("#ocrProgressBar").css("width","100%").removeClass("bg-primary bg-success").addClass("bg-danger");
+        $("#ocrProgressText").text(`Error: ${message}`);
+    } else {
+        $("#ocrProgressBar").css("width","100%").removeClass("bg-primary bg-danger").addClass("bg-success");
+        $("#ocrProgressText").text(message);
+    }
+    // Keep loading section visible for a bit to show final status
+    setTimeout(() => {
+        $("#ocrLoadingSection").addClass("d-none");
+        $("#btnProcesarOCR").prop("disabled", !selectedFileGlobalOCR); // Re-enable if file still selected
+    }, isError ? 4000 : 1500); // Longer for error
   }
 
+
   window.procesarOCR = async function() {
-    if(!selectedFileGlobal){
+    if(!selectedFileGlobalOCR){
       alert("No has seleccionado ninguna imagen.");
       return;
     }
@@ -1386,9 +1410,9 @@ $(document).ready(function() {
     showOcrLoading();
 
     const reader = new FileReader();
-    reader.readAsDataURL(selectedFileGlobal);
+    reader.readAsDataURL(selectedFileGlobalOCR);
     reader.onloadend = async () => {
-        const base64data = reader.result; // This is the data URI
+        const base64data = reader.result; // This is the photoDataUri
         try {
             const response = await fetch('/api/interpret-ticket', {
                 method: 'POST',
@@ -1398,141 +1422,112 @@ $(document).ready(function() {
                 body: JSON.stringify({ photoDataUri: base64data }),
             });
 
-            // Clear interval once fetch is done, before parsing json
-            if(ocrProgressInterval) {
-                clearInterval(ocrProgressInterval);
-                ocrProgressInterval = null;
-            }
-            $("#ocrProgressBar").css("width", "90%"); // Indicate processing done by API
-
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ message: "Error desconocido del servidor." }));
-                throw new Error(`Error del servidor: ${response.status} - ${errorData.message || response.statusText}`);
+                const errorData = await response.json().catch(() => ({ error: "Error desconocido del servidor" }));
+                throw new Error(errorData.error || `Error del servidor: ${response.status}`);
             }
 
-            const data = await response.json(); // This should be the array of Bet objects
-            
-            finishOcrLoading(true);
+            const interpretedBets = await response.json(); // Expected to be an array of Bet objects
 
-            if (!data || !Array.isArray(data)) {
-                 $("#ocrJugadas").html("<p>Error: La respuesta del servidor no fue una lista de jugadas válida.</p>");
-                 console.error("Invalid data structure from /api/interpret-ticket:", data);
-                 return;
+            if (!Array.isArray(interpretedBets)) {
+                console.error("La respuesta de la API no fue un array:", interpretedBets);
+                throw new Error("Formato de respuesta inesperado del servidor.");
             }
 
-            jugadasGlobalOCR = data; // Store the array of Bet objects
+            jugadasGlobalOCR = interpretedBets;
+            hideOcrLoading(false, "Interpretación completada.");
 
             if(jugadasGlobalOCR.length === 0){
-                $("#ocrJugadas").html("<p>No se detectaron jugadas en la imagen.</p>");
-                return;
+              $("#ocrJugadas").html("<p>No se detectaron jugadas válidas en la imagen.</p>");
+              $("#btnCargarJugadas").prop("disabled", true);
+              return;
             }
 
-            let html = "<h5>Jugadas Detectadas:</h5>";
-            jugadasGlobalOCR.forEach((j, idx)=>{
-                // j will have betNumber, gameMode, straightAmount, boxAmount, comboAmount
-                let montoPrincipal = j.straightAmount !== null ? j.straightAmount : (j.boxAmount !== null ? j.boxAmount : (j.comboAmount !== null ? j.comboAmount : 0));
-                html += `
-                  <div style="border:1px solid #ccc; padding:0.5rem; margin-bottom:0.5rem;">
-                    <p><strong>Bet Number:</strong> ${j.betNumber || "N/A"}</p>
-                    <p><strong>Game Mode:</strong> ${j.gameMode || "N/A"}</p>
-                    <p><strong>Monto Principal (Straight/Box/Combo):</strong> $${parseFloat(montoPrincipal).toFixed(2)}</p>
-                    <p>
-                        ${j.straightAmount !== null ? `Straight: $${parseFloat(j.straightAmount).toFixed(2)} ` : ''}
-                        ${j.boxAmount !== null ? `Box: $${parseFloat(j.boxAmount).toFixed(2)} ` : ''}
-                        ${j.comboAmount !== null ? `Combo: $${parseFloat(j.comboAmount).toFixed(2)}` : ''}
-                    </p>
-                    <button class="btn btn-sm btn-info" onclick="usarJugadaOCR(${idx})">
-                      Usar esta Jugada
-                    </button>
-                  </div>
-                `;
+            let html = `<h5>Jugadas Detectadas (${jugadasGlobalOCR.length}):</h5>`;
+            jugadasGlobalOCR.forEach((bet, idx)=>{
+              html += `
+                <div style="border:1px solid #ccc; padding:0.5rem; margin-bottom:0.5rem; background-color: #f9f9f9; border-radius: 4px;">
+                  <p style="margin: 0.25rem 0;">
+                    <strong>#${idx + 1} - Número:</strong> ${bet.betNumber || "N/A"}
+                    (Modo: ${bet.gameMode || "N/A"})
+                  </p>
+                  <p style="margin: 0.25rem 0;">
+                    <strong>Straight:</strong> $${(bet.straightAmount !== null ? bet.straightAmount : 0).toFixed(2)}
+                    <strong>Box:</strong> $${(bet.boxAmount !== null ? bet.boxAmount : 0).toFixed(2)}
+                    <strong>Combo:</strong> $${(bet.comboAmount !== null ? bet.comboAmount : 0).toFixed(2)}
+                  </p>
+                  <button class="btn btn-sm btn-info mt-1" onclick="usarJugadaOCR(${idx})">
+                    Usar esta Jugada
+                  </button>
+                </div>
+              `;
             });
             $("#ocrJugadas").html(html);
+            $("#btnCargarJugadas").prop("disabled", false); // Enable load button
 
         } catch(err){
-            console.error("Error en procesarOCR:", err);
-            alert("Error procesando imagen con IA: " + err.message);
-            finishOcrLoading(false); // Indicate error in progress
-            $("#ocrJugadas").html(`<p style="color:red;">Error: ${err.message}</p>`);
-        } finally {
-            // Ensure loading is hidden if not already by finishOcrLoading timeout
-             setTimeout(hideOcrLoading, 3000); 
+          console.error("Error en procesarOCR:", err);
+          hideOcrLoading(true, err.message || "Fallo en la interpretación.");
+          $("#ocrJugadas").html(`<p style="color:red;">Error: ${err.message}</p>`);
+          $("#btnCargarJugadas").prop("disabled", true);
         }
     };
     reader.onerror = () => {
-        alert('Error leyendo el archivo de imagen.');
-        hideOcrLoading();
+        hideOcrLoading(true, "No se pudo leer el archivo de imagen.");
+        $("#ocrJugadas").html("<p style='color:red;'>Error leyendo el archivo.</p>");
+        $("#btnCargarJugadas").prop("disabled", true);
     };
   };
 
-  window.usarJugadaOCR = function(idx){ // Renamed to avoid conflict
+  window.usarJugadaOCR = function(idx){
     if(!jugadasGlobalOCR || !jugadasGlobalOCR[idx]){
       alert("No se encontró la jugada seleccionada.");
       return;
     }
-    const j = jugadasGlobalOCR[idx]; // j is a Bet object from Genkit
+    const bet = jugadasGlobalOCR[idx];
 
-    // No hay campo 'fecha' en la respuesta de Genkit, esto se maneja en el form principal.
-    // $("#fecha").val( j.fecha );
-
-    const newRow = addMainRow(); // This function already adds a row and returns it
-    if (newRow) {
-        newRow.find(".betNumber").val( j.betNumber || "" );
-        // gameMode is set by recalcMainRow based on betNumber and selected tracks
-        newRow.find(".straight").val( j.straightAmount !== null ? j.straightAmount.toString() : "" );
-        newRow.find(".box").val( j.boxAmount !== null ? j.boxAmount.toString() : "" );
-        newRow.find(".combo").val( j.comboAmount !== null ? j.comboAmount.toString() : "" );
-        recalcMainRow(newRow); // This will also determine gameMode and calculate total
-    }
+    // Add the single bet to the main table
+    addMainRow(bet); // addMainRow now accepts a bet object
+    
     highlightDuplicatesInMain();
-    storeFormState();
+    storeFormState(); // Save state after adding play
 
-    const modalInstance = bootstrap.Modal.getInstance(document.getElementById("modalOcr"));
-    modalInstance.hide();
+    const modalOcrEl = document.getElementById("modalOcr");
+    if (modalOcrEl) {
+        const modalInstance = bootstrap.Modal.getInstance(modalOcrEl);
+        if (modalInstance) modalInstance.hide();
+    }
   };
 
   $("#btnCargarJugadas").click(function(){
-    if(!jugadasGlobalOCR || jugadasGlobalOCR.length===0){
+    if(!jugadasGlobalOCR || jugadasGlobalOCR.length === 0){
       alert("No hay jugadas OCR para cargar.");
       return;
     }
-    jugadasGlobalOCR.forEach(j => { // j is a Bet object
-      const newRow = addMainRow();
-      if (newRow) {
-        newRow.find(".betNumber").val( j.betNumber || "" );
-        newRow.find(".straight").val( j.straightAmount !== null ? j.straightAmount.toString() : "" );
-        newRow.find(".box").val( j.boxAmount !== null ? j.boxAmount.toString() : "" );
-        newRow.find(".combo").val( j.comboAmount !== null ? j.comboAmount.toString() : "" );
-        recalcMainRow(newRow);
-      }
+    jugadasGlobalOCR.forEach(bet => {
+      addMainRow(bet); // Pass the full bet object
     });
     highlightDuplicatesInMain();
     storeFormState();
 
-    const modalInstance = bootstrap.Modal.getInstance(document.getElementById("modalOcr"));
-    modalInstance.hide();
+    const modalOcrEl = document.getElementById("modalOcr");
+    if (modalOcrEl) {
+        const modalInstance = bootstrap.Modal.getInstance(modalOcrEl);
+        if (modalInstance) modalInstance.hide();
+    }
   });
 
   window.toggleOcrDebug = function() {
-    // Debug panel for Genkit response might be different or not applicable
-    // For now, this function might not be needed unless we add specific debug output for Genkit.
-    $("#ocrDebugPanel").toggleClass("d-none");
-    alert("El panel de debug para la respuesta de Genkit no está implementado de la misma manera. La respuesta directa se puede ver en la consola del navegador si hay errores.");
+    // The detailed debug panel from your original Node.js backend isn't directly applicable here.
+    // For debugging the Genkit response, you'd typically check the browser's Network tab
+    // for the /api/interpret-ticket call, or add console.log statements in the API route itself.
+    alert("El panel de debug detallado del OCR no está implementado de la misma manera para esta API. Revisa la consola del navegador para ver la respuesta de la API si es necesario.");
+    // $("#ocrDebugPanel").toggleClass("d-none"); // Keep this if you add some client-side debug info
   };
 
-  // Initial calls after DOM is ready
-  loadFormState(); // Load stored state first
-  showCutoffTimes(); // Then display cutoff times
-  // autoSelectNYTrackAndVenezuela(); // Called by loadFormState if no state
-  // disableTracksByTime(); // Called by loadFormState or autoSelect
-  setInterval(disableTracksByTime,60000); // Periodically check and disable tracks
-
-
-});
-
-// Ensure Bootstrap Modal is available for OCR functions
-// This check might be too early if bootstrap JS loads after this script.
-// Usually, you'd ensure jQuery and Bootstrap JS are loaded before your custom scripts.
-if (typeof bootstrap === 'undefined') {
-    console.warn('Bootstrap no está cargado aún. Algunas funcionalidades del modal OCR podrían no iniciarse correctamente.');
-}
+  // Call initial setup functions after DOM is ready
+  // loadFormState(); // This is now called at the end of the script
+  // showCutoffTimes(); // Called by loadFormState or resetForm
+  // disableTracksByTime(); // Called by loadFormState or resetForm
+  // autoSelectNYTrackAndVenezuela(); // Called by loadFormState or resetForm
+}); // End $(document).ready
