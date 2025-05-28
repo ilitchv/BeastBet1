@@ -1,5 +1,6 @@
-import { GeistSans } from 'geist/font/sans';
-// import { GeistMono } from 'geist/font/mono'; // Removed problematic import
+
+// import { GeistSans } from 'geist/font/sans'; // Temporarily removed to debug JS errors
+// import { GeistMono } from 'geist/font/mono'; // Temporarily removed
 import './globals.css';
 import type { Metadata } from 'next';
 import { ThemeProvider } from '@/components/theme-provider';
@@ -16,8 +17,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${GeistSans.variable}`} suppressHydrationWarning>
-      <body className="antialiased">
+    // <html lang="en" className={`${GeistSans.variable}`} suppressHydrationWarning> // Font temporarily removed
+    <html lang="en" suppressHydrationWarning>
+      {/* <body className="antialiased"> */}
+      {/* Use a more generic className or none if GeistSans variable is not defined */}
+      <body className="antialiased"> 
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
