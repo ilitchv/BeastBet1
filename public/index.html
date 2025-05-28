@@ -1,8 +1,9 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Viewport para responsividad -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Essential for responsiveness -->
   <title>Beast Reader (Cricket) East New York</title>
 
   <!-- Bootstrap CSS -->
@@ -25,41 +26,39 @@
 
   <!-- Google Fonts -->
   <link
-    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap"
     rel="stylesheet"
   />
 
-  <!-- Intro.js (CSS para el tutorial) -->
+  <!-- Intro.js (CSS + JS para el tutorial) -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/intro.js/minified/introjs.min.css"
   />
-
-  <!-- Custom CSS -->
+  <!-- Custom CSS (con estilos neon, etc.) -->
   <link href="styles.css" rel="stylesheet" />
-
 </head>
 <body>
-  <!-- Contenedor para botones del tutorial -->
-  <div id="tutorialButtonsContainer" class="tutorial-buttons-container">
-    <button id="helpEnglish" class="btn btn-sm btn-secondary">E</button>
-    <button id="helpSpanish" class="btn btn-sm btn-secondary">S</button>
-    <button id="helpCreole" class="btn btn-sm btn-secondary">C</button>
+  <!-- Botones del tutorial en 3 idiomas -->
+  <div id="tutorialButtonsContainer">
+    <button id="helpEnglish" class="btn btn-secondary btn-sm">E</button>
+    <button id="helpSpanish" class="btn btn-secondary btn-sm">S</button>
+    <button id="helpCreole" class="btn btn-secondary btn-sm">C</button>
   </div>
 
-  <div class="container my-3 my-md-5"> <!-- Reducir margen vertical en móviles -->
-    <h2 class="text-center mb-4">Beast Reader (Cricket) ENY</h2>
+  <div class="container my-4 my-md-5">
+    <h2 class="text-center mb-4">Beast Reader (Cricket) East New York</h2>
 
     <!-- Main Form -->
     <form id="lotteryForm">
       <!-- Date Selection -->
       <div class="row mb-3">
-        <div class="col-md-4 col-sm-6">
+        <div class="col-md-6 col-lg-4"> {/* Adjusted column for better spacing */}
           <label for="fecha" class="form-label">Bet Dates:</label>
           <input
             type="text"
             id="fecha"
-            class="form-control"
+            class="form-control glow-input"
             placeholder="Select date(s)"
             required
           />
@@ -68,29 +67,53 @@
 
       <!-- Tracks Selection -->
       <div class="mb-4">
-        <label class="form-label">Select Tracks:</label>
+        <label class="form-label d-block mb-2">Select Tracks:</label> {/* d-block for proper label spacing */}
         <div class="accordion" id="tracksAccordion">
 
-          <!-- USA TRACKS -->
+          <!-- ================================
+               Sección USA TRACKS
+          ================================== -->
           <div class="accordion-item">
             <h2 class="accordion-header" id="headingUSA">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUSA" aria-expanded="false" aria-controls="collapseUSA">
+              <button
+                class="accordion-button collapsed"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#collapseUSA"
+                aria-expanded="false"
+                aria-controls="collapseUSA"
+              >
                 USA
               </button>
             </h2>
-            <div id="collapseUSA" class="accordion-collapse collapse" aria-labelledby="headingUSA" data-bs-parent="#tracksAccordion">
+            <div
+              id="collapseUSA"
+              class="accordion-collapse collapse"
+              aria-labelledby="headingUSA"
+              data-bs-parent="#tracksAccordion"
+            >
               <div class="accordion-body">
                 <!-- New York Mid Day -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="New York Mid Day" id="trackNYMidDay"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="New York Mid Day"
+                    id="trackNYMidDay"
+                  />
                   <label class="track-button" for="trackNYMidDay">
                     <span class="track-name">New York Mid Day</span>
                     <span class="cutoff-time" data-track="New York Mid Day"></span>
                   </label>
                 </div>
-                 <!-- New York Evening -->
+                <!-- New York Evening -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="New York Evening" id="trackNYEvening"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="New York Evening"
+                    id="trackNYEvening"
+                  />
                   <label class="track-button" for="trackNYEvening">
                     <span class="track-name">New York Evening</span>
                     <span class="cutoff-time" data-track="New York Evening"></span>
@@ -98,7 +121,12 @@
                 </div>
                 <!-- Georgia Mid Day -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Georgia Mid Day" id="trackGeorgiaMidDay"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Georgia Mid Day"
+                    id="trackGeorgiaMidDay"
+                  />
                   <label class="track-button" for="trackGeorgiaMidDay">
                     <span class="track-name">Georgia Mid Day</span>
                     <span class="cutoff-time" data-track="Georgia Mid Day"></span>
@@ -106,7 +134,12 @@
                 </div>
                 <!-- Georgia Evening -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Georgia Evening" id="trackGeorgiaEvening"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Georgia Evening"
+                    id="trackGeorgiaEvening"
+                  />
                   <label class="track-button" for="trackGeorgiaEvening">
                     <span class="track-name">Georgia Evening</span>
                     <span class="cutoff-time" data-track="Georgia Evening"></span>
@@ -114,7 +147,12 @@
                 </div>
                 <!-- New Jersey Mid Day -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="New Jersey Mid Day" id="trackNJMidDay"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="New Jersey Mid Day"
+                    id="trackNJMidDay"
+                  />
                   <label class="track-button" for="trackNJMidDay">
                     <span class="track-name">New Jersey Mid Day</span>
                     <span class="cutoff-time" data-track="New Jersey Mid Day"></span>
@@ -122,7 +160,12 @@
                 </div>
                 <!-- New Jersey Evening -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="New Jersey Evening" id="trackNJEvening"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="New Jersey Evening"
+                    id="trackNJEvening"
+                  />
                   <label class="track-button" for="trackNJEvening">
                     <span class="track-name">New Jersey Evening</span>
                     <span class="cutoff-time" data-track="New Jersey Evening"></span>
@@ -130,7 +173,12 @@
                 </div>
                 <!-- Florida Mid Day -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Florida Mid Day" id="trackFloridaMidDay"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Florida Mid Day"
+                    id="trackFloridaMidDay"
+                  />
                   <label class="track-button" for="trackFloridaMidDay">
                     <span class="track-name">Florida Mid Day</span>
                     <span class="cutoff-time" data-track="Florida Mid Day"></span>
@@ -138,7 +186,12 @@
                 </div>
                 <!-- Florida Evening -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Florida Evening" id="trackFloridaEvening"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Florida Evening"
+                    id="trackFloridaEvening"
+                  />
                   <label class="track-button" for="trackFloridaEvening">
                     <span class="track-name">Florida Evening</span>
                     <span class="cutoff-time" data-track="Florida Evening"></span>
@@ -146,7 +199,12 @@
                 </div>
                 <!-- Connecticut Mid Day -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Connecticut Mid Day" id="trackConnecticutMidDay"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Connecticut Mid Day"
+                    id="trackConnecticutMidDay"
+                  />
                   <label class="track-button" for="trackConnecticutMidDay">
                     <span class="track-name">Connecticut Mid Day</span>
                     <span class="cutoff-time" data-track="Connecticut Mid Day"></span>
@@ -154,7 +212,12 @@
                 </div>
                 <!-- Connecticut Evening -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Connecticut Evening" id="trackConnecticutEvening"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Connecticut Evening"
+                    id="trackConnecticutEvening"
+                  />
                   <label class="track-button" for="trackConnecticutEvening">
                     <span class="track-name">Connecticut Evening</span>
                     <span class="cutoff-time" data-track="Connecticut Evening"></span>
@@ -162,7 +225,12 @@
                 </div>
                 <!-- Georgia Night -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Georgia Night" id="trackGeorgiaNight"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Georgia Night"
+                    id="trackGeorgiaNight"
+                  />
                   <label class="track-button" for="trackGeorgiaNight">
                     <span class="track-name">Georgia Night</span>
                     <span class="cutoff-time" data-track="Georgia Night"></span>
@@ -170,7 +238,12 @@
                 </div>
                 <!-- Pensilvania AM -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Pensilvania AM" id="trackPennsylvaniaAM"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Pensilvania AM"
+                    id="trackPennsylvaniaAM"
+                  />
                   <label class="track-button" for="trackPennsylvaniaAM">
                     <span class="track-name">Pensilvania AM</span>
                     <span class="cutoff-time" data-track="Pensilvania AM"></span>
@@ -178,7 +251,12 @@
                 </div>
                 <!-- Pensilvania PM -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Pensilvania PM" id="trackPennsylvaniaPM"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Pensilvania PM"
+                    id="trackPennsylvaniaPM"
+                  />
                   <label class="track-button" for="trackPennsylvaniaPM">
                     <span class="track-name">Pensilvania PM</span>
                     <span class="cutoff-time" data-track="Pensilvania PM"></span>
@@ -186,7 +264,12 @@
                 </div>
                 <!-- Venezuela -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Venezuela" id="trackVenezuela"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Venezuela"
+                    id="trackVenezuela"
+                  />
                   <label class="track-button" for="trackVenezuela">
                     <span class="track-name">Venezuela</span>
                     <span class="cutoff-time" data-track="Venezuela"></span>
@@ -194,7 +277,12 @@
                 </div>
                 <!-- Brooklyn Midday -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Brooklyn Midday" id="trackBrooklynMidday"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Brooklyn Midday"
+                    id="trackBrooklynMidday"
+                  />
                   <label class="track-button" for="trackBrooklynMidday">
                     <span class="track-name">Brooklyn Midday</span>
                     <span class="cutoff-time" data-track="Brooklyn Midday"></span>
@@ -202,7 +290,12 @@
                 </div>
                 <!-- Brooklyn Evening -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Brooklyn Evening" id="trackBrooklynEvening"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Brooklyn Evening"
+                    id="trackBrooklynEvening"
+                  />
                   <label class="track-button" for="trackBrooklynEvening">
                     <span class="track-name">Brooklyn Evening</span>
                     <span class="cutoff-time" data-track="Brooklyn Evening"></span>
@@ -210,7 +303,12 @@
                 </div>
                 <!-- Front Midday -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Front Midday" id="trackFrontMidday"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Front Midday"
+                    id="trackFrontMidday"
+                  />
                   <label class="track-button" for="trackFrontMidday">
                     <span class="track-name">Front Midday</span>
                     <span class="cutoff-time" data-track="Front Midday"></span>
@@ -218,36 +316,67 @@
                 </div>
                 <!-- Front Evening -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Front Evening" id="trackFrontEvening"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Front Evening"
+                    id="trackFrontEvening"
+                  />
                   <label class="track-button" for="trackFrontEvening">
                     <span class="track-name">Front Evening</span>
                     <span class="cutoff-time" data-track="Front Evening"></span>
                   </label>
                 </div>
+
                 <!-- New York Horses -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="New York Horses" id="trackNYHorses"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="New York Horses"
+                    id="trackNYHorses"
+                  />
                   <label class="track-button" for="trackNYHorses">
                     <span class="track-name">New York Horses</span>
                     <span class="cutoff-time" data-track="New York Horses"></span>
                   </label>
                 </div>
+                <!-- Fin de tracks USA -->
               </div>
             </div>
           </div>
 
-          <!-- Santo Domingo TRACKS -->
+          <!-- ================================
+               Sección Santo Domingo TRACKS
+          ================================== -->
           <div class="accordion-item">
             <h2 class="accordion-header" id="headingSD">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSD" aria-expanded="false" aria-controls="collapseSD">
+              <button
+                class="accordion-button collapsed"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#collapseSD"
+                aria-expanded="false"
+                aria-controls="collapseSD"
+              >
                 Santo Domingo
               </button>
             </h2>
-            <div id="collapseSD" class="accordion-collapse collapse" aria-labelledby="headingSD" data-bs-parent="#tracksAccordion">
+            <div
+              id="collapseSD"
+              class="accordion-collapse collapse"
+              aria-labelledby="headingSD"
+              data-bs-parent="#tracksAccordion"
+            >
               <div class="accordion-body">
                 <!-- Real -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Real" id="trackReal"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Real"
+                    id="trackReal"
+                  />
                   <label class="track-button" for="trackReal">
                     <span class="track-name">Real</span>
                     <span class="cutoff-time" data-track="Real"></span>
@@ -255,7 +384,12 @@
                 </div>
                 <!-- Gana mas -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Gana mas" id="trackGanamas"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Gana mas"
+                    id="trackGanamas"
+                  />
                   <label class="track-button" for="trackGanamas">
                     <span class="track-name">Gana más</span>
                     <span class="cutoff-time" data-track="Gana mas"></span>
@@ -263,7 +397,12 @@
                 </div>
                 <!-- Loteka -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Loteka" id="trackLoteka"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Loteka"
+                    id="trackLoteka"
+                  />
                   <label class="track-button" for="trackLoteka">
                     <span class="track-name">Loteka</span>
                     <span class="cutoff-time" data-track="Loteka"></span>
@@ -271,7 +410,12 @@
                 </div>
                 <!-- Nacional -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Nacional" id="trackNacional"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Nacional"
+                    id="trackNacional"
+                  />
                   <label class="track-button" for="trackNacional">
                     <span class="track-name">Nacional</span>
                     <span class="cutoff-time" data-track="Nacional"></span>
@@ -279,7 +423,12 @@
                 </div>
                 <!-- Quiniela Pale -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Quiniela Pale" id="trackQuinielaPale"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Quiniela Pale"
+                    id="trackQuinielaPale"
+                  />
                   <label class="track-button" for="trackQuinielaPale">
                     <span class="track-name">Quiniela Pale</span>
                     <span class="cutoff-time" data-track="Quiniela Pale"></span>
@@ -287,7 +436,12 @@
                 </div>
                 <!-- Primera Día -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Primera Día" id="trackPrimeraDia"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Primera Día"
+                    id="trackPrimeraDia"
+                  />
                   <label class="track-button" for="trackPrimeraDia">
                     <span class="track-name">Primera Día</span>
                     <span class="cutoff-time" data-track="Primera Día"></span>
@@ -295,7 +449,12 @@
                 </div>
                 <!-- Suerte Día -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Suerte Día" id="trackSuerteDia"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Suerte Día"
+                    id="trackSuerteDia"
+                  />
                   <label class="track-button" for="trackSuerteDia">
                     <span class="track-name">Suerte Día</span>
                     <span class="cutoff-time" data-track="Suerte Día"></span>
@@ -303,7 +462,12 @@
                 </div>
                 <!-- Lotería Real -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Lotería Real" id="trackLoteriaReal"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Lotería Real"
+                    id="trackLoteriaReal"
+                  />
                   <label class="track-button" for="trackLoteriaReal">
                     <span class="track-name">Lotería Real</span>
                     <span class="cutoff-time" data-track="Lotería Real"></span>
@@ -311,7 +475,12 @@
                 </div>
                 <!-- Suerte Tarde -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Suerte Tarde" id="trackSuerteTarde"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Suerte Tarde"
+                    id="trackSuerteTarde"
+                  />
                   <label class="track-button" for="trackSuerteTarde">
                     <span class="track-name">Suerte Tarde</span>
                     <span class="cutoff-time" data-track="Suerte Tarde"></span>
@@ -319,7 +488,12 @@
                 </div>
                 <!-- Lotedom -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Lotedom" id="trackLotedom"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Lotedom"
+                    id="trackLotedom"
+                  />
                   <label class="track-button" for="trackLotedom">
                     <span class="track-name">Lotedom</span>
                     <span class="cutoff-time" data-track="Lotedom"></span>
@@ -327,7 +501,12 @@
                 </div>
                 <!-- Primera Noche -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Primera Noche" id="trackPrimeraNoche"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Primera Noche"
+                    id="trackPrimeraNoche"
+                  />
                   <label class="track-button" for="trackPrimeraNoche">
                     <span class="track-name">Primera Noche</span>
                     <span class="cutoff-time" data-track="Primera Noche"></span>
@@ -335,7 +514,12 @@
                 </div>
                 <!-- Panama -->
                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Panama" id="trackPanama"/>
+                  <input
+                    class="track-checkbox"
+                    type="checkbox"
+                    value="Panama"
+                    id="trackPanama"
+                  />
                   <label class="track-button" for="trackPanama">
                     <span class="track-name">Panamá</span>
                     <span class="cutoff-time" data-track="Panama"></span>
@@ -344,12 +528,13 @@
               </div>
             </div>
           </div>
+
         </div>
       </div>
 
       <!-- Plays Table (Editable) -->
       <div class="table-responsive mb-4">
-        <table class="table table-dark table-bordered" id="jugadasTable">
+        <table class="table table-dark table-bordered glow-table" id="jugadasTable">
           <thead>
             <tr>
               <th style="width: 40px;">#</th>
@@ -362,267 +547,664 @@
             </tr>
           </thead>
           <tbody id="tablaJugadas">
-            <!-- Rows added dynamically -->
+            <!-- Rows added dynamically in scripts.js -->
           </tbody>
         </table>
       </div>
 
       <!-- Buttons: Add, Wizard, Remove Last, Reset -->
-      <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
-        <div class="button-group mb-3 mb-md-0"> <!-- Añadido mb-3 para móviles -->
-          <button type="button" class="btn btn-primary" id="agregarJugada">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
+        <div class="button-group mb-3 mb-md-0">
+          <button
+            type="button"
+            class="btn btn-primary mb-2 mb-md-0"
+            id="agregarJugada"
+          >
             <i class="bi bi-plus-circle"></i> Add Play
           </button>
-          <button type="button" class="btn btn-info" id="wizardButton">
+          <button
+            type="button"
+            class="btn btn-info mb-2 mb-md-0"
+            id="wizardButton"
+          >
             <i class="bi bi-magic"></i> Wizard
           </button>
-          <button type="button" class="btn btn-danger" id="eliminarJugada">
-            <i class="bi bi-dash-circle"></i> Remove Last
+          <button
+            type="button"
+            class="btn btn-danger mb-2 mb-md-0"
+            id="eliminarJugada"
+          >
+            <i class="bi bi-dash-circle"></i> Remove Last Play
           </button>
-          <button type="button" class="btn btn-warning" id="resetForm">
+          <button
+            type="button"
+            class="btn btn-warning"
+            id="resetForm"
+          >
             <i class="bi bi-arrow-clockwise"></i> Reset Form
           </button>
         </div>
         <div class="total-section">
-          Total Plays: $<span id="totalJugadas">0.00</span>
+          Total Plays: $
+          <span id="totalJugadas">0.00</span>
         </div>
       </div>
 
-      <!-- Generate Ticket & OCR -->
+      <!-- Generate Ticket -->
       <div class="d-grid gap-2 mb-3">
-        <button type="button" class="btn btn-success btn-lg" id="generarTicket">
+        <button
+          type="button"
+          class="btn btn-success btn-lg"
+          id="generarTicket"
+        >
           <i class="bi bi-ticket-detailed-fill"></i> Generate Ticket
         </button>
       </div>
+
+      <!-- SNIPPET OCR -->
       <div class="d-grid gap-2">
-         <button type="button" class="btn btn-warning btn-lg" id="btnOcrModalTrigger" onclick="abrirModalOCR()">
+        <button
+          type="button"
+          class="btn btn-warning btn-lg"
+          id="btnOcrModalTrigger"
+          onclick="abrirModalOCR()"
+        >
           <i class="bi bi-camera"></i> Capturar Boleto (OCR)
         </button>
       </div>
 
-
       <!-- MODAL OCR (Bootstrap) -->
-      <div class="modal fade" id="modalOcr" tabindex="-1" aria-labelledby="modalOcrLabel" aria-hidden="true">
+      <div
+        class="modal fade"
+        id="modalOcr"
+        tabindex="-1"
+        aria-labelledby="modalOcrLabel"
+        aria-hidden="true"
+      >
         <div class="modal-dialog modal-lg modal-dialog-centered">
           <div class="modal-content">
+
             <div class="modal-header">
               <h5 class="modal-title" id="modalOcrLabel">OCR - Upload Image</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close">
+              </button>
             </div>
+
             <div class="modal-body">
-              <div id="ocrDropZone" class="drop-zone">
+              <!-- Zona drag & drop -->
+              <div
+                id="ocrDropZone"
+                class="drop-zone"
+                ondragover="handleDragOver(event)"
+                ondragleave="handleDragLeave(event)"
+                ondrop="handleDrop(event)"
+              >
                 Drag image here...
               </div>
+
               <p class="text-center my-2">Or select a file:</p>
-              <input type="file" id="ocrFile" class="form-control" accept="image/*" capture="camera"/>
-              <img id="ocrPreview" class="preview d-none img-fluid rounded mt-2" alt="Preview OCR" />
+              <input
+                type="file"
+                class="form-control"
+                id="ocrFile"
+                accept="image/*"
+                capture="camera"
+                onchange="handleFileChange(event)"
+              />
+
+              <!-- Vista previa -->
+              <div class="text-center mt-3">
+                <img
+                  id="ocrPreview"
+                  class="preview d-none"
+                  alt="Preview OCR"
+                />
+              </div>
+
+
+              <!-- Spinner/Cargando + Barra Progreso (moderno) -->
               <div class="mt-3 d-none" id="ocrLoadingSection">
                 <div class="modern-spinner" id="ocrSpinner"></div>
                 <div class="progress-ocr-container">
                   <div id="ocrProgressBar" class="progress-ocr-bar"></div>
                 </div>
-                <p id="ocrProgressText" class="text-center mt-1">Subiendo/Procesando...</p>
+                <p id="ocrProgressText" class="text-center" style="margin-top:5px;">
+                  Uploading/Processing...
+                </p>
               </div>
+
+              <!-- Jugadas detectadas -->
               <div id="ocrJugadas" class="mt-3">
-                <!-- Jugadas detectadas -->
+                <!-- Filled by scripts.js -->
               </div>
-              <!-- Debug OCR (opcional) -->
-              <div class="border p-2 mt-3 d-none" id="ocrDebugPanelContainer">
-                <button type="button" class="btn btn-sm btn-secondary mb-2" onclick="toggleOcrDebug()">
-                  Show/Hide Debug Info
+
+              <!-- SECCIÓN DEBUG OCR (opcional) -->
+              <div class="border p-2 mt-3">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-secondary"
+                  onclick="toggleOcrDebug()"
+                >
+                  Show/Hide Debug
                 </button>
                 <div id="ocrDebugPanel" class="d-none mt-2">
-                  <!-- Contenido del debug si es necesario -->
-                  <p>Debug info will appear here if enabled and applicable.</p>
+                  <h6>Raw OCR Response (from previous backend, not applicable here)</h6>
+                  <pre
+                    id="ocrRawResponse"
+                    style="max-height:200px; overflow:auto; background:#f8f9fa; color:#000;"
+                  ></pre>
+
+                  <h6>Full OCR Text (from previous backend, not applicable here)</h6>
+                  <textarea
+                    id="ocrTextoCompleto"
+                    rows="5"
+                    class="form-control"
+                    style="width:100%;"
+                  ></textarea>
                 </div>
               </div>
+              <!-- FIN SECCIÓN DEBUG OCR -->
+
             </div>
+
             <div class="modal-footer">
-              <button type="button" class="btn btn-primary" id="btnProcesarOCR" disabled>Procesar OCR</button>
-              <button type="button" class="btn btn-info" id="btnCargarJugadas" disabled>Cargar Jugadas al Form</button>
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+              <button
+                type="button"
+                class="btn btn-primary"
+                onclick="procesarOCR()"
+                id="btnProcesarOCR"
+                disabled 
+              >
+                Process OCR
+              </button>
+              <button
+                type="button"
+                class="btn btn-info"
+                id="btnCargarJugadas"
+                disabled 
+              >
+                Load Bets to Form
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Close
+              </button>
             </div>
+
           </div>
         </div>
       </div>
+      <!-- FIN SNIPPET OCR -->
+
     </form>
   </div>
 
-  <!-- Ticket Preview Window (Modal) -->
-  <div class="modal fade" id="ticketModal" tabindex="-1" aria-labelledby="ticketModalLabel" aria-hidden="true">
+  <!-- Daily Report Button (Optional) -->
+  <!--
+  <div class="text-center mb-4">
+    <button
+      class="btn btn-secondary"
+      onclick="window.open('dailyReport.html','_blank')"
+    >
+      Open Daily Report
+    </button>
+  </div>
+  -->
+
+  <!-- Ticket Preview Window -->
+  <div
+    class="modal fade"
+    id="ticketModal"
+    tabindex="-1"
+    aria-labelledby="ticketModalLabel"
+    aria-hidden="true"
+  >
     <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="ticketModalLabel">Ticket Preview</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button
+            type="button"
+            class="btn-close btn-close-white"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
         </div>
         <div class="modal-body">
           <div id="preTicket" class="p-3">
             <h4 class="text-center mb-3">East New York Cricket</h4>
-            <p><strong>Bet Dates:</strong> <span id="ticketFecha"></span></p>
-            <p><strong>Selected Tracks:</strong> <span id="ticketTracks"></span></p>
+            <p>
+              <strong>Bet Dates:</strong>
+              <span id="ticketFecha"></span>
+            </p>
+            <p>
+              <strong>Selected Tracks:</strong>
+              <span id="ticketTracks"></span>
+            </p>
             <div class="table-responsive">
               <table class="table table-dark table-bordered">
                 <thead>
                   <tr>
-                    <th>#</th><th>Bet Number</th><th>Game Mode</th><th>Straight ($)</th><th>Box ($)</th><th>Combo ($)</th><th>Total ($)</th>
+                    <th>#</th>
+                    <th>Bet Number</th>
+                    <th>Game Mode</th>
+                    <th>Straight ($)</th>
+                    <th>Box ($)</th>
+                    <th>Combo ($)</th>
+                    <th>Total ($)</th>
                   </tr>
                 </thead>
-                <tbody id="ticketJugadas"></tbody>
+                <tbody id="ticketJugadas">
+                  <!-- Filled dynamically in scripts.js -->
+                </tbody>
               </table>
             </div>
-            <div class="total-section">Total Plays: $<span id="ticketTotal">0.00</span></div>
-            <div class="ticket-number my-3">Ticket Number: <span id="numeroTicket"></span></div>
-            <div class="transaction-date my-3">Transaction Date & Time: <span id="ticketTransaccion"></span></div>
-            <div class="barcode text-center"><div id="qrcode"></div></div>
+            <div class="total-section text-end"> {/* Align total to right for ticket */}
+              Total Plays: $<span id="ticketTotal">0.00</span>
+            </div>
+            <div class="ticket-number my-3">
+              Ticket Number: <span id="numeroTicket"></span>
+            </div>
+            <div class="transaction-date my-3">
+              Transaction Date & Time:
+              <span id="ticketTransaccion"></span>
+            </div>
+            <div class="barcode text-center">
+              <div id="qrcode"></div>
+            </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" id="editButton" data-bs-dismiss="modal">Edit</button>
-          <button type="button" class="btn btn-primary" id="confirmarTicket">Confirm & Print</button>
-          <button type="button" class="btn btn-info d-none" id="shareTicket">Share Ticket</button>
-          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+            id="editButton"
+          >
+            Edit
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            id="confirmarTicket"
+          >
+            Confirm & Print
+          </button>
+          <button
+            type="button"
+            class="btn btn-info d-none"
+            id="shareTicket"
+          >
+            Share Ticket
+          </button>
+          <button
+            type="button"
+            class="btn btn-danger"
+            data-bs-dismiss="modal"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Wizard Window (Modal) -->
-  <div class="modal fade" id="wizardModal" tabindex="-1" aria-labelledby="wizardModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered"> <!-- modal-fullscreen-sm-down quitado para consistencia -->
+  <!-- WIZARD WINDOW (Quick Entry) -->
+  <div
+    class="modal fade"
+    id="wizardModal"
+    tabindex="-1"
+    aria-labelledby="wizardModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-fullscreen-sm-down modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="wizardModalLabel">Quick Entry Window</h5>
-          <button type="button" class="btn btn-danger" data-bs-dismiss="modal" aria-label="Close">Close Window</button>
+          <button
+            type="button"
+            class="btn btn-danger"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          >
+            Close Window
+          </button>
         </div>
         <div class="modal-body">
           <!-- FILA 1: Bet Number + Add & Next -->
-          <div class="row mb-3">
-            <div class="col-12 col-md-6 mb-2 mb-md-0 d-flex align-items-end">
-              <div class="flex-grow-1 me-2">
-                <label for="wizardBetNumber" class="form-label">Bet Number</label>
-                <input type="text" class="form-control" id="wizardBetNumber" placeholder="2–4 digits or Pale (22-50)"/>
-              </div>
-              <div>
-                 <button type="button" class="btn btn-primary" id="wizardAddNext"><i class="bi bi-check2-circle"></i> Add & Next</button>
-              </div>
+          <div class="row mb-3 align-items-end">
+            <div class="col-7 col-sm-6">
+              <label for="wizardBetNumber" class="form-label">Bet Number</label>
+              <input
+                type="text"
+                class="form-control"
+                id="wizardBetNumber"
+                placeholder="e.g. 123, 22-50"
+              />
+            </div>
+            <div class="col-5 col-sm-6">
+              <button
+                type="button"
+                class="btn btn-primary w-100" 
+                id="wizardAddNext"
+              >
+                <i class="bi bi-check2-circle"></i> Add & Next
+              </button>
             </div>
           </div>
-          <!-- FILA 2: Straight (izq) / Add Main (der) -->
-          <div class="row mb-3">
-            <div class="col-12 col-md-6 mb-2 mb-md-0 d-flex align-items-center">
-              <div class="flex-grow-1 me-1">
-                <label for="wizardStraight" class="form-label">Straight</label>
-                <input type="number" step="1" class="form-control" id="wizardStraight" placeholder="e.g. 5"/>
+
+          <!-- FILA 2: Straight + candado (izq) / Add Main (der) -->
+          <div class="row mb-3 align-items-end">
+            <div class="col-7 col-sm-8">
+              <label for="wizardStraight" class="form-label">Straight</label>
+              <div class="input-group">
+                <input
+                  type="number"
+                  step="0.01"
+                  class="form-control"
+                  id="wizardStraight"
+                  placeholder="e.g. 5"
+                />
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary lockBtn"
+                  data-field="straight"
+                  id="lockStraight"
+                >
+                  <i class="bi bi-unlock"></i>
+                </button>
               </div>
-              <button type="button" class="btn btn-outline-secondary lockBtn" data-field="straight" id="lockStraight" style="margin-top: 1.75rem;"><i class="bi bi-unlock"></i></button>
             </div>
-            <div class="col-12 col-md-6 d-flex justify-content-md-end align-items-end">
-              <button type="button" class="btn btn-warning" id="wizardAddAllToMain"><i class="bi bi-hdd-fill"></i> Add Main</button>
+            <div class="col-5 col-sm-4 d-flex justify-content-end">
+              <button
+                type="button"
+                class="btn btn-warning w-100"
+                id="wizardAddAllToMain"
+              >
+                <i class="bi bi-hdd-fill"></i> Add All
+              </button>
             </div>
           </div>
-           <!-- FILA 3: Box (izq) / Generate (der) -->
-          <div class="row mb-3">
-            <div class="col-12 col-md-6 mb-2 mb-md-0 d-flex align-items-center">
-              <div class="flex-grow-1 me-1">
-                <label for="wizardBox" class="form-label">Box</label>
-                <input type="text" class="form-control" id="wizardBox" placeholder="e.g. 1,2 or amount"/>
+
+          <!-- FILA 3: Box (izq) / Generate (der) -->
+          <div class="row mb-3 align-items-end">
+            <div class="col-7 col-sm-8">
+              <label for="wizardBox" class="form-label">Box</label>
+              <div class="input-group">
+                <input
+                  type="text" 
+                  class="form-control"
+                  id="wizardBox"
+                  placeholder="e.g. 1 or 1,2"
+                />
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary lockBtn"
+                  data-field="box"
+                  id="lockBox"
+                >
+                  <i class="bi bi-unlock"></i>
+                </button>
               </div>
-               <button type="button" class="btn btn-outline-secondary lockBtn" data-field="box" id="lockBox" style="margin-top: 1.75rem;"><i class="bi bi-unlock"></i></button>
             </div>
-            <div class="col-12 col-md-6 d-flex justify-content-md-end align-items-end">
-              <button type="button" class="btn btn-success" id="wizardGenerateTicket"><i class="bi bi-ticket-detailed"></i> Generate</button>
+            <div class="col-5 col-sm-4 d-flex justify-content-end">
+              <button
+                type="button"
+                class="btn btn-success w-100"
+                id="wizardGenerateTicket"
+              >
+                <i class="bi bi-ticket-detailed"></i> Generate
+              </button>
             </div>
           </div>
+
           <!-- FILA 4: Combo (izq) / Edit Main (der) -->
-          <div class="row mb-3">
-            <div class="col-12 col-md-6 mb-2 mb-md-0 d-flex align-items-center">
-              <div class="flex-grow-1 me-1">
-                <label for="wizardCombo" class="form-label">Combo</label>
-                <input type="number" step="0.01" class="form-control" id="wizardCombo" placeholder="e.g. 3.00"/>
+          <div class="row mb-3 align-items-end">
+            <div class="col-7 col-sm-8">
+              <label for="wizardCombo" class="form-label">Combo</label>
+              <div class="input-group">
+                <input
+                  type="number"
+                  step="0.01"
+                  class="form-control"
+                  id="wizardCombo"
+                  placeholder="e.g. 0.50"
+                />
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary lockBtn"
+                  data-field="combo"
+                  id="lockCombo"
+                >
+                  <i class="bi bi-unlock"></i>
+                </button>
               </div>
-              <button type="button" class="btn btn-outline-secondary lockBtn" data-field="combo" id="lockCombo" style="margin-top: 1.75rem;"><i class="bi bi-unlock"></i></button>
             </div>
-             <div class="col-12 col-md-6 d-flex justify-content-md-end align-items-end">
-              <button type="button" class="btn btn-secondary" id="wizardEditMainForm"><i class="bi bi-pencil-square"></i> Edit Main</button>
+             <div class="col-5 col-sm-4 d-flex justify-content-end">
+              <button
+                type="button"
+                class="btn btn-secondary w-100"
+                id="wizardEditMainForm"
+              >
+                <i class="bi bi-pencil-square"></i> Edit Main
+              </button>
             </div>
           </div>
-          <!-- Wizard Table -->
+
+          <!-- Wizard Table (Internal) -->
           <div class="table-responsive mb-3">
             <table class="table table-dark table-bordered" id="wizardTable">
-              <thead><tr><th style="width:40px;">#</th><th>Bet Number</th><th>Game Mode</th><th>Straight ($)</th><th>Box ($)</th><th>Combo ($)</th><th>Total ($)</th></tr></thead>
+              <thead>
+                <tr>
+                  <th style="width:40px;">#</th>
+                  <th>Bet Number</th>
+                  <th>Game Mode</th>
+                  <th>Straight ($)</th>
+                  <th>Box ($)</th>
+                  <th>Combo ($)</th>
+                  <th>Total ($)</th>
+                </tr>
+              </thead>
               <tbody id="wizardTableBody"></tbody>
             </table>
           </div>
+
           <!-- Quick Pick Section -->
-          <div class="border p-2 mb-3 rounded">
-            <h6>Quick Pick</h6>
+          <div class="border p-3 mb-3 rounded">
+            <h6 class="mb-3">Quick Pick</h6>
             <div class="row mb-2">
-              <div class="col-6"><label for="qpGameMode" class="form-label">Game Mode</label><select class="form-select" id="qpGameMode"><option value="Pick 3">Pick 3</option><option value="Win 4">Win 4</option><option value="Venezuela">Venezuela</option><option value="Pale-Ven">Pale-Ven</option><option value="Pulito">Pulito</option><option value="RD-Quiniela">RD-Quiniela</option><option value="Pale-RD">Pale-RD</option><option value="Single Action">Single Action</option></select></div>
-              <div class="col-6"><label for="qpCount" class="form-label">How many plays?</label><input type="number" class="form-control" id="qpCount" placeholder="1–25" min="1" max="25" value="5"/></div>
+              <div class="col-sm-6 mb-2 mb-sm-0">
+                <label for="qpGameMode" class="form-label">Game Mode</label>
+                <select class="form-select" id="qpGameMode">
+                  <option value="Pick 3">Pick 3</option>
+                  <option value="Win 4">Win 4</option>
+                  <option value="Venezuela">Venezuela</option>
+                  <option value="Pale-Ven">Pale-Ven</option>
+                  <option value="Pulito">Pulito</option>
+                  <option value="RD-Quiniela">RD-Quiniela</option>
+                  <option value="Pale-RD">Pale-RD</option>
+                  <option value="Single Action">Single Action</option>
+                  <option value="NY Horses">NY Horses</option>
+                </select>
+              </div>
+              <div class="col-sm-6">
+                <label for="qpCount" class="form-label">How many plays?</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="qpCount"
+                  placeholder="1–25"
+                  min="1"
+                  max="25" 
+                  value="5"
+                />
+              </div>
             </div>
-            <div class="d-flex gap-2"><button type="button" class="btn btn-info" id="btnGenerateQuickPick">Quick Pick</button><button type="button" class="btn btn-info" id="btnPermute">Permute</button></div>
+            <div class="d-flex gap-2 mt-2">
+              <button
+                type="button"
+                class="btn btn-info flex-grow-1" 
+                id="btnGenerateQuickPick"
+              >
+                Quick Pick
+              </button>
+              <button
+                type="button"
+                class="btn btn-info flex-grow-1"
+                id="btnPermute"
+              >
+                Permute
+              </button>
+            </div>
           </div>
+
           <!-- Round Down Section -->
-          <div class="border p-2 mb-3 rounded">
-            <h6>Round Down</h6>
+          <div class="border p-3 mb-3 rounded">
+            <h6 class="mb-3">Round Down</h6>
             <div class="row mb-2">
-              <div class="col-6"><label for="rdFirstNumber" class="form-label">First Number</label><input type="text" class="form-control" id="rdFirstNumber" placeholder="e.g. 120"/></div>
-              <div class="col-6"><label for="rdLastNumber" class="form-label">Last Number</label><input type="text" class="form-control" id="rdLastNumber" placeholder="e.g. 129"/></div>
+              <div class="col-sm-6 mb-2 mb-sm-0">
+                <label for="rdFirstNumber" class="form-label">First Number</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="rdFirstNumber"
+                  placeholder="e.g. 120"
+                />
+              </div>
+              <div class="col-sm-6">
+                <label for="rdLastNumber" class="form-label">Last Number</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="rdLastNumber"
+                  placeholder="e.g. 129"
+                />
+              </div>
             </div>
-            <button type="button" class="btn btn-info" id="btnGenerateRoundDown">Round Down</button>
+            <button
+              type="button"
+              class="btn btn-info w-100 mt-2" 
+              id="btnGenerateRoundDown"
+            >
+              Round Down
+            </button>
           </div>
+
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Manual Section -->
-  <div class="container my-3 my-md-5">
+  <!-- MANUAL / INSTRUCTIONS -->
+  <div class="container mb-5">
     <div class="accordion" id="manualAccordion">
       <div class="accordion-item">
         <h2 class="accordion-header" id="headingManual">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseManual" aria-expanded="false" aria-controls="collapseManual">
+          <button
+            class="accordion-button collapsed"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapseManual"
+            aria-expanded="false"
+            aria-controls="collapseManual"
+          >
             Manual / Instructions
           </button>
         </h2>
-        <div id="collapseManual" class="accordion-collapse collapse" aria-labelledby="headingManual" data-bs-parent="#manualAccordion">
+        <div
+          id="collapseManual"
+          class="accordion-collapse collapse"
+          aria-labelledby="headingManual"
+          data-bs-parent="#manualAccordion"
+        >
           <div class="accordion-body">
             <div class="d-flex gap-2 mb-3">
-              <button class="btn btn-sm btn-secondary" id="manualEnglishBtn">English</button>
-              <button class="btn btn-sm btn-secondary" id="manualSpanishBtn">Español</button>
-              <button class="btn btn-sm btn-secondary" id="manualCreoleBtn">Kreyòl</button>
+              <button class="btn btn-secondary btn-sm" id="manualEnglishBtn">English</button>
+              <button class="btn btn-secondary btn-sm" id="manualSpanishBtn">Español</button>
+              <button class="btn btn-secondary btn-sm" id="manualCreoleBtn">Kreyòl</button>
             </div>
-            <div id="manualEnglishText"> (English manual content) </div>
-            <div id="manualSpanishText" class="d-none"> (Spanish manual content) </div>
-            <div id="manualCreoleText" class="d-none"> (Creole manual content) </div>
+            <div id="manualEnglishText">
+              <h4>Lottery App Manual (English)</h4>
+              <p><strong>Date Selection:</strong> Pick one or multiple betting dates. Today is auto-selected.</p>
+              <p><strong>Tracks:</strong> Expand “USA” or “Santo Domingo.” Check desired tracks. Some disable after cutoff time. "Venezuela" track is for 2-digit plays with a USA track. "NY Horses" track is for 1–4 digit horse bets.</p>
+              <p><strong>Plays Table:</strong> Each row: Bet Number (determines Game Mode like Pulito, Pick 3, Win 4, Single Action). Add Straight/Box/Combo amounts. Row total shown. Overall total multiplies by selected dates and tracks.</p>
+              <p><strong>Single Action:</strong> With a USA track (not Venezuela/NY Horses), enter 1 digit in Bet Number.</p>
+              <p><strong>NY Horses:</strong> If "New York Horses" track is selected, 1–4 digits entered become this mode.</p>
+              <p><strong>Buttons:</strong> Add Play, Wizard, Remove Last, Reset, Generate Ticket.</p>
+              <p><strong>OCR Capture:</strong> Upload a ticket image to auto-fill bets.</p>
+              <p><strong>Quick Entry (Wizard):</strong> Lock amounts (Straight, Box, Combo). Generate Quick Picks, Round Downs, or Permute digits. Then “Add All” to main table or “Generate Ticket” directly.</p>
+              <p><strong>Ticket Preview:</strong> Shows plays, total, QR code. Confirm & Print/Share. Unique Ticket Number assigned once confirmed.</p>
+            </div>
+            <div id="manualSpanishText" class="d-none">
+               <h4>Manual App Lotería (Español)</h4>
+              <p><strong>Selección Fechas:</strong> Elija una o varias fechas. "Hoy" es automático.</p>
+              <p><strong>Tracks:</strong> Expanda “USA” o “Santo Domingo.” Marque los deseados. Algunos se desactivan post-cierre. "Venezuela" para jugadas de 2 dígitos con un track de USA. "NY Horses" para apuestas de caballos de 1-4 dígitos.</p>
+              <p><strong>Tabla Jugadas:</strong> Cada fila: Número Apuesta (determina Modo de Juego: Pulito, Pick 3, Win 4, Single Action). Añada montos Straight/Box/Combo. Total de fila mostrado. Total general se multiplica por fechas y tracks seleccionados.</p>
+              <p><strong>Single Action:</strong> Con track USA (no Venezuela/NY Horses), ingrese 1 dígito en Número Apuesta.</p>
+              <p><strong>NY Horses:</strong> Si track "New York Horses" está seleccionado, 1–4 dígitos se convierten en este modo.</p>
+              <p><strong>Botones:</strong> Añadir Jugada, Wizard, Quitar Última, Reset, Generar Ticket.</p>
+              <p><strong>Captura OCR:</strong> Suba imagen de ticket para auto-rellenar apuestas.</p>
+              <p><strong>Entrada Rápida (Wizard):</strong> Bloquee montos (Straight, Box, Combo). Genere Quick Picks, Round Downs, o Permute dígitos. Luego “Añadir Todo” a tabla principal o “Generar Ticket” directo.</p>
+              <p><strong>Vista Previa Ticket:</strong> Muestra jugadas, total, código QR. Confirme e Imprima/Comparta. Número de Ticket único asignado al confirmar.</p>
+            </div>
+            <div id="manualCreoleText" class="d-none">
+              <h4>Manyèl App Lòtri (Kreyòl)</h4>
+              <p><strong>Seleksyon Dat:</strong> Chwazi youn oswa plizyè dat. "Jodi a" otomatik.</p>
+              <p><strong>Tracks:</strong> Elaji "USA" oswa "Santo Domingo." Make sa ou vle yo. Gen kèk ki enfim apre lè limit. Track "Venezuela" se pou jwèt 2 chif ak yon track USA. Track "NY Horses" se pou parye cheval 1-4 chif.</p>
+              <p><strong>Tablo Jwèt:</strong> Chak ranje: Nimewo Pari (detèmine Kalite Jwèt: Pulito, Pick 3, Win 4, Single Action). Ajoute montan Straight/Box/Combo. Total ranje afiche. Total jeneral miltipliye pa dat ak tracks seleksyone.</p>
+              <p><strong>Single Action:</strong> Avèk yon track USA (pa Venezuela/NY Horses), antre 1 chif nan Nimewo Pari.</p>
+              <p><strong>NY Horses:</strong> Si track "New York Horses" seleksyone, 1-4 chif vin tounen mòd sa a.</p>
+              <p><strong>Bouton:</strong> Ajoute Jwèt, Wizard, Retire Dènye, Reset, Jenere Tikè.</p>
+              <p><strong>Kaptire OCR:</strong> Telechaje imaj tikè pou ranpli parye otomatikman.</p>
+              <p><strong>Antre Rapid (Wizard):</strong> Bloke montan (Straight, Box, Combo). Jenere Quick Picks, Round Downs, oswa Permute chif. Apre sa "Ajoute Tout" nan tablo prensipal oswa "Jenere Tikè" dirèkteman.</p>
+              <p><strong>Apèsi Tikè:</strong> Montre jwèt, total, kòd QR. Konfime & Enprime/Pataje. Nimewo Tikè inik atribiye lè w konfime.</p>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- SCRIPTS -->
   <!-- jQuery -->
-  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <!-- Popper.js (for Bootstrap) -->
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+  ></script>
   <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"
+  ></script>
   <!-- Flatpickr JS -->
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <!-- QRCode.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
+  ></script>
   <!-- Day.js -->
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/customParseFormat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/arraySupport.js"></script>
+  <script>
+    dayjs.extend(dayjs_plugin_customParseFormat);
+    dayjs.extend(dayjs_plugin_arraySupport);
+  </script>
   <!-- html2canvas -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <!-- Intro.js JS -->
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+  ></script>
+  <!-- Intro.js -->
   <script src="https://unpkg.com/intro.js/minified/intro.min.js"></script>
 
-  <!-- Tu scripts.js -->
+  <!-- Tu scripts.js con todas las funciones globales -->
   <script src="scripts.js"></script>
+
 </body>
 </html>
