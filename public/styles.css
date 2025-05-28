@@ -1,518 +1,488 @@
-
-/* Custom CSS for LottoLook App */
+/* Estilos Generales */
 body {
   font-family: 'Poppins', sans-serif;
-  background-color: #f0f2f5; /* Light grayish background */
-  color: #333;
-  /*transition: background-color 0.3s, color 0.3s; */ /* Removed for iframe context */
+  background-color: #333; /* Fondo oscuro principal */
+  color: #f0f0f0; /* Texto claro */
+  margin-top: 60px; /* Espacio para los botones de tutorial fijos */
 }
-
-/* Dark mode styles (if we implement a toggle outside iframe) */
-/*
-body.dark-mode {
-  background-color: #1a1a2e;
-  color: #e0e0e0;
-}
-body.dark-mode .container,
-body.dark-mode .modal-content,
-body.dark-mode .accordion-button,
-body.dark-mode .accordion-body,
-body.dark-mode .form-control,
-body.dark-mode .form-select,
-body.dark-mode .table {
-  background-color: #24243e;
-  color: #e0e0e0;
-  border-color: #4a4a6a;
-}
-body.dark-mode .table-dark {
-   --bs-table-bg: #2c2c44;
-   --bs-table-border-color: #4a4a6a;
-}
-body.dark-mode .btn-primary {
-  background-color: #007bff;
-  border-color: #007bff;
-}
-body.dark-mode .btn-secondary {
-  background-color: #6c757d;
-  border-color: #6c757d;
-}
-body.dark-mode .form-control::placeholder {
-  color: #aaa;
-}
-body.dark-mode .glow-input:focus {
-  box-shadow: 0 0 10px rgba(0, 123, 255, 0.7);
-}
-body.dark-mode .track-button:hover {
-  background-color: #303050;
-}
-body.dark-mode .track-checkbox:checked + .track-button {
-  background-color: #0056b3;
-  color: #fff;
-}
-*/
-
 
 .container {
-  background-color: #ffffff;
-  padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  margin-top: 20px;
-  margin-bottom: 20px;
+  background-color: #444; /* Fondo del contenedor un poco más claro */
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.5), 0 0 30px rgba(0, 123, 255, 0.3); /* Sombra neón */
+  border: 1px solid rgba(0, 255, 255, 0.3);
 }
 
-h2 {
+h2, h4, h5, h6, label, .form-label {
+  color: #00cyan; /* Color cian para títulos y etiquetas */
   font-family: 'Montserrat', sans-serif;
-  color: #007bff; /* Primary blue */
-  font-weight: 700;
 }
-
-/* Glow effect for inputs */
-.glow-input:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
-  transition: box-shadow 0.3s ease-in-out;
-}
-
-/* Track selection buttons */
-.accordion-body {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px; /* Space between track buttons */
-}
-
-.track-button-container {
-  display: inline-block; /* Or flex for more control if needed */
-}
-
-.track-checkbox {
-  display: none; /* Hide actual checkbox */
-}
-
-.track-button {
-  background-color: #e9ecef;
-  color: #495057;
-  border: 1px solid #ced4da;
-  padding: 10px 15px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
-  display: flex; /* Use flex to align items */
-  flex-direction: column; /* Stack name and cutoff time vertically */
-  align-items: center; /* Center items horizontally */
-  text-align: center;
-  min-width: 150px; /* Ensure buttons have a decent width */
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-.track-button:hover {
-  background-color: #007bff;
-  color: white;
-  box-shadow: 0 4px 8px rgba(0,123,255,0.2);
-}
-
-.track-checkbox:checked + .track-button {
-  background-color: #0056b3; /* Darker blue for selected */
-  color: white;
-  border-color: #004085;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.track-name {
-  font-weight: 500;
-}
-
-.cutoff-time {
-  font-size: 0.8em;
-  color: #6c757d;
-  margin-top: 3px;
-}
-.track-checkbox:checked + .track-button .cutoff-time {
-  color: #f0f0f0; /* Lighter cutoff time text for selected tracks */
+h2 {
+    text-shadow: 0 0 10px #00FFFF, 0 0 15px #00FFFF;
 }
 
 
-/* Table styling */
-.table {
-  margin-bottom: 1rem;
-}
-.table-dark {
-  --bs-table-bg: #343a40; /* Darker background for table */
-  --bs-table-border-color: #454d55;
-}
-.glow-table {
-  box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
-}
-.table thead th {
-  background-color: #007bff;
-  color: white;
-  border-color: #0056b3;
-}
-.table td, .table th {
-  vertical-align: middle;
-}
-.table .form-control {
-  background-color: rgba(255,255,255,0.1); /* Slightly transparent inputs on dark table */
+/* Inputs con efecto glow */
+.glow-input, .form-control, .form-select {
+  background-color: #555;
   color: #fff;
-  border: 1px solid #555;
+  border: 1px solid #00cyan;
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.3);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
-.table .form-control:focus {
-  background-color: rgba(255,255,255,0.2);
+.glow-input:focus, .form-control:focus, .form-select:focus {
+  background-color: #666;
   color: #fff;
-  border-color: #007bff;
+  border-color: #00FFFF; /* Cian más brillante */
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.7); /* Glow más intenso */
+}
+.form-control::placeholder {
+  color: #aaa;
 }
 
-/* Error field styling */
-.error-field {
-  border: 2px solid red !important;
-  box-shadow: 0 0 5px rgba(255,0,0,0.5) !important;
-}
-.duplicado {
-  background-color: #ffc107 !important; /* Bootstrap warning yellow */
-  color: black !important;
-}
-
-
-/* Button group styling */
-.button-group .btn {
-  margin-right: 10px; /* Space between buttons */
-}
-.button-group .btn:last-child {
-  margin-right: 0;
-}
-
-/* Total section styling */
-.total-section {
-  font-size: 1.25rem;
+/* Botones */
+.btn {
+  border-radius: 20px; /* Bordes redondeados */
+  transition: all 0.3s ease;
   font-weight: bold;
-  color: #28a745; /* Green for total */
+  padding: 10px 20px;
+}
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+  box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+}
+.btn-primary:hover {
+  background-color: #0056b3;
+  box-shadow: 0 0 15px rgba(0, 123, 255, 0.8);
+}
+.btn-info {
+  background-color: #17a2b8;
+  border-color: #17a2b8;
+  box-shadow: 0 0 10px rgba(23, 162, 184, 0.5);
+}
+.btn-info:hover {
+  background-color: #117a8b;
+  box-shadow: 0 0 15px rgba(23, 162, 184, 0.8);
+}
+.btn-danger {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
+}
+.btn-danger:hover {
+  background-color: #c82333;
+  box-shadow: 0 0 15px rgba(220, 53, 69, 0.8);
+}
+.btn-warning {
+  background-color: #ffc107;
+  border-color: #ffc107;
+  color: #212529;
+  box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+}
+.btn-warning:hover {
+  background-color: #e0a800;
+  box-shadow: 0 0 15px rgba(255, 193, 7, 0.8);
+}
+.btn-success {
+  background-color: #28a745;
+  border-color: #28a745;
+  box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+}
+.btn-success:hover {
+  background-color: #1e7e34;
+  box-shadow: 0 0 15px rgba(40, 167, 69, 0.8);
+}
+.btn-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  box-shadow: 0 0 8px rgba(108, 117, 125, 0.4);
+}
+.btn-secondary:hover {
+  background-color: #545b62;
+  box-shadow: 0 0 12px rgba(108, 117, 125, 0.6);
 }
 
-/* Ticket Modal */
-#ticketModal .modal-content {
-  background-color: #2c3e50; /* Dark blue-gray */
-  color: #ecf0f1; /* Light text */
+
+/* Acordeón de Tracks */
+.accordion-item {
+  background-color: #5a5a5a;
+  border: 1px solid #00cyan;
+  margin-bottom: 10px;
   border-radius: 10px;
 }
-#ticketModal .modal-header {
-  border-bottom: 1px solid #34495e;
-}
-#ticketModal .btn-close-white {
-  filter: invert(1); /* Make close button visible on dark background */
-}
-#preTicket {
-  background-color: #ffffff;
-  color: #333333;
-  border-radius: 8px;
-  padding: 20px;
-  font-family: 'Courier New', Courier, monospace; /* Classic ticket font */
-  border: 1px dashed #ccc;
-}
-#preTicket h4 {
-  color: #007bff;
-}
-#preTicket .table {
-  font-size: 0.9rem;
-}
-#preTicket .table-dark {
-  --bs-table-bg: #f8f9fa; /* Light background for table inside ticket */
-  --bs-table-color: #212529;
-  --bs-table-border-color: #dee2e6;
-}
-#preTicket .table thead th {
-  background-color: #e9ecef;
-  color: #495057;
-  border-color: #dee2e6;
-}
-#qrcode {
-  margin-top: 15px;
-  padding: 10px;
-  background-color: white;
-  display: inline-block;
-  border-radius: 4px;
-}
-
-
-/* Wizard Modal */
-#wizardModal .modal-content {
-  border-radius: 10px;
-}
-#wizardModal .lockBtn.active {
-    background-color: #007bff;
-    color: white;
-}
-#wizardModal .form-label {
-    margin-bottom: 0.25rem;
-    font-weight: 500;
-}
-#wizardModal input[type="text"],
-#wizardModal input[type="number"],
-#wizardModal .form-select {
-    padding: 0.375rem 0.75rem; /* Standard Bootstrap padding */
-    font-size: 0.9rem;
-}
-#wizardModal .table {
-    font-size: 0.85rem;
-}
-#wizardModal .table th, #wizardModal .table td {
-    padding: 0.5rem;
-}
-
-
-/* Remove Play Button Styling */
-.btnRemovePlay {
-  background-color: #dc3545; /* Bootstrap danger color */
-  color: white;
-  border: none;
-  border-radius: 50%; /* Circular button */
-  width: 30px;
-  height: 30px;
-  line-height: 30px; /* Center text vertically */
-  text-align: center;
-  padding: 0;
-  font-size: 0.9rem;
-  font-weight: bold;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-  transition: background-color 0.2s;
-}
-.btnRemovePlay:hover {
-  background-color: #c82333; /* Darker red on hover */
-}
-
-
-/* Accordion button styling */
 .accordion-button {
-  background-color: #007bff;
-  color: white;
-  font-weight: 500;
+  background-color: #505050;
+  color: #00FFFF; /* Cian */
+  font-weight: bold;
+  border-radius: 10px !important; /* Para anular estilos de Bootstrap */
 }
 .accordion-button:not(.collapsed) {
-  background-color: #0056b3;
+  background-color: #007bff; /* Azul cuando está activo */
   color: white;
+  box-shadow: inset 0 -3px 0 rgba(0,0,0,.1);
 }
 .accordion-button:focus {
-  box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.5);
+  box-shadow: 0 0 0 0.25rem rgba(0, 255, 255, 0.5); /* Glow al enfocar */
 }
-.accordion-item {
-  border-color: #007bff;
-}
-
-/* Tutorial buttons */
-#tutorialButtonsContainer { /* Renamed from #tutorial-buttons for specificity */
-  position: fixed; /* Changed from absolute for better viewport attachment */
-  top: 15px;
-  right: 15px;
-  z-index: 1050; /* Ensure it's above most elements, but below modals if necessary */
+.accordion-body {
+  background-color: #484848;
+  padding: 15px;
   display: flex;
-  gap: 5px;
-}
-#tutorialButtonsContainer .btn {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.8rem;
+  flex-wrap: wrap; /* Para que los botones se ajusten */
+  gap: 10px; /* Espacio entre botones */
+  border-radius: 0 0 10px 10px;
 }
 
-
-/* OCR Modal Specific Styles */
-#modalOcr .modal-dialog {
-    max-width: 700px; /* Adjust as needed */
+/* Estilo de botones de Tracks (checkbox + label) */
+.track-button-container {
+  display: inline-block; /* Permite que los botones se alineen y se envuelvan */
+  margin: 5px;
 }
-#ocrDropZone {
-  border: 2px dashed #007bff;
-  padding: 20px;
-  text-align: center;
-  margin-bottom: 15px;
-  border-radius: 5px;
-  background-color: #f8f9fa;
-  color: #6c757d;
-  transition: background-color 0.2s;
+.track-checkbox {
+  display: none; /* Ocultar el checkbox real */
 }
-#ocrDropZone.dragover {
-  background-color: #e2e6ea;
-}
-#ocrPreview {
-  max-width: 100%;
-  max-height: 300px; /* Limit preview height */
-  margin-top: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  display: block; /* was d-none by default */
-  margin-left: auto;
-  margin-right: auto;
-}
-#ocrLoadingSection {
-    display: flex; /* d-none by default */
-    align-items: center;
-    flex-direction: column; /* Stack spinner and bar */
-    margin-top: 15px;
-}
-.modern-spinner { /* Copied from HTML */
+.track-button {
   display: inline-block;
-  width: 50px; /* Slightly smaller */
-  height: 50px;
-  border: 6px solid rgba(0,0,0,0.1);
-  border-top-color: #007bff; /* Updated for Bootstrap primary */
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 10px; /* Spacing from progress bar */
+  padding: 8px 15px;
+  background-color: #666;
+  color: #fff;
+  border: 2px solid transparent;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  min-width: 150px; /* Ancho mínimo para mejor apariencia */
 }
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+.track-checkbox:checked + .track-button {
+  background-color: #007bff; /* Azul brillante cuando está seleccionado */
+  border-color: #00FFFF; /* Borde cian */
+  color: white;
+  box-shadow: 0 0 10px #007bff, 0 0 5px #00FFFF; /* Efecto neón */
 }
-.progress-ocr-container { /* Copied from HTML */
-  background-color: #e9ecef;
-  border-radius: 4px;
-  height: 10px; /* Slightly thicker */
-  width: 80%; /* Make it a bit less than full width */
-  overflow: hidden;
-  margin-top: 5px; /* Adjusted */
+.track-button:hover {
+  background-color: #777;
+  border-color: #888;
 }
-.progress-ocr-bar { /* Copied from HTML */
-  height: 100%;
-  background-color: #28a745; /* Bootstrap success green */
-  width: 0%;
-  transition: width 0.3s ease;
-  border-radius: 4px; /* Rounded corners for the bar itself */
+.track-checkbox:checked + .track-button:hover {
+  background-color: #0056b3; /* Un azul más oscuro al pasar el mouse */
 }
-#ocrProgressText {
-    margin-top: 8px;
-    font-size: 0.9em;
-    color: #495057;
+.track-name {
+  display: block; /* Para que el nombre y el cutoff time estén en líneas separadas */
+  font-weight: bold;
 }
-#ocrJugadas {
-    margin-top: 20px;
-    max-height: 200px; /* Scroll if many bets */
-    overflow-y: auto;
+.cutoff-time {
+  display: block;
+  font-size: 0.8em;
+  color: #ccc;
 }
-#ocrJugadas > div { /* Style for each detected bet block */
-    border: 1px solid #dee2e6;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 4px;
-    background-color: #f8f9fa;
+.track-button.disabled { /* Estilo para tracks deshabilitados */
+    background-color: #555;
+    color: #999;
+    cursor: not-allowed;
+    opacity: 0.6;
+    box-shadow: none;
+    border-color: #666;
 }
-#ocrJugadas p {
-    margin-bottom: 0.3rem;
-    font-size: 0.9rem;
-}
-#ocrDebugPanel {
-    font-size: 0.8em;
-    background-color: #f1f1f1;
-    padding:10px;
-    border-radius: 4px;
-}
-#ocrRawResponse, #ocrTextoCompleto {
-    font-family: monospace;
-    font-size:0.9em;
-    color: #333; /* Ensure text is dark on light background */
+.track-checkbox:disabled + .track-button { /* Aplicar al label cuando el checkbox está disabled */
+    background-color: #555;
+    color: #999;
+    cursor: not-allowed;
+    opacity: 0.6;
+    box-shadow: none;
+    border-color: #666;
 }
 
-/* Input file styling for OCR */
-#ocrFile {
-    margin-top: 10px;
-    margin-bottom: 10px;
-}
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .container {
-    padding: 1rem;
-    margin-top: 10px;
-    margin-bottom: 10px;
-  }
-  h2 {
-    font-size: 1.5rem;
-  }
-  .button-group,
-  .d-grid { /* For Generate Ticket and OCR buttons */
-    flex-direction: column;
-    align-items: stretch; /* Make buttons full width */
-  }
-  .button-group .btn,
-  .d-grid .btn {
-    margin-right: 0;
-    margin-bottom: 10px; /* Space between stacked buttons */
-    width: 100%;
-  }
-  .button-group .btn:last-child,
-  .d-grid .btn:last-child {
-    margin-bottom: 0;
-  }
-  .total-section {
+/* Tabla de Jugadas */
+.glow-table {
+  border: 2px solid #00FFFF; /* Borde cian */
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); /* Sombra neón */
+}
+.table-dark {
+  --bs-table-bg: #3e3e3e; /* Fondo de tabla un poco más oscuro */
+  --bs-table-border-color: #00cyan;
+  --bs-table-color: #f0f0f0; /* Texto claro en la tabla */
+}
+.table th, .table td {
+  vertical-align: middle;
+  text-align: center;
+}
+.table thead th {
+  background-color: #333; /* Cabecera más oscura */
+  color: #00FFFF; /* Texto cian en cabecera */
+}
+.table .form-control { /* Inputs dentro de la tabla */
+  text-align: center;
+  padding: 0.25rem 0.5rem; /* Más pequeños */
+  font-size: 0.9rem;
+}
+.btnRemovePlay { /* Botón para eliminar fila */
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
     text-align: center;
-    margin-top: 10px;
-    margin-bottom: 10px; /* Add some space around it */
-    font-size: 1.1rem;
-  }
-  .table td, .table th {
-    padding: 0.5rem 0.25rem; /* Smaller padding for table cells */
-    font-size: 0.8rem; /* Smaller font in table */
-    white-space: nowrap; /* Try to prevent wrapping, might need overflow scroll on table */
-  }
-  .table .form-control {
+    padding: 0;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+.btnRemovePlay:hover {
+    background-color: #cc0000;
+}
+.duplicado { /* Para resaltar betNumbers duplicados */
+    border: 2px solid red !important;
+    box-shadow: 0 0 10px red !important;
+}
+.error-field { /* Para resaltar campos con error */
+    border: 2px solid orange !important;
+    box-shadow: 0 0 10px orange !important;
+}
+
+
+/* Total Section */
+.total-section {
+  font-size: 1.5rem; /* Texto grande para el total */
+  font-weight: bold;
+  color: #00FFFF; /* Cian */
+  text-shadow: 0 0 8px #00FFFF;
+}
+
+/* Modales */
+.modal-content {
+  background-color: #444; /* Fondo oscuro para modales */
+  border: 2px solid #00FFFF;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+  color: #f0f0f0;
+  border-radius: 15px;
+}
+.modal-header {
+  border-bottom: 1px solid #007bff; /* Línea azul en cabecera de modal */
+}
+.modal-header .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%); /* Botón de cierre blanco */
+}
+.modal-title {
+  color: #00FFFF; /* Cian */
+}
+.modal-footer {
+  border-top: 1px solid #007bff;
+}
+
+/* Estilos para el ticket preview */
+#preTicket {
+  background-color: #fff; /* Fondo blanco para el ticket */
+  color: #000; /* Texto negro */
+  border: 1px solid #ccc;
+  font-family: 'Courier New', Courier, monospace; /* Fuente de máquina de escribir */
+}
+#preTicket h4 {
+  color: #000;
+  text-shadow: none;
+}
+#preTicket p, #preTicket span, #preTicket strong, #preTicket div {
+  color: #000;
+  text-shadow: none;
+}
+#preTicket table {
+  font-size: 0.9rem;
+  --bs-table-bg: #f8f9fa;
+  --bs-table-border-color: #dee2e6;
+  --bs-table-color: #000;
+}
+#preTicket table thead th {
+  background-color: #e9ecef;
+  color: #000;
+}
+#preTicket .total-section {
+  font-size: 1.2rem;
+  color: #000;
+  text-align: right;
+}
+#preTicket .ticket-number, #preTicket .transaction-date {
+  font-size: 0.9rem;
+}
+
+/* Drop zone y preview en modal OCR */
+.drop-zone {
+  border: 2px dashed #00FFFF;
+  padding: 25px;
+  text-align: center;
+  cursor: pointer;
+  margin-bottom: 15px;
+  color: #00FFFF;
+  background-color: rgba(0, 255, 255, 0.05);
+}
+.drop-zone.dragover {
+  background-color: rgba(0, 255, 255, 0.1);
+  border-style: solid;
+}
+.preview {
+  max-width: 100%;
+  max-height: 250px; /* Límite de altura para la vista previa */
+  margin-top: 15px;
+  border: 1px solid #00cyan;
+  border-radius: 5px;
+}
+#ocrJugadas div {
+  border: 1px solid #666;
+  padding: 10px;
+  margin-bottom: 10px;
+  background-color: #505050;
+  border-radius: 5px;
+}
+#ocrJugadas strong {
+  color: #00FFFF;
+}
+
+/* Wizard Modal */
+#wizardModal .form-label {
+  font-size: 0.9rem;
+}
+#wizardModal .form-control, #wizardModal .form-select {
+  font-size: 0.9rem;
+  padding: 0.375rem 0.75rem;
+}
+#wizardModal .btn {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.9rem;
+}
+#wizardModal .table {
+  font-size: 0.85rem;
+}
+#wizardModal h6 { /* Títulos de sección como Quick Pick, Round Down */
+    color: #17a2b8; /* Un azul más claro para los títulos de sección del wizard */
+    margin-top: 15px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #17a2b8;
+    padding-bottom: 5px;
+}
+
+/* Ajustes para los botones de candado en el Wizard */
+.lockBtn {
+    padding: 0.375rem 0.5rem; /* Hacerlos un poco más pequeños */
     font-size: 0.8rem;
-    padding: 0.25rem 0.5rem;
-  }
-  .btnRemovePlay {
-    width: 24px;
-    height: 24px;
-    line-height: 24px;
-    font-size: 0.7rem;
-  }
-  .track-button {
-    padding: 8px 10px;
-    min-width: 100px;
-    font-size: 0.9rem;
-  }
-  .accordion-body {
-    gap: 5px; /* Smaller gap for track buttons */
-  }
-  #modalOcr .modal-dialog, #wizardModal .modal-dialog, #ticketModal .modal-dialog {
-      margin-left: 10px;
-      margin-right: 10px;
-  }
-  #preTicket {
-      font-size: 0.8rem;
-  }
-  #preTicket .table {
-      font-size: 0.75rem;
-  }
-  #tutorialButtonsContainer {
-    top: 5px;
-    right: 5px;
-  }
-  #tutorialButtonsContainer .btn {
-    padding: 0.15rem 0.3rem;
-    font-size: 0.7rem;
-  }
-
+}
+.lockBtn i {
+    vertical-align: middle;
 }
 
-@media (max-width: 480px) {
-    h2 {
-        font-size: 1.3rem;
-    }
-    .track-button {
-        min-width: 80px; /* Even smaller track buttons */
-        padding: 6px 8px;
-        font-size: 0.8rem;
-    }
-    .cutoff-time {
-        font-size: 0.7em;
-    }
-    .form-label {
-        font-size: 0.9rem;
-    }
-    #wizardModal .btn, #modalOcr .btn { /* Smaller buttons in modals */
-        font-size: 0.85rem;
-        padding: 0.3rem 0.6rem;
-    }
-    #wizardModal input[type="text"],
-    #wizardModal input[type="number"],
-    #wizardModal .form-select {
-        font-size: 0.85rem;
-    }
-     #ocrJugadas p, #ocrJugadas strong {
-        font-size: 0.85rem;
-    }
+
+/* Estilo de los botones de tutorial (fijos en la esquina) */
+/* Contenedor para los botones de tutorial */
+#tutorialButtonsContainer {
+    position: fixed; /* O absolute si el body no tiene position relative */
+    top: 15px;
+    right: 15px;
+    z-index: 1050; /* Encima de la mayoría de los elementos de Bootstrap */
+    display: flex;
+    gap: 5px; /* Espacio entre los botones */
 }
+#tutorialButtonsContainer .btn-secondary {
+    background-color: rgba(108, 117, 125, 0.8); /* Semi-transparente */
+    border-color: rgba(108, 117, 125, 1);
+    padding: 5px 10px; /* Más pequeños */
+    font-size: 0.8rem;
+    border-radius: 5px; /* Menos redondeados */
+}
+#tutorialButtonsContainer .btn-secondary:hover {
+    background-color: rgba(84, 91, 98, 1);
+}
+
+
+/* Manual Section */
+#manualAccordion .accordion-button {
+    background-color: #333; /* Fondo oscuro */
+    color: #ffc107; /* Amarillo para el título del manual */
+}
+#manualAccordion .accordion-button:not(.collapsed) {
+    background-color: #ffc107;
+    color: #333;
+}
+#manualAccordion .accordion-body {
+    background-color: #3a3a3a; /* Un poco más claro que el botón */
+    color: #f0f0f0;
+}
+#manualAccordion .accordion-body h4 {
+    color: #ffc107; /* Título dentro del manual */
+}
+
+/* Estilo para el spinner y barra de progreso (ya presente en el HTML, pero se puede ajustar) */
+.modern-spinner { /* Ya definido en el style tag del HTML */
+    /* width: 50px; height: 50px; border-width: 6px; etc */
+}
+.progress-ocr-container { /* Ya definido */
+    /* height: 8px; etc */
+}
+.progress-ocr-bar { /* Ya definido */
+}
+
+/* Estilos específicos para intro.js para que el tooltip sea blanco con texto negro */
+.introjs-tooltip {
+  background-color: #ffffff !important; /* Fondo blanco */
+  color: #000000 !important;            /* Texto negro */
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  padding: 15px;
+  text-align: left; /* Asegurar alineación a la izquierda */
+}
+
+.introjs-tooltiptext {
+  color: #000000 !important; /* Asegurar que el texto principal también sea negro */
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.introjs-button {
+  background-color: #007bff !important; /* Color primario de Bootstrap */
+  color: white !important;
+  border: none !important;
+  padding: 8px 12px !important;
+  border-radius: 4px !important;
+  text-shadow: none !important;
+  font-weight: bold !important;
+  transition: background-color 0.2s ease !important;
+}
+.introjs-button:hover {
+  background-color: #0056b3 !important;
+}
+.introjs-prevbutton {
+  background-color: #6c757d !important; /* Color secundario */
+}
+.introjs-prevbutton:hover {
+  background-color: #545b62 !important;
+}
+.introjs-skipbutton {
+  color: #6c757d !important;
+  background-color: transparent !important;
+}
+.introjs-skipbutton:hover {
+  color: #343a40 !important;
+}
+
+.introjs-bullets ul li a {
+    background: #ccc !important;
+}
+.introjs-bullets ul li a.active {
+    background: #007bff !important;
+}
+
+.introjs-progress .introjs-progressbar {
+    background-color: #007bff !important; /* Color de la barra de progreso */
+}
+```
+Hecho. He revertido los archivos `/public/index.html` y `/public/styles.css` a un estado anterior, eliminando los cambios de responsividad y otras modificaciones que introduje y que alteraron la apariencia.
+
+*   El `index.html` ya no tiene la etiqueta `<meta name="viewport"...>` que añadí, ni el `div` extra para los botones del tutorial, ni el bloque `<style>` para el spinner/introjs (asumiendo que estos estilos están en tu `styles.css` o no son necesarios para la "normalidad").
+*   El `styles.css` ya no tiene las secciones `@media` que introduje.
+
+El archivo `public/scripts.js` permanece en su última versión funcional, donde el OCR y la mayoría de los botones (excepto quizás "Reset Form" que mencionaste) deberían estar funcionando con la lógica correcta.
+
+Por favor, actualiza y verifica si la apariencia de la aplicación ahora es la que consideras "normal" o la que tenías antes. Si el OCR sigue sin funcionar, podría ser un efecto secundario de la estructura HTML/CSS revertida interactuando con el `scripts.js` funcional. Si ese es el caso, avísame qué error específico ves (si alguno) en la consola del navegador al intentar usar el OCR.
+
+Una vez que confirmes que la apariencia es la correcta, podemos proceder a hacer ajustes ligeros y específicos en la interfaz y re-verificar la funcionalidad del "Reset Form".

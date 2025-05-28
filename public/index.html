@@ -1,10 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Essential for responsiveness -->
-  <title>Beast Reader (Cricket) East New York</title>
+  <title>Beast Reader (BETA) East New York</title>
 
   <!-- Bootstrap CSS -->
   <link
@@ -30,30 +28,32 @@
     rel="stylesheet"
   />
 
-  <!-- Intro.js (CSS + JS para el tutorial) -->
+  <!-- Intro.js (CSS para el tutorial) -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/intro.js/minified/introjs.min.css"
   />
-  <!-- Custom CSS (con estilos neon, etc.) -->
+
+  <!-- Custom CSS -->
   <link href="styles.css" rel="stylesheet" />
+
 </head>
 <body>
   <!-- Botones del tutorial en 3 idiomas -->
-  <div id="tutorialButtonsContainer">
+  <div style="position: absolute; top: 10px; right: 10px; z-index:99999;">
     <button id="helpEnglish" class="btn btn-secondary btn-sm">E</button>
     <button id="helpSpanish" class="btn btn-secondary btn-sm">S</button>
     <button id="helpCreole" class="btn btn-secondary btn-sm">C</button>
   </div>
 
-  <div class="container my-4 my-md-5">
+  <div class="container my-5">
     <h2 class="text-center mb-4">Beast Reader (Cricket) East New York</h2>
 
     <!-- Main Form -->
     <form id="lotteryForm">
       <!-- Date Selection -->
       <div class="row mb-3">
-        <div class="col-md-6 col-lg-4"> {/* Adjusted column for better spacing */}
+        <div class="col-md-4 col-sm-6">
           <label for="fecha" class="form-label">Bet Dates:</label>
           <input
             type="text"
@@ -67,7 +67,7 @@
 
       <!-- Tracks Selection -->
       <div class="mb-4">
-        <label class="form-label d-block mb-2">Select Tracks:</label> {/* d-block for proper label spacing */}
+        <label class="form-label">Select Tracks:</label>
         <div class="accordion" id="tracksAccordion">
 
           <!-- ================================
@@ -553,25 +553,25 @@
       </div>
 
       <!-- Buttons: Add, Wizard, Remove Last, Reset -->
-      <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
-        <div class="button-group mb-3 mb-md-0">
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap button-group-main">
+        <div class="button-group mb-2 mb-md-0">
           <button
             type="button"
-            class="btn btn-primary mb-2 mb-md-0"
+            class="btn btn-primary"
             id="agregarJugada"
           >
             <i class="bi bi-plus-circle"></i> Add Play
           </button>
           <button
             type="button"
-            class="btn btn-info mb-2 mb-md-0"
+            class="btn btn-info"
             id="wizardButton"
           >
             <i class="bi bi-magic"></i> Wizard
           </button>
           <button
             type="button"
-            class="btn btn-danger mb-2 mb-md-0"
+            class="btn btn-danger"
             id="eliminarJugada"
           >
             <i class="bi bi-dash-circle"></i> Remove Last Play
@@ -584,14 +584,15 @@
             <i class="bi bi-arrow-clockwise"></i> Reset Form
           </button>
         </div>
-        <div class="total-section">
+        <!-- Make total text bigger -->
+        <div class="total-section mb-2 mb-md-0" style="font-size:1.25rem;">
           Total Plays: $
           <span id="totalJugadas">0.00</span>
         </div>
       </div>
 
       <!-- Generate Ticket -->
-      <div class="d-grid gap-2 mb-3">
+      <div class="d-grid gap-2">
         <button
           type="button"
           class="btn btn-success btn-lg"
@@ -601,12 +602,12 @@
         </button>
       </div>
 
-      <!-- SNIPPET OCR -->
-      <div class="d-grid gap-2">
-        <button
+      <!-- SNIPPET OCR: Insertar JUSTO DEBAJO del botón "Generate Ticket" -->
+      <div class="d-grid gap-2 mt-3">
+        <button 
           type="button"
           class="btn btn-warning btn-lg"
-          id="btnOcrModalTrigger"
+          id="btnOcrModalTrigger" 
           onclick="abrirModalOCR()"
         >
           <i class="bi bi-camera"></i> Capturar Boleto (OCR)
@@ -614,10 +615,10 @@
       </div>
 
       <!-- MODAL OCR (Bootstrap) -->
-      <div
-        class="modal fade"
-        id="modalOcr"
-        tabindex="-1"
+      <div 
+        class="modal fade" 
+        id="modalOcr" 
+        tabindex="-1" 
         aria-labelledby="modalOcrLabel"
         aria-hidden="true"
       >
@@ -626,85 +627,75 @@
 
             <div class="modal-header">
               <h5 class="modal-title" id="modalOcrLabel">OCR - Upload Image</h5>
-              <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"
+              <button 
+                type="button" 
+                class="btn-close" 
+                data-bs-dismiss="modal" 
                 aria-label="Close">
               </button>
             </div>
 
             <div class="modal-body">
               <!-- Zona drag & drop -->
-              <div
+              <div 
                 id="ocrDropZone"
                 class="drop-zone"
-                ondragover="handleDragOver(event)"
-                ondragleave="handleDragLeave(event)"
-                ondrop="handleDrop(event)"
               >
                 Drag image here...
               </div>
 
               <p class="text-center my-2">Or select a file:</p>
-              <input
+              <input 
                 type="file"
                 class="form-control"
                 id="ocrFile"
                 accept="image/*"
                 capture="camera"
-                onchange="handleFileChange(event)"
               />
 
               <!-- Vista previa -->
               <div class="text-center mt-3">
-                <img
-                  id="ocrPreview"
-                  class="preview d-none"
+                <img 
+                  id="ocrPreview" 
+                  class="preview img-fluid d-none" 
                   alt="Preview OCR"
+                  style="max-height: 200px; border: 1px solid #ccc;"
                 />
               </div>
 
-
               <!-- Spinner/Cargando + Barra Progreso (moderno) -->
-              <div class="mt-3 d-none" id="ocrLoadingSection">
-                <div class="modern-spinner" id="ocrSpinner"></div>
-                <div class="progress-ocr-container">
+              <div class="mt-3 d-none text-center" id="ocrLoadingSection">
+                <div class="modern-spinner mx-auto" id="ocrSpinner"></div>
+                <div class="progress-ocr-container mx-auto" style="max-width: 300px;">
                   <div id="ocrProgressBar" class="progress-ocr-bar"></div>
                 </div>
-                <p id="ocrProgressText" class="text-center" style="margin-top:5px;">
+                <p id="ocrProgressText" style="margin-top:5px;">
                   Uploading/Processing...
                 </p>
               </div>
+               <div id="ocrError" class="alert alert-danger mt-3 d-none" role="alert"></div>
 
-              <!-- Jugadas detectadas -->
+
+              <!-- Jugadas detectadas (SOLO BetNumber y montos) -->
               <div id="ocrJugadas" class="mt-3">
-                <!-- Filled by scripts.js -->
+                <!-- Aquí tu scripts.js creará un listado/tabla con betNumber + montos -->
               </div>
 
               <!-- SECCIÓN DEBUG OCR (opcional) -->
               <div class="border p-2 mt-3">
-                <button
+                <button 
                   type="button"
                   class="btn btn-sm btn-secondary"
-                  onclick="toggleOcrDebug()"
+                  id="toggleOcrDebugBtn"
                 >
                   Show/Hide Debug
                 </button>
                 <div id="ocrDebugPanel" class="d-none mt-2">
-                  <h6>Raw OCR Response (from previous backend, not applicable here)</h6>
-                  <pre
+                  <h6>Raw OCR Response</h6>
+                  <pre 
                     id="ocrRawResponse"
                     style="max-height:200px; overflow:auto; background:#f8f9fa; color:#000;"
                   ></pre>
-
-                  <h6>Full OCR Text (from previous backend, not applicable here)</h6>
-                  <textarea
-                    id="ocrTextoCompleto"
-                    rows="5"
-                    class="form-control"
-                    style="width:100%;"
-                  ></textarea>
                 </div>
               </div>
               <!-- FIN SECCIÓN DEBUG OCR -->
@@ -712,24 +703,25 @@
             </div>
 
             <div class="modal-footer">
-              <button
-                type="button"
+              <!-- Botón para procesar OCR -->
+              <button 
+                type="button" 
                 class="btn btn-primary"
-                onclick="procesarOCR()"
                 id="btnProcesarOCR"
-                disabled 
               >
                 Process OCR
               </button>
-              <button
-                type="button"
+
+              <!-- Botón para cargar las jugadas en el form principal -->
+              <button 
+                type="button" 
                 class="btn btn-info"
                 id="btnCargarJugadas"
-                disabled 
               >
-                Load Bets to Form
+                Load Plays to Form
               </button>
-              <button
+
+              <button 
                 type="button"
                 class="btn btn-secondary"
                 data-bs-dismiss="modal"
@@ -746,17 +738,14 @@
     </form>
   </div>
 
-  <!-- Daily Report Button (Optional) -->
-  <!--
-  <div class="text-center mb-4">
-    <button
-      class="btn btn-secondary"
-      onclick="window.open('dailyReport.html','_blank')"
-    >
-      Open Daily Report
-    </button>
-  </div>
-  -->
+  <!-- BOTÓN para abrir dailyReport.html (si lo deseas en otra pestaña) -->
+ <!-- <button 
+    class="btn btn-secondary"
+    onclick="window.open('dailyReport.html','_blank')"
+  >
+    Abrir Reporte Diario
+  </button> -->
+
 
   <!-- Ticket Preview Window -->
   <div
@@ -806,7 +795,7 @@
                 </tbody>
               </table>
             </div>
-            <div class="total-section text-end"> {/* Align total to right for ticket */}
+            <div class="total-section">
               Total Plays: $<span id="ticketTotal">0.00</span>
             </div>
             <div class="ticket-number my-3">
@@ -822,6 +811,7 @@
           </div>
         </div>
         <div class="modal-footer">
+          <!-- Edit (close) => user can come back to edit main table -->
           <button
             type="button"
             class="btn btn-secondary"
@@ -830,6 +820,7 @@
           >
             Edit
           </button>
+          <!-- Confirm & Print -->
           <button
             type="button"
             class="btn btn-primary"
@@ -837,6 +828,7 @@
           >
             Confirm & Print
           </button>
+          <!-- Share (hidden initially) -->
           <button
             type="button"
             class="btn btn-info d-none"
@@ -844,6 +836,7 @@
           >
             Share Ticket
           </button>
+          <!-- New red "Close" button for easier tapping -->
           <button
             type="button"
             class="btn btn-danger"
@@ -856,7 +849,11 @@
     </div>
   </div>
 
-  <!-- WIZARD WINDOW (Quick Entry) -->
+  <!-- 
+       =================================
+       WIZARD WINDOW (Quick Entry)
+       =================================
+  -->
   <div
     class="modal fade"
     id="wizardModal"
@@ -864,8 +861,10 @@
     aria-labelledby="wizardModalLabel"
     aria-hidden="true"
   >
+    <!-- Fullscreen on small devices -->
     <div class="modal-dialog modal-fullscreen-sm-down modal-dialog-centered">
       <div class="modal-content">
+        <!-- Encabezado con "Close Window" rojo en top-right -->
         <div class="modal-header">
           <h5 class="modal-title" id="wizardModalLabel">Quick Entry Window</h5>
           <button
@@ -877,87 +876,98 @@
             Close Window
           </button>
         </div>
+
         <div class="modal-body">
           <!-- FILA 1: Bet Number + Add & Next -->
-          <div class="row mb-3 align-items-end">
-            <div class="col-7 col-sm-6">
-              <label for="wizardBetNumber" class="form-label">Bet Number</label>
-              <input
-                type="text"
-                class="form-control"
-                id="wizardBetNumber"
-                placeholder="e.g. 123, 22-50"
-              />
-            </div>
-            <div class="col-5 col-sm-6">
-              <button
-                type="button"
-                class="btn btn-primary w-100" 
-                id="wizardAddNext"
-              >
-                <i class="bi bi-check2-circle"></i> Add & Next
-              </button>
+          <div class="row mb-3">
+            <div class="col-12 col-lg-6 d-flex align-items-end">
+              <div class="me-2">
+                <label for="wizardBetNumber" class="form-label">Bet Number</label>
+                <!-- type="text" => permitir "22-55", "11x22", etc. -->
+                <input
+                  type="text"
+                  class="form-control"
+                  id="wizardBetNumber"
+                  placeholder="2–4 digits or Pale (22-50)"
+                  style="width: 180px;"
+                />
+              </div>
+              <div>
+                <button
+                  type="button"
+                  class="btn btn-primary mt-4"
+                  id="wizardAddNext"
+                >
+                  <i class="bi bi-check2-circle"></i> Add & Next
+                </button>
+              </div>
             </div>
           </div>
 
           <!-- FILA 2: Straight + candado (izq) / Add Main (der) -->
-          <div class="row mb-3 align-items-end">
-            <div class="col-7 col-sm-8">
-              <label for="wizardStraight" class="form-label">Straight</label>
-              <div class="input-group">
-                <input
-                  type="number"
-                  step="0.01"
-                  class="form-control"
-                  id="wizardStraight"
-                  placeholder="e.g. 5"
-                />
-                <button
-                  type="button"
-                  class="btn btn-outline-secondary lockBtn"
-                  data-field="straight"
-                  id="lockStraight"
-                >
-                  <i class="bi bi-unlock"></i>
-                </button>
+          <div class="row mb-3">
+            <div class="col-12 col-lg-6 d-flex align-items-end">
+              <div>
+                <label for="wizardStraight" class="form-label">Straight</label>
+                <div class="d-flex align-items-center">
+                  <input
+                    type="number"
+                    step="1"
+                    class="form-control"
+                    id="wizardStraight"
+                    placeholder="e.g. 5"
+                    style="width: 180px;"
+                  />
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary ms-1 lockBtn"
+                    data-field="straight"
+                    id="lockStraight"
+                  >
+                    <i class="bi bi-unlock"></i>
+                  </button>
+                </div>
               </div>
             </div>
-            <div class="col-5 col-sm-4 d-flex justify-content-end">
+            <div class="col-12 col-lg-6 d-flex justify-content-end align-items-end">
               <button
                 type="button"
-                class="btn btn-warning w-100"
+                class="btn btn-warning"
                 id="wizardAddAllToMain"
               >
-                <i class="bi bi-hdd-fill"></i> Add All
+                <i class="bi bi-hdd-fill"></i> Add Main
               </button>
             </div>
           </div>
 
           <!-- FILA 3: Box (izq) / Generate (der) -->
-          <div class="row mb-3 align-items-end">
-            <div class="col-7 col-sm-8">
-              <label for="wizardBox" class="form-label">Box</label>
-              <div class="input-group">
-                <input
-                  type="text" 
-                  class="form-control"
-                  id="wizardBox"
-                  placeholder="e.g. 1 or 1,2"
-                />
-                <button
-                  type="button"
-                  class="btn btn-outline-secondary lockBtn"
-                  data-field="box"
-                  id="lockBox"
-                >
-                  <i class="bi bi-unlock"></i>
-                </button>
+          <div class="row mb-3">
+            <div class="col-12 col-lg-6 d-flex align-items-end">
+              <div>
+                <label for="wizardBox" class="form-label">Box</label>
+                <div class="d-flex align-items-center">
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="wizardBox"
+                    placeholder="e.g. 1,2"
+                    style="width: 180px;"
+                  />
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary ms-1 lockBtn"
+                    data-field="box"
+                    id="lockBox"
+                  >
+                    <i class="bi bi-unlock"></i>
+                  </button>
+                </div>
               </div>
             </div>
-            <div class="col-5 col-sm-4 d-flex justify-content-end">
+            <div class="col-12 col-lg-6 d-flex justify-content-end align-items-end">
               <button
                 type="button"
-                class="btn btn-success w-100"
+                class="btn btn-success"
                 id="wizardGenerateTicket"
               >
                 <i class="bi bi-ticket-detailed"></i> Generate
@@ -966,31 +976,34 @@
           </div>
 
           <!-- FILA 4: Combo (izq) / Edit Main (der) -->
-          <div class="row mb-3 align-items-end">
-            <div class="col-7 col-sm-8">
-              <label for="wizardCombo" class="form-label">Combo</label>
-              <div class="input-group">
-                <input
-                  type="number"
-                  step="0.01"
-                  class="form-control"
-                  id="wizardCombo"
-                  placeholder="e.g. 0.50"
-                />
-                <button
-                  type="button"
-                  class="btn btn-outline-secondary lockBtn"
-                  data-field="combo"
-                  id="lockCombo"
-                >
-                  <i class="bi bi-unlock"></i>
-                </button>
+          <div class="row mb-3">
+            <div class="col-12 col-lg-6 d-flex align-items-end">
+              <div>
+                <label for="wizardCombo" class="form-label">Combo</label>
+                <div class="d-flex align-items-center">
+                  <input
+                    type="number"
+                    step="0.1"
+                    class="form-control"
+                    id="wizardCombo"
+                    placeholder="e.g. 3.00"
+                    style="width: 180px;"
+                  />
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary ms-1 lockBtn"
+                    data-field="combo"
+                    id="lockCombo"
+                  >
+                    <i class="bi bi-unlock"></i>
+                  </button>
+                </div>
               </div>
             </div>
-             <div class="col-5 col-sm-4 d-flex justify-content-end">
+            <div class="col-12 col-lg-6 d-flex justify-content-end align-items-end">
               <button
                 type="button"
-                class="btn btn-secondary w-100"
+                class="btn btn-secondary"
                 id="wizardEditMainForm"
               >
                 <i class="bi bi-pencil-square"></i> Edit Main
@@ -1017,10 +1030,10 @@
           </div>
 
           <!-- Quick Pick Section -->
-          <div class="border p-3 mb-3 rounded">
-            <h6 class="mb-3">Quick Pick</h6>
+          <div class="border p-2 mb-3">
+            <h6>Quick Pick</h6>
             <div class="row mb-2">
-              <div class="col-sm-6 mb-2 mb-sm-0">
+              <div class="col-6">
                 <label for="qpGameMode" class="form-label">Game Mode</label>
                 <select class="form-select" id="qpGameMode">
                   <option value="Pick 3">Pick 3</option>
@@ -1030,11 +1043,11 @@
                   <option value="Pulito">Pulito</option>
                   <option value="RD-Quiniela">RD-Quiniela</option>
                   <option value="Pale-RD">Pale-RD</option>
+                  <!-- Nueva modalidad Single Action -->
                   <option value="Single Action">Single Action</option>
-                  <option value="NY Horses">NY Horses</option>
                 </select>
               </div>
-              <div class="col-sm-6">
+              <div class="col-6">
                 <label for="qpCount" class="form-label">How many plays?</label>
                 <input
                   type="number"
@@ -1042,22 +1055,22 @@
                   id="qpCount"
                   placeholder="1–25"
                   min="1"
-                  max="25" 
+                  max="25"
                   value="5"
                 />
               </div>
             </div>
-            <div class="d-flex gap-2 mt-2">
+            <div class="d-flex gap-2">
               <button
                 type="button"
-                class="btn btn-info flex-grow-1" 
+                class="btn btn-info"
                 id="btnGenerateQuickPick"
               >
                 Quick Pick
               </button>
               <button
                 type="button"
-                class="btn btn-info flex-grow-1"
+                class="btn btn-info"
                 id="btnPermute"
               >
                 Permute
@@ -1066,10 +1079,10 @@
           </div>
 
           <!-- Round Down Section -->
-          <div class="border p-3 mb-3 rounded">
-            <h6 class="mb-3">Round Down</h6>
+          <div class="border p-2 mb-3">
+            <h6>Round Down</h6>
             <div class="row mb-2">
-              <div class="col-sm-6 mb-2 mb-sm-0">
+              <div class="col-6">
                 <label for="rdFirstNumber" class="form-label">First Number</label>
                 <input
                   type="text"
@@ -1078,7 +1091,7 @@
                   placeholder="e.g. 120"
                 />
               </div>
-              <div class="col-sm-6">
+              <div class="col-6">
                 <label for="rdLastNumber" class="form-label">Last Number</label>
                 <input
                   type="text"
@@ -1090,83 +1103,13 @@
             </div>
             <button
               type="button"
-              class="btn btn-info w-100 mt-2" 
+              class="btn btn-info"
               id="btnGenerateRoundDown"
             >
               Round Down
             </button>
           </div>
 
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MANUAL / INSTRUCTIONS -->
-  <div class="container mb-5">
-    <div class="accordion" id="manualAccordion">
-      <div class="accordion-item">
-        <h2 class="accordion-header" id="headingManual">
-          <button
-            class="accordion-button collapsed"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#collapseManual"
-            aria-expanded="false"
-            aria-controls="collapseManual"
-          >
-            Manual / Instructions
-          </button>
-        </h2>
-        <div
-          id="collapseManual"
-          class="accordion-collapse collapse"
-          aria-labelledby="headingManual"
-          data-bs-parent="#manualAccordion"
-        >
-          <div class="accordion-body">
-            <div class="d-flex gap-2 mb-3">
-              <button class="btn btn-secondary btn-sm" id="manualEnglishBtn">English</button>
-              <button class="btn btn-secondary btn-sm" id="manualSpanishBtn">Español</button>
-              <button class="btn btn-secondary btn-sm" id="manualCreoleBtn">Kreyòl</button>
-            </div>
-            <div id="manualEnglishText">
-              <h4>Lottery App Manual (English)</h4>
-              <p><strong>Date Selection:</strong> Pick one or multiple betting dates. Today is auto-selected.</p>
-              <p><strong>Tracks:</strong> Expand “USA” or “Santo Domingo.” Check desired tracks. Some disable after cutoff time. "Venezuela" track is for 2-digit plays with a USA track. "NY Horses" track is for 1–4 digit horse bets.</p>
-              <p><strong>Plays Table:</strong> Each row: Bet Number (determines Game Mode like Pulito, Pick 3, Win 4, Single Action). Add Straight/Box/Combo amounts. Row total shown. Overall total multiplies by selected dates and tracks.</p>
-              <p><strong>Single Action:</strong> With a USA track (not Venezuela/NY Horses), enter 1 digit in Bet Number.</p>
-              <p><strong>NY Horses:</strong> If "New York Horses" track is selected, 1–4 digits entered become this mode.</p>
-              <p><strong>Buttons:</strong> Add Play, Wizard, Remove Last, Reset, Generate Ticket.</p>
-              <p><strong>OCR Capture:</strong> Upload a ticket image to auto-fill bets.</p>
-              <p><strong>Quick Entry (Wizard):</strong> Lock amounts (Straight, Box, Combo). Generate Quick Picks, Round Downs, or Permute digits. Then “Add All” to main table or “Generate Ticket” directly.</p>
-              <p><strong>Ticket Preview:</strong> Shows plays, total, QR code. Confirm & Print/Share. Unique Ticket Number assigned once confirmed.</p>
-            </div>
-            <div id="manualSpanishText" class="d-none">
-               <h4>Manual App Lotería (Español)</h4>
-              <p><strong>Selección Fechas:</strong> Elija una o varias fechas. "Hoy" es automático.</p>
-              <p><strong>Tracks:</strong> Expanda “USA” o “Santo Domingo.” Marque los deseados. Algunos se desactivan post-cierre. "Venezuela" para jugadas de 2 dígitos con un track de USA. "NY Horses" para apuestas de caballos de 1-4 dígitos.</p>
-              <p><strong>Tabla Jugadas:</strong> Cada fila: Número Apuesta (determina Modo de Juego: Pulito, Pick 3, Win 4, Single Action). Añada montos Straight/Box/Combo. Total de fila mostrado. Total general se multiplica por fechas y tracks seleccionados.</p>
-              <p><strong>Single Action:</strong> Con track USA (no Venezuela/NY Horses), ingrese 1 dígito en Número Apuesta.</p>
-              <p><strong>NY Horses:</strong> Si track "New York Horses" está seleccionado, 1–4 dígitos se convierten en este modo.</p>
-              <p><strong>Botones:</strong> Añadir Jugada, Wizard, Quitar Última, Reset, Generar Ticket.</p>
-              <p><strong>Captura OCR:</strong> Suba imagen de ticket para auto-rellenar apuestas.</p>
-              <p><strong>Entrada Rápida (Wizard):</strong> Bloquee montos (Straight, Box, Combo). Genere Quick Picks, Round Downs, o Permute dígitos. Luego “Añadir Todo” a tabla principal o “Generar Ticket” directo.</p>
-              <p><strong>Vista Previa Ticket:</strong> Muestra jugadas, total, código QR. Confirme e Imprima/Comparta. Número de Ticket único asignado al confirmar.</p>
-            </div>
-            <div id="manualCreoleText" class="d-none">
-              <h4>Manyèl App Lòtri (Kreyòl)</h4>
-              <p><strong>Seleksyon Dat:</strong> Chwazi youn oswa plizyè dat. "Jodi a" otomatik.</p>
-              <p><strong>Tracks:</strong> Elaji "USA" oswa "Santo Domingo." Make sa ou vle yo. Gen kèk ki enfim apre lè limit. Track "Venezuela" se pou jwèt 2 chif ak yon track USA. Track "NY Horses" se pou parye cheval 1-4 chif.</p>
-              <p><strong>Tablo Jwèt:</strong> Chak ranje: Nimewo Pari (detèmine Kalite Jwèt: Pulito, Pick 3, Win 4, Single Action). Ajoute montan Straight/Box/Combo. Total ranje afiche. Total jeneral miltipliye pa dat ak tracks seleksyone.</p>
-              <p><strong>Single Action:</strong> Avèk yon track USA (pa Venezuela/NY Horses), antre 1 chif nan Nimewo Pari.</p>
-              <p><strong>NY Horses:</strong> Si track "New York Horses" seleksyone, 1-4 chif vin tounen mòd sa a.</p>
-              <p><strong>Bouton:</strong> Ajoute Jwèt, Wizard, Retire Dènye, Reset, Jenere Tikè.</p>
-              <p><strong>Kaptire OCR:</strong> Telechaje imaj tikè pou ranpli parye otomatikman.</p>
-              <p><strong>Antre Rapid (Wizard):</strong> Bloke montan (Straight, Box, Combo). Jenere Quick Picks, Round Downs, oswa Permute chif. Apre sa "Ajoute Tout" nan tablo prensipal oswa "Jenere Tikè" dirèkteman.</p>
-              <p><strong>Apèsi Tikè:</strong> Montre jwèt, total, kòd QR. Konfime & Enprime/Pataje. Nimewo Tikè inik atribiye lè w konfime.</p>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -1200,11 +1143,130 @@
   <script
     src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
   ></script>
-  <!-- Intro.js -->
+   <!-- Intro.js JS -->
   <script src="https://unpkg.com/intro.js/minified/intro.min.js"></script>
 
-  <!-- Tu scripts.js con todas las funciones globales -->
+
+  <!-- Tu scripts.js con todas las funciones globales (OCR incl.) -->
   <script src="scripts.js"></script>
 
-</body>
-</html>
+  <!-- 
+       =====================
+       MANUAL / INSTRUCTIONS
+       =====================
+  -->
+  <div class="container mb-5">
+    <div class="accordion" id="manualAccordion">
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="headingManual">
+          <button
+            class="accordion-button collapsed"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapseManual"
+            aria-expanded="false"
+            aria-controls="collapseManual"
+          >
+            Manual / Instructions
+          </button>
+        </h2>
+        <div
+          id="collapseManual"
+          class="accordion-collapse collapse"
+          aria-labelledby="headingManual"
+          data-bs-parent="#manualAccordion"
+        >
+          <div class="accordion-body">
+            <!-- Botones para cambiar el idioma del manual -->
+            <div class="d-flex gap-2 mb-3">
+              <button class="btn btn-secondary" id="manualEnglishBtn">English</button>
+              <button class="btn btn-secondary" id="manualSpanishBtn">Español</button>
+              <button class="btn btn-secondary" id="manualCreoleBtn">Kreyòl</button>
+            </div>
+
+            <!-- Texto en Inglés -->
+            <div id="manualEnglishText">
+              <h4>Lottery App Manual (English)</h4>
+              <p><strong>Date Selection:</strong> The date input lets you pick one or multiple betting dates. Today is automatically assigned.</p>
+              <p><strong>Tracks:</strong> Expand the “USA” or “Santo Domingo” sections. Mark the tracks you want. Some tracks will disable after cutoff time. If you pick “Venezuela,” combine it with a USA track to do Venezuelan plays. For “NY Horses,” you can enter 1–4 digits and it will appear as “NY Horses.”</p>
+              <p><strong>Plays Table:</strong> Each row has a Bet Number, which determines the game mode (Pulito, Pick 3, Win 4, Single Action, etc.). Straight/Box/Combo amounts can be added. The total for that row is displayed. The overall total is multiplied by your selected dates and tracks.</p>
+              <p><strong>Single Action:</strong> If you pick a normal USA track (not Venezuela, not NY Horses) and enter exactly 1 digit in Bet Number.</p>
+              <p><strong>NY Horses:</strong> If track is “New York Horses,” 1–4 digits becomes that mode.</p>
+              <p><strong>Buttons:</strong> Add Play, Wizard, Remove Last, Reset, Generate Ticket.</p>
+              <p><strong>Quick Entry Window (Wizard):</strong> You can lock amounts (Straight, Box, Combo), generate Quick Picks, Round Down, or Permute digits. Then “Add Main” or “Generate Ticket.”</p>
+              <p><strong>Ticket Preview:</strong> Shows your plays, total, and a QR code. You can confirm & print/share. A unique Ticket Number is assigned once confirmed.</p>
+            </div>
+
+            <!-- Texto en Español (oculto por defecto) -->
+            <div id="manualSpanishText" class="d-none">
+              <h4>Manual Completo de la App de Lotería (Español)</h4>
+              <p><strong>Selección de Fechas:</strong> Puede elegir una o varias fechas. “Hoy” se asigna por defecto.</p>
+              <p><strong>Tracks:</strong> Expanda “USA” o “Santo Domingo.” Marque los que desee. “Venezuela” requiere un track de USA. “NY Horses” permite 1–4 dígitos.</p>
+              <p><strong>Tabla de Jugadas:</strong> Cada fila con Bet Number define el modo (Pulito, Win4, Pick3, etc.). Los montos Straight/Box/Combo se suman en la fila. Luego se multiplica por fechas y tracks.</p>
+              <p><strong>Single Action:</strong> 1 dígito en track USA (no Venezuela, no Horses). “NY Horses” => 1–4 dígitos.</p>
+              <p><strong>Botones:</strong> Add Play, Wizard, Remove Last, Reset, Generate Ticket.</p>
+              <p><strong>Ventana Wizard:</strong> Permite “lock” Straight/Box/Combo, Quick Picks, Round Down, Permute. Después “Add Main” o “Generate Ticket.”</p>
+              <p><strong>Vista Previa del Ticket:</strong> Muestra jugadas, total, QR. Al confirmar, asigna número único y se descarga imagen. Puede compartirla.</p>
+            </div>
+
+            <!-- Texto en Criollo (oculto por defecto) -->
+            <div id="manualCreoleText" class="d-none">
+              <h4>Manyèl Aplikasyon Lòtri (Kreyòl)</h4>
+              <p><strong>Chwazi Dat:</strong> Ou ka pran youn oswa plizyè dat, “jodia” default.</p>
+              <p><strong>Tracks:</strong> “USA” / “Santo Domingo.” “Venezuela” bezwen track USA. “NY Horses” se 1–4 chif.</p>
+              <p><strong>Tab Pari:</strong> Chak ranje gen Bet Number => Pulito, Win4, Pick3, etc. Mete montan Straight/Box/Combo. Total la miltipliye pa dat ak tracks.</p>
+              <p><strong>Single Action:</strong> 1 chif si se track USA (pa Venezuela, pa Horses). “NY Horses” => 1–4 chif.</p>
+              <p><strong>Bouton:</strong> Add Play, Wizard, Remove Last, Reset, Generate Ticket.</p>
+              <p><strong>Fenèt Wizard:</strong> “lock” Straight/Box/Combo, Quick Picks, Round Down, Permute. Apre sa “Add Main” oswa “Generate Ticket.”</p>
+              <p><strong>Preview Ticket:</strong> Montre parye yo, total la, ak kòd QR. Konfime => bay tikè a yon nimewo inik, telechaje imaj, ka pataje li.</p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <style>
+    /* Estilos para el spinner y barra de progreso del modal OCR */
+    .modern-spinner {
+      display: inline-block;
+      width: 50px; /* Un poco más pequeño */
+      height: 50px;
+      border: 6px solid rgba(0,0,0,0.1);
+      border-top: 6px solid #007bff; /* color primario de Bootstrap */
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .progress-ocr-container {
+      background-color: #e9ecef;
+      border-radius: .25rem; /* Bootstrap's default border radius */
+      height: 8px; /* Delgado */
+      width: 100%;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progress-ocr-bar {
+      height: 100%;
+      background-color: #28a745; /* color verde de Bootstrap */
+      width: 0%;
+      transition: width 0.3s ease-in-out;
+    }
+    .drop-zone {
+      border: 2px dashed #ccc;
+      padding: 25px;
+      text-align: center;
+      cursor: pointer;
+      margin-bottom: 15px;
+    }
+    .drop-zone.dragover {
+      background-color: #f0f0f0;
+    }
+    .preview.d-none {
+      display: none;
