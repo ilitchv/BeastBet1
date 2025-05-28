@@ -1,112 +1,177 @@
 
-// Global flag to prevent recursive event triggering
-let isUpdatingProgrammatically = false;
+// Ensure jQuery and Bootstrap are loaded before this script
+// For example, in your HTML:
+// <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+// <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+// <script src="scripts.js"></script>
 
-// Store modal instances globally
+// Global variables
+let selectedFileGlobalOCR = null;
+let jugadasGlobalOCR = [];
+let fpInstance = null; // Flatpickr instance
 let modalOcrInstance = null;
 let wizardModalInstance = null;
 let ticketModalInstance = null;
 
-// Store OCR results globally
-let jugadasGlobalOCR = [];
-
-// Contador de jugadas principal y del wizard
 let playCount = 0;
-const MAX_PLAYS = 200; // Aumentado a 200
-let wizardCount = 0;
+const MAX_PLAYS = 200; // Updated limit
+let selectedDaysCount = 0;
+let selectedTracksCount = 0;
 
-// Candados para el Wizard
+// For Wizard
+let wizardCount = 0;
 const lockedFields = {
     straight: false,
     box: false,
     combo: false
 };
 
-// Contadores para el total general
-let selectedTracksCount = 0;
-let selectedDaysCount = 0;
+// Cutoff times (remains the same, ensure it's defined)
+const cutoffTimes = {
+    "USA": {
+        "New York Mid Day": "14:20", "New York Evening": "22:00", "Georgia Mid Day": "12:20",
+        "Georgia Evening": "18:40", "New Jersey Mid Day": "12:50", "New Jersey Evening": "22:00",
+        "Florida Mid Day": "13:20", "Florida Evening": "21:30", "Connecticut Mid Day": "13:30",
+        "Connecticut Evening": "22:00", "Georgia Night": "22:00", "Pensilvania AM": "12:45",
+        "Pensilvania PM": "18:15", "Venezuela": "00:00", // No cutoff
+        "Brooklyn Midday": "14:20", "Brooklyn Evening": "22:00", "Front Midday": "14:20",
+        "Front Evening": "22:00", "New York Horses": "16:00" // Example
+    },
+    "Santo Domingo": {
+        "Real": "11:45", "Gana mas": "13:25", "Loteka": "18:30", "Nacional": "19:30",
+        "Quiniela Pale": "19:30", "Primera Día": "10:50", "Suerte Día": "11:20",
+        "Lotería Real": "11:50", "Suerte Tarde": "16:50", "Lotedom": "16:50",
+        "Primera Noche": "18:50", "Panama": "16:00" // Example
+    }
+};
 
-// Flatpickr instance
-let fpInstance = null;
 
-/* =========================================================
-   FUNCTIONS CALLED BY HTML ONCLICK ATTRIBUTES
-   These need to be global.
-========================================================= */
-window.abrirModalOCR = function() {
+// --- OCR Modal Functions ---
+function abrirModalOCR() {
     console.log("abrirModalOCR function called");
-    isUpdatingProgrammatically = true; // Prevent unwanted triggers while setting up modal
-    // Reset OCR modal state
     selectedFileGlobalOCR = null;
     jugadasGlobalOCR = [];
-    $("#ocrFile").val("");
+    $("#ocrFile").val(""); // Clear file input
     $("#ocrPreview").addClass("d-none").attr("src", "");
-    $("#ocrJugadas").empty().html("<p>Sube una imagen de tu ticket para ver las jugadas detectadas aquí.</p>");
-    $("#btnProcesarOCR").prop('disabled', true);
-    $("#btnCargarJugadas").prop('disabled', true); // Ensure "Cargar Jugadas" is disabled initially
-    hideOcrLoading(); // Make sure loading indicators are hidden
+    $("#ocrJugadas").html("<p>Sube una imagen para ver las jugadas detectadas aquí.</p>");
+    hideOcrLoading();
     $("#ocrDebugPanel").addClass("d-none");
-    isUpdatingProgrammatically = false;
+    // Disable buttons that depend on OCR results
+    $("#btnProcesarOCR").prop('disabled', true);
+    $("#btnCargarJugadas").prop('disabled', true); // Disable "Cargar Jugadas al Form" button
 
     if (modalOcrInstance) {
         modalOcrInstance.show();
     } else {
         console.error("modalOcrInstance is not initialized!");
     }
-};
+}
+window.abrirModalOCR = abrirModalOCR;
 
-window.handleDragOverOCR = function(e) {
+function handleDragOverOCR(e) {
     e.preventDefault();
     $("#ocrDropZone").addClass("dragover");
-};
+}
+window.handleDragOverOCR = handleDragOverOCR;
 
-window.handleDragLeaveOCR = function(e) {
+function handleDragLeaveOCR(e) {
     e.preventDefault();
     $("#ocrDropZone").removeClass("dragover");
-};
+}
+window.handleDragLeaveOCR = handleDragLeaveOCR;
 
-window.handleDropOCR = function(e) {
+function handleDropOCR(e) {
     e.preventDefault();
     $("#ocrDropZone").removeClass("dragover");
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
         selectedFileGlobalOCR = e.dataTransfer.files[0];
         $("#ocrPreview").attr("src", URL.createObjectURL(selectedFileGlobalOCR)).removeClass("d-none");
-        $("#btnProcesarOCR").prop('disabled', false);
-         console.log("File dropped:", selectedFileGlobalOCR);
+        $("#btnProcesarOCR").prop('disabled', false); // Enable process button
+        $("#ocrJugadas").html("<p>Imagen lista. Haz clic en 'Procesar OCR'.</p>");
     }
-};
+}
+window.handleDropOCR = handleDropOCR;
 
-window.handleFileChangeOCR = function(e) {
+function handleFileChangeOCR(event) {
     console.log("handleFileChangeOCR called");
-    if (e.target.files && e.target.files[0]) {
-        selectedFileGlobalOCR = e.target.files[0];
-        $("#ocrPreview").attr("src", URL.createObjectURL(selectedFileGlobalOCR)).removeClass("d-none");
-        $("#btnProcesarOCR").prop('disabled', false);
+    if (event.target.files && event.target.files[0]) {
+        selectedFileGlobalOCR = event.target.files[0];
         console.log("File selected:", selectedFileGlobalOCR);
+        $("#ocrPreview").attr("src", URL.createObjectURL(selectedFileGlobalOCR)).removeClass("d-none");
+        $("#btnProcesarOCR").prop('disabled', false); // Enable process button
+        $("#ocrJugadas").html("<p>Imagen lista. Haz clic en 'Procesar OCR'.</p>");
+
     } else {
         selectedFileGlobalOCR = null;
         $("#ocrPreview").addClass("d-none").attr("src", "");
-        $("#btnProcesarOCR").prop('disabled', true);
+        $("#btnProcesarOCR").prop('disabled', true); // Disable process button
+        $("#ocrJugadas").html("<p>Sube una imagen para ver las jugadas detectadas aquí.</p>");
     }
-};
+}
+window.handleFileChangeOCR = handleFileChangeOCR;
 
-window.procesarOCR = async function() {
+let ocrProgressIntervalId = null;
+function showOcrLoading(message = "Subiendo/Procesando...") {
+    $("#ocrLoadingSection").removeClass("d-none");
+    $("#ocrProgressBar").css("width", "0%");
+    $("#ocrProgressText").text(message);
+    $("#btnProcesarOCR").prop('disabled', true);
+    $("#btnCargarJugadas").prop('disabled', true);
+
+    let progressValue = 0;
+    if (ocrProgressIntervalId) clearInterval(ocrProgressIntervalId);
+    ocrProgressIntervalId = setInterval(() => {
+        progressValue += 10;
+        if (progressValue > 90) progressValue = 90; // Simulate progress
+        $("#ocrProgressBar").css("width", progressValue + "%");
+    }, 200);
+}
+
+function updateOcrProgress(percentage, message) {
+    if (percentage > 90 && percentage < 100) percentage = 90; // Don't complete fully until done
+    $("#ocrProgressBar").css("width", percentage + "%");
+    if (message) $("#ocrProgressText").text(message);
+}
+
+function hideOcrLoading(success = true) {
+    if (ocrProgressIntervalId) {
+        clearInterval(ocrProgressIntervalId);
+        ocrProgressIntervalId = null;
+    }
+    if (success) {
+        $("#ocrProgressBar").css("width", "100%");
+        $("#ocrProgressText").text("Completado!");
+        setTimeout(() => {
+            $("#ocrLoadingSection").addClass("d-none");
+        }, 800);
+    } else {
+         $("#ocrProgressText").text("Error."); // Keep loading section visible on error to show message
+         // Do not hide, let error message persist
+    }
+    // Enable process button if a file is still selected (e.g., for retrying)
+    $("#btnProcesarOCR").prop('disabled', !selectedFileGlobalOCR);
+}
+
+async function procesarOCR() {
     console.log("procesarOCR function called");
     console.log("Current selectedFileGlobalOCR:", selectedFileGlobalOCR);
 
     if (!selectedFileGlobalOCR) {
-        alert("No has seleccionado ninguna imagen.");
+        alert("Por favor, selecciona una imagen primero.");
         return;
     }
 
-    $("#ocrJugadas").empty().html("<p>Procesando, por favor espera...</p>");
-    $("#btnProcesarOCR").prop('disabled', true);
+    showOcrLoading("Iniciando procesamiento...");
+    jugadasGlobalOCR = []; // Clear previous results
+    $("#ocrJugadas").html("Procesando..."); // Clear previous plays display
     $("#btnCargarJugadas").prop('disabled', true);
-    showOcrLoading();
+
 
     const reader = new FileReader();
+    reader.readAsDataURL(selectedFileGlobalOCR);
     reader.onloadend = async () => {
         const base64data = reader.result;
+        updateOcrProgress(30, "Imagen leída, enviando a IA...");
         console.log("Sending request to /api/interpret-ticket");
         try {
             const response = await fetch('/api/interpret-ticket', {
@@ -117,31 +182,35 @@ window.procesarOCR = async function() {
                 body: JSON.stringify({ photoDataUri: base64data }),
             });
 
-            updateOcrProgress(75, "AI procesando...");
+            updateOcrProgress(70, "Respuesta recibida de IA, procesando...");
 
             if (!response.ok) {
-                let errorData = { message: `Error del servidor: ${response.status} - ${response.statusText || "Error desconocido del servidor."}` };
+                let errorMsg = `Error del servidor: ${response.status}`;
                 try {
-                    const errJson = await response.json();
-                    errorData = errJson; // Get more specific error from server if available
-                } catch (e) { /* Ignore if response is not JSON */ }
-                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                    const errorData = await response.json();
+                    errorMsg += ` - ${errorData.message || 'Error desconocido del servidor.'}`;
+                } catch (e) {
+                    // Failed to parse JSON error, use text
+                    const textError = await response.text();
+                    errorMsg += ` - ${textError || 'Respuesta no JSON.'}`;
+                }
+                throw new Error(errorMsg);
             }
 
             const interpretedBets = await response.json();
             console.log("Received interpretedBets:", interpretedBets);
-            updateOcrProgress(100, "¡Completado!");
+            hideOcrLoading(true);
 
             if (Array.isArray(interpretedBets) && interpretedBets.length > 0) {
                 jugadasGlobalOCR = interpretedBets;
-                let html = '<h5>Jugadas Detectadas:</h5>';
+                let html = '<h5 class="mb-3">Jugadas Detectadas:</h5>';
                 jugadasGlobalOCR.forEach((j, idx) => {
                     html += `
-                      <div class="ocr-detected-play my-2 p-2 border rounded">
+                      <div class="ocr-detected-play mb-3 p-2 border rounded">
                         <table class="table table-sm table-bordered table-dark small-ocr-table mb-1">
                           <thead>
                             <tr>
-                              <th style="width:30px;">#</th>
+                              <th>#</th>
                               <th>Bet</th>
                               <th>Mode</th>
                               <th>Str</th>
@@ -164,120 +233,173 @@ window.procesarOCR = async function() {
                           Usar esta Jugada
                         </button>
                       </div>
-                      <hr class="ocr-play-separator">
+                      ${idx < jugadasGlobalOCR.length - 1 ? '<hr class="ocr-play-separator">' : ''}
                     `;
                 });
                 $("#ocrJugadas").html(html);
-                $("#btnCargarJugadas").prop('disabled', false); // Enable button if plays are found
+                $("#btnCargarJugadas").prop('disabled', false); // Enable button
             } else {
                 $("#ocrJugadas").html("<p>No se detectaron jugadas válidas en la imagen.</p>");
-                jugadasGlobalOCR = [];
                 $("#btnCargarJugadas").prop('disabled', true);
             }
         } catch (error) {
-            console.error('Error procesando la imagen:', error);
-            $("#ocrJugadas").html(`<p style="color:red;">Error procesando la imagen: ${error.message}</p>`);
-            jugadasGlobalOCR = [];
+            console.error("Error procesando la imagen:", error);
+            $("#ocrJugadas").html(`<p class="text-danger">Error procesando la imagen: ${error.message}</p>`);
+            hideOcrLoading(false);
             $("#btnCargarJugadas").prop('disabled', true);
-        } finally {
-            hideOcrLoading();
-            // Re-enable "Procesar OCR" only if a file is still selected
-            $("#btnProcesarOCR").prop('disabled', !selectedFileGlobalOCR);
         }
     };
     reader.onerror = () => {
         alert('Error leyendo el archivo de imagen.');
-        hideOcrLoading();
-        $("#btnProcesarOCR").prop('disabled', !selectedFileGlobalOCR);
+        hideOcrLoading(false);
         $("#btnCargarJugadas").prop('disabled', true);
     };
-    reader.readAsDataURL(selectedFileGlobalOCR);
-    updateOcrProgress(25, "Subiendo imagen...");
-};
+}
+window.procesarOCR = procesarOCR;
 
-window.usarJugadaOCR = function(idx) {
-    console.log("usarJugadaOCR called for index:", idx);
+function usarJugadaOCR(idx) {
+    console.log('usarJugadaOCR called with index:', idx);
     if (!jugadasGlobalOCR || !jugadasGlobalOCR[idx]) {
         alert("No se encontró la jugada seleccionada.");
         return;
     }
     const j = jugadasGlobalOCR[idx];
-    console.log("Jugada a usar:", j);
+    console.log('Play data to use:', j);
 
-    const newRow = addMainRow(j); // Pass the bet object to addMainRow
-    if (newRow) {
-        newRow.find(".betNumber").focus();
+    if (playCount >= MAX_PLAYS) {
+        alert(`Se ha alcanzado el límite de ${MAX_PLAYS} jugadas.`);
+        return;
     }
-    // No cerrar el modal: modalOcrInstance.hide();
-};
+    addMainRow(j); // Pass the bet object to addMainRow
+    // No cerrar el modal: modalOcrInstance.hide(); 
+}
+window.usarJugadaOCR = usarJugadaOCR;
 
-window.toggleOcrDebug = function() {
-    //$("#ocrDebugPanel").toggleClass("d-none");
-    alert("El panel de debug detallado del backend original no está implementado de la misma manera para la respuesta de la API actual. Revisa la consola del navegador para ver la respuesta de /api/interpret-ticket.");
-};
+// NUEVA FUNCIÓN GLOBAL PARA EL BOTÓN #btnCargarJugadas
+function handleCargarTodasLasJugadasClick() {
+    console.log("¡handleCargarTodasLasJugadasClick EJECUTADA!");
+    alert("Botón 'Cargar Jugadas al Form' clickeado (onclick global)");
+
+    if (!jugadasGlobalOCR || jugadasGlobalOCR.length === 0) {
+        console.log("No hay jugadas OCR para cargar desde handleCargarTodasLasJugadasClick.");
+        alert("No hay jugadas OCR para cargar.");
+        return;
+    }
+    console.log(`Cargando ${jugadasGlobalOCR.length} jugadas del OCR desde handleCargarTodasLasJugadasClick...`);
+
+    jugadasGlobalOCR.forEach((j, index) => {
+        console.log(`Añadiendo jugada OCR ${index + 1} (desde handleCargarTodasLasJugadasClick) a la tabla principal:`, j);
+        if (playCount < MAX_PLAYS) {
+            addMainRow(j);
+        } else {
+            alert(`Se ha alcanzado el límite de ${MAX_PLAYS} jugadas en el formulario principal.`);
+            return false; // Rompe el bucle .forEach
+        }
+    });
+
+    console.log("Todas las jugadas OCR procesadas (desde handleCargarTodasLasJugadasClick).");
+    recalcAllMainRows();
+    calculateMainTotal();
+    highlightDuplicatesInMain();
+    storeFormState();
+
+    if (modalOcrInstance) {
+        console.log("Cerrando modal de OCR (desde handleCargarTodasLasJugadasClick).");
+        modalOcrInstance.hide();
+    } else {
+        console.error("modalOcrInstance no está definida al intentar cerrar (desde handleCargarTodasLasJugadasClick).");
+    }
+}
+window.handleCargarTodasLasJugadasClick = handleCargarTodasLasJugadasClick;
 
 
+function toggleOcrDebug() {
+    // El panel de debug detallado del backend original no aplica directamente con Genkit.
+    // La consola del navegador es el mejor lugar para ver la respuesta de /api/interpret-ticket
+    alert("Para depuración, revisa la consola del navegador (F12) y la pestaña 'Network' para la respuesta de la API '/api/interpret-ticket'.");
+    // $("#ocrDebugPanel").toggleClass("d-none");
+}
+window.toggleOcrDebug = toggleOcrDebug;
+
+
+// --- Main Form Logic ---
 $(document).ready(function() {
-    console.log("Document ready. jQuery version:", $().jquery);
+    console.log("Document ready. jQuery version:", $.fn.jquery);
     if (typeof bootstrap !== 'undefined') {
         console.log("Bootstrap is loaded. Version:", bootstrap.Modal.VERSION);
     } else {
         console.error("Bootstrap is NOT loaded!");
     }
 
-    // Initialize modal instances
-    if ($('#modalOcr').length) modalOcrInstance = new bootstrap.Modal(document.getElementById('modalOcr'));
-    if ($('#wizardModal').length) wizardModalInstance = new bootstrap.Modal(document.getElementById('wizardModal'));
-    if ($('#ticketModal').length) ticketModalInstance = new bootstrap.Modal(document.getElementById('ticketModal'));
-
-    // (3) Init Flatpickr
-    fpInstance = flatpickr("#fecha", {
-        mode: "multiple",
-        dateFormat: "m-d-Y",
-        minDate: "today",
-        defaultDate: [new Date()],
-        clickOpens: true,
-        allowInput: false,
-        appendTo: document.body, // Or specific container
-        onOpen: function(selectedDates, dateStr, instance) {
-            // Optional: adjust positioning or style on open
-        },
-        onClose: function(selectedDates, dateStr, instance) {
-            // Optional: cleanup or actions on close
-        },
-        onReady: function(selectedDates, dateStr, instance) {
-            if (!dateStr || dateStr.trim() === "") {
-                instance.setDate(new Date(), true); // Fire onChange
+    // Initialize modals (ensure these IDs exist in your HTML)
+    if ($('#modalOcr').length) {
+        modalOcrInstance = new bootstrap.Modal(document.getElementById('modalOcr'));
+    } else {
+        console.error("Modal #modalOcr not found in HTML!");
+    }
+    if ($('#wizardModal').length) {
+        wizardModalInstance = new bootstrap.Modal(document.getElementById('wizardModal'));
+    } else {
+        console.error("Modal #wizardModal not found in HTML!");
+    }
+    if ($('#ticketModal').length) {
+        ticketModalInstance = new bootstrap.Modal(document.getElementById('ticketModal'));
+    } else {
+        console.error("Modal #ticketModal not found in HTML!");
+    }
+    
+    // Initialize Flatpickr
+    if ($("#fecha").length) {
+        fpInstance = flatpickr("#fecha", {
+            mode: "multiple",
+            dateFormat: "m-d-Y",
+            minDate: "today",
+            defaultDate: [new Date()],
+            onChange: function(selectedDates, dateStr, instance) {
+                console.log("Flatpickr onChange. Selected dates:", selectedDates.length);
+                selectedDaysCount = selectedDates.length > 0 ? selectedDates.length : 0;
+                // COMENTADO TEMPORALMENTE PARA EVITAR RECURSIÓN
+                // disableTracksByTime(); 
+                updateSelectedTracksAndTotal(); // Actualiza totales después de cambiar la fecha
+            },
+            onReady: function(selectedDates, dateStr, instance) {
+                if (!dateStr || dateStr.trim() === "") {
+                    instance.setDate(new Date(), true);
+                }
+                selectedDaysCount = instance.selectedDates.length > 0 ? instance.selectedDates.length : 0;
             }
-            // Initial calculation after ready and potential defaultDate set
-            selectedDaysCount = instance.selectedDates.length || 1;
-            // Call disableTracksByTime and updateSelectedTracksAndTotal AFTER auto-selection
-        },
-        onChange: (selectedDatesFromPicker, dateStr, instance) => {
-            console.log("Flatpickr onChange triggered. Dates:", selectedDatesFromPicker);
-            selectedDaysCount = selectedDatesFromPicker.length || 0;
-            
-            isUpdatingProgrammatically = true;
-            $(".track-checkbox").off('change', trackCheckboxChangeHandler); // Turn off while disabling
-            disableTracksByTime();
-            $(".track-checkbox").on('change', trackCheckboxChangeHandler); // Turn back on
-            isUpdatingProgrammatically = false;
-            
-            updateSelectedTracksAndTotal(); // This will calculate total
-        }
+        });
+    } else {
+        console.error("Flatpickr target #fecha not found!");
+    }
+
+
+    // Track Checkbox change handler
+    // Se eliminó la llamada a disableTracksByTime() de aquí para evitar recursión
+    $(".track-checkbox").on('change', function() {
+        console.log("Track checkbox changed BY USER - calling updateSelectedTracksAndTotal");
+        updateSelectedTracksAndTotal();
     });
+    
+    // Initial setup calls
+    // COMENTADO TEMPORALMENTE PARA EVITAR RECURSIÓN
+    // showCutoffTimes(); 
+    // autoSelectNYTrackAndVenezuela();
+    // disableTracksByTime();
+    updateSelectedTracksAndTotal(); // Call once at the end to set initial state
 
-    // (4) Track Checkboxes event handler
-    $(".track-checkbox").on('change', trackCheckboxChangeHandler);
+    loadFormState(); // Load stored state if any
 
-    // (5) MAIN TABLE => Add/Remove
+
+    // --- Event Handlers for Buttons ---
     $("#agregarJugada").click(function() {
-        console.log("Add Play button clicked");
+        console.log("Agregar Jugada button clicked");
         const row = addMainRow();
         if (row) row.find(".betNumber").focus();
     });
 
     $("#eliminarJugada").click(function() {
+        console.log("Eliminar Jugada button clicked");
         if (playCount === 0) {
             alert("No plays to remove.");
             return;
@@ -287,79 +409,63 @@ $(document).ready(function() {
         renumberMainRows();
         calculateMainTotal(); // Recalculate after removing
         highlightDuplicatesInMain();
-        storeFormState();
     });
 
     $("#tablaJugadas").on("click", ".removeMainBtn", function() {
+        console.log("Remove specific play button clicked");
         $(this).closest("tr").remove();
         playCount--;
         renumberMainRows();
-        calculateMainTotal(); // Recalculate after removing
+        calculateMainTotal(); // Recalculate
         highlightDuplicatesInMain();
-        storeFormState();
     });
 
     $("#tablaJugadas").on("input", ".betNumber, .straight, .box, .combo", function() {
         const row = $(this).closest("tr");
-        recalcMainRow(row); // This will call calculateMainTotal internally
+        recalcMainRow(row); // This will also call calculateMainTotal indirectly
         highlightDuplicatesInMain();
         storeFormState();
     });
 
-    // (10) resetForm
     $("#resetForm").click(function() {
         console.log("Reset Form button clicked");
         if (confirm("Are you sure you want to reset the form?")) {
             resetForm();
         }
     });
-
-    // Attach click handler for "Cargar Jugadas al Form"
-    console.log("Attempting to attach click handler to #btnCargarJugadas");
-    console.log("Element #btnCargarJugadas encontrado:", $("#btnCargarJugadas").length);
-    $(document).on('click', '#btnCargarJugadas', function() {
-        console.log("¡CLICK DETECTADO EN BOTÓN CARGAR JUGADAS (delegado)!");
-        console.log("jugadasGlobalOCR:", jugadasGlobalOCR);
-
-        if (!jugadasGlobalOCR || jugadasGlobalOCR.length === 0) {
-            alert("No hay jugadas OCR para cargar.");
-            return;
-        }
-
-        isUpdatingProgrammatically = true; // Prevent table input events from firing updates prematurely
-        jugadasGlobalOCR.forEach(j => {
-            if (playCount < MAX_PLAYS) {
-                addMainRow(j); // Pass the bet object
-            } else {
-                alert(`Se ha alcanzado el límite de ${MAX_PLAYS} jugadas. No se pueden añadir más desde el OCR.`);
-                return false; // Break a .each() loop in jQuery
-            }
-        });
-        isUpdatingProgrammatically = false;
-
-        recalcAllMainRows(); // Recalculate all game modes and row totals
-        // updateSelectedTracksAndTotal(); // Not needed here as tracks/days haven't changed
-        calculateMainTotal(); // Recalculate grand total
-        highlightDuplicatesInMain();
-        storeFormState();
-
-        if (modalOcrInstance) {
-            modalOcrInstance.hide();
-        }
-    });
-
-
-    // (11) Generate Ticket
-    $("#generarTicket").click(function() {
-        console.log("Generate Ticket button clicked");
-        doGenerateTicket();
-    });
-
-    // WIZARD related event handlers
+    
+    // Wizard Button
     $("#wizardButton").click(function() {
         console.log("Wizard button clicked");
         resetWizard();
         if(wizardModalInstance) wizardModalInstance.show();
+    });
+
+    // Generate Ticket Button (main form)
+    $("#generarTicket").click(function() {
+        console.log("Generate Ticket (main) button clicked");
+        doGenerateTicket();
+    });
+
+    // --- Wizard Modal Event Handlers ---
+    $("#wizardAddNext").click(function(){
+        // ... (wizard logic) ...
+        const bn = $("#wizardBetNumber").val().trim();
+        const stVal = $("#wizardStraight").val().trim();
+        const bxVal = $("#wizardBox").val().trim();
+        const coVal = $("#wizardCombo").val().trim();
+        const gm = determineGameMode(bn, getCurrentSelectedTracks()); // Pass tracks
+        if (gm === "-") {
+            alert(`Cannot determine game mode for "${bn}". Check tracks or length/format.`);
+            return;
+        }
+        const rowT = calculateRowTotal(bn, gm, stVal, bxVal, coVal);
+        addWizardRow(bn, gm, stVal, bxVal, coVal, rowT);
+        if (!lockedFields.straight) $("#wizardStraight").val("");
+        if (!lockedFields.box) $("#wizardBox").val("");
+        if (!lockedFields.combo) $("#wizardCombo").val("");
+        $("#wizardBetNumber").val("").focus();
+        highlightDuplicatesInWizard();
     });
 
     $(".lockBtn").click(function() {
@@ -367,96 +473,125 @@ $(document).ready(function() {
         lockedFields[field] = !lockedFields[field];
         $(this).html(lockedFields[field] ? '<i class="bi bi-lock-fill"></i>' : '<i class="bi bi-unlock"></i>');
     });
-
-    $("#wizardAddNext").click(function() {
-        // ... (wizard logic)
-    });
-    // ... (other wizard buttons and logic) ...
+    
     $("#wizardAddAllToMain").click(function() {
-        // ...
-        recalcAllMainRows();
+        console.log("Wizard Add All To Main clicked");
+        const wizardRows = $("#wizardTableBody tr");
+        if (wizardRows.length === 0) {
+            alert("No plays in the wizard table.");
+            return;
+        }
+        wizardRows.each(function() {
+            if (playCount >= MAX_PLAYS) {
+                alert(`Reached ${MAX_PLAYS} plays limit. Stopping import.`);
+                return false; // break jQuery .each loop
+            }
+            const tds = $(this).find("td");
+            const betData = {
+                betNumber: tds.eq(1).text(),
+                gameMode: tds.eq(2).text(), // gameMode is already determined in wizard table
+                straightAmount: tds.eq(3).text() === "-" ? null : parseFloat(tds.eq(3).text()),
+                boxAmount: tds.eq(4).text() === "-" ? null : parseFloat(tds.eq(4).text()), // Assuming box is numeric or null
+                comboAmount: tds.eq(5).text() === "-" ? null : parseFloat(tds.eq(5).text()),
+            };
+            addMainRow(betData);
+        });
+        $("#wizardTableBody").empty(); // Clear wizard table
+        wizardCount = 0;
+        // No need to call recalcAllMainRows if addMainRow does it.
+        // recalcAllMainRows(); 
         calculateMainTotal();
         highlightDuplicatesInMain();
         storeFormState();
     });
 
     $("#wizardGenerateTicket").click(function() {
+        console.log("Wizard Generate Ticket clicked");
         $("#wizardAddAllToMain").trigger("click");
         if(wizardModalInstance) wizardModalInstance.hide();
         doGenerateTicket();
     });
 
     $("#wizardEditMainForm").click(function() {
+        console.log("Wizard Edit Main Form clicked");
         if(wizardModalInstance) wizardModalInstance.hide();
     });
     
-    // --- INITIALIZATION SEQUENCE ---
-    loadFormState(); // Load saved state first
-    showCutoffTimes(); // Display cutoff times in the UI
+    // Quick Pick, Round Down, Permute (wizard)
+    $("#btnGenerateQuickPick").click(function() { generateQuickPick(); });
+    $("#btnGenerateRoundDown").click(function() { generateRoundDown(); });
+    $("#btnPermute").click(function() { permuteWizardBetNumbers(); });
 
-    isUpdatingProgrammatically = true;
-    $(".track-checkbox").off('change', trackCheckboxChangeHandler);
-    
-    autoSelectNYTrackAndVenezuela(); // Selects defaults, might change checkboxes
-    disableTracksByTime();           // Disables tracks based on time, might change checkboxes
 
-    $(".track-checkbox").on('change', trackCheckboxChangeHandler);
-    isUpdatingProgrammatically = false;
-    
-    updateSelectedTracksAndTotal();  // Calculate initial counts and grand total correctly
+    // Ticket Modal Buttons
+    $("#confirmarTicket").click(function() {
+        // ... (confirm ticket logic) ...
+        console.log("Confirmar Ticket clicked");
+        // ... (rest of your confirm ticket logic) ...
+    });
+    $("#editButton").click(function() {
+        console.log("Ticket Edit button clicked");
+        if(ticketModalInstance) ticketModalInstance.hide();
+    });
+    $("#shareTicket").click(async function() {
+        // ... (share ticket logic) ...
+        console.log("Share Ticket clicked");
+    });
 
-    console.log("Initial selectedDaysCount:", selectedDaysCount);
-    console.log("Initial selectedTracksCount:", selectedTracksCount);
-    console.log("Document ready sequence finished.");
-});
+    // Tutorial and Manual Buttons
+    $("#helpEnglish").click(() => startTutorial('en'));
+    $("#helpSpanish").click(() => startTutorial('es'));
+    $("#helpCreole").click(() => startTutorial('ht'));
+    $("#manualEnglishBtn").click(function() { showManualText("manualEnglishText"); });
+    $("#manualSpanishBtn").click(function() { showManualText("manualSpanishText"); });
+    $("#manualCreoleBtn").click(function() { showManualText("manualCreoleText"); });
 
-function trackCheckboxChangeHandler() {
-    if (isUpdatingProgrammatically) {
-        console.log("Track change CANCELED due to isUpdatingProgrammatically flag");
-        return;
-    }
-    console.log("Track checkbox changed BY USER - calling updateSelectedTracksAndTotal");
-    updateSelectedTracksAndTotal();
-}
 
+    console.log("All $(document).ready() setup complete.");
+}); // End of $(document).ready()
+
+// --- Helper Functions (Bet Logic, Calculations, etc.) ---
 function updateSelectedTracksAndTotal() {
     console.log("updateSelectedTracksAndTotal called");
-    isUpdatingProgrammatically = true; // Protect this function's changes
     let count = 0;
     $(".track-checkbox:checked").each(function() {
-        if ($(this).val() !== "Venezuela") { // "Venezuela" does not count towards multiplier
-            if (!$(this).prop('disabled')) { // Only count if not disabled
-                 count++;
-            }
+        if ($(this).val() !== "Venezuela" && !$(this).prop('disabled')) {
+            count++;
         }
     });
-    selectedTracksCount = count || 0; // Ensure it's at least 0, not 1 if no tracks are selected
-    if ($(".track-checkbox:checked").length > 0 && selectedTracksCount === 0 && $(".track-checkbox:checked[value='Venezuela']").length > 0) {
-      // If only Venezuela is checked, count should effectively be 1 for total calculation if we want it to act as a base
-      // Or handle this logic inside calculateMainTotal as per specific rules. For now, it will be 0.
-    }
-
-    console.log("Updated selectedTracksCount:", selectedTracksCount);
-    isUpdatingProgrammatically = false;
+    selectedTracksCount = count > 0 ? count : 0; // If 0 checked, multiplier should be 0 or 1 depending on rules.
+                                              // Original script used 1 if 0 selected, but 0 makes more sense if no billable tracks are chosen
+    console.log("Track checkboxes changed - selectedTracksCount:", selectedTracksCount);
     calculateMainTotal();
     storeFormState();
 }
 
-
-function addMainRow(bet = null) { // bet object can be passed from OCR
+function addMainRow(bet = null) { // bet can be an object from OCR or Wizard
+    console.log("addMainRow called. Current playCount:", playCount, "Bet data:", bet);
     if (playCount >= MAX_PLAYS) {
-        alert(`Has alcanzado el límite de ${MAX_PLAYS} jugadas.`);
+        alert(`You have reached the limit of ${MAX_PLAYS} plays in the main form.`);
         return null;
     }
     playCount++;
     const rowIndex = playCount;
-    const betNumber = bet ? bet.betNumber || "" : "";
-    // Game mode will be determined by recalcMainRow
-    const straight = bet ? (bet.straightAmount !== null && bet.straightAmount !== undefined ? parseFloat(bet.straightAmount).toFixed(2) : "") : "";
-    const box = bet ? (bet.boxAmount !== null && bet.boxAmount !== undefined ? parseFloat(bet.boxAmount).toFixed(2) : "") : "";
-    const combo = bet ? (bet.comboAmount !== null && bet.comboAmount !== undefined ? parseFloat(bet.comboAmount).toFixed(2) : "") : "";
 
+    // Default empty values, to be overridden by `bet` object if provided
+    let bn_val = "";
+    let st_val = "";
+    let bx_val = ""; // Box for Pulito might be string "1,2", for others number
+    let co_val = "";
+    let gm_val = "-";
 
+    if (bet) {
+        bn_val = bet.betNumber || "";
+        // OCR provides amounts, Wizard provides amounts.
+        st_val = (bet.straightAmount !== null && bet.straightAmount !== undefined) ? String(bet.straightAmount) : "";
+        bx_val = (bet.boxAmount !== null && bet.boxAmount !== undefined) ? String(bet.boxAmount) : "";
+        co_val = (bet.comboAmount !== null && bet.comboAmount !== undefined) ? String(bet.comboAmount) : "";
+        // gameMode from OCR might be useful, or determined by determineGameMode
+        gm_val = bet.gameMode || determineGameMode(bn_val, getCurrentSelectedTracks()); 
+    }
+    
     const rowHTML = `
       <tr data-playindex="${rowIndex}">
         <td>
@@ -464,29 +599,24 @@ function addMainRow(bet = null) { // bet object can be passed from OCR
             ${rowIndex}
           </button>
         </td>
-        <td>
-          <input type="text" class="form-control betNumber" value="${betNumber}" />
-        </td>
-        <td class="gameMode">-</td>
-        <td>
-          <input type="number" step="0.01" class="form-control straight" value="${straight}" />
-        </td>
-        <td>
-          <input type="text" class="form-control box" value="${box}" />
-        </td>
-        <td>
-          <input type="number" step="0.01" class="form-control combo" value="${combo}" />
-        </td>
+        <td><input type="text" class="form-control betNumber" value="${bn_val}" /></td>
+        <td class="gameMode">${gm_val}</td>
+        <td><input type="number" step="0.01" class="form-control straight" value="${st_val}" /></td>
+        <td><input type="text" class="form-control box" value="${bx_val}" /></td> 
+        <td><input type="number" step="0.01" class="form-control combo" value="${co_val}" /></td>
         <td class="total">0.00</td>
       </tr>
     `;
     $("#tablaJugadas").append(rowHTML);
-    const newRowJquery = $("#tablaJugadas tr[data-playindex='" + rowIndex + "']");
+    const $newRow = $("#tablaJugadas tr[data-playindex='" + rowIndex + "']");
     
-    if (bet) { // If adding from OCR, immediately recalc
-        recalcMainRow(newRowJquery);
+    if (bet) { // If data was passed (e.g. from OCR), recalc this new row
+        recalcMainRow($newRow);
     }
-    return newRowJquery;
+    // No need to call calculateMainTotal here as recalcMainRow will do it.
+    // highlightDuplicatesInMain(); // Call after all rows are processed if loading multiple
+    // storeFormState(); // Call after all rows are processed
+    return $newRow;
 }
 
 function renumberMainRows() {
@@ -497,138 +627,157 @@ function renumberMainRows() {
         $(this).find(".removeMainBtn").attr("data-row", i).text(i);
     });
     playCount = i;
-    // storeFormState(); // Called by caller
+    // storeFormState(); // Called by parent
 }
 
 function recalcMainRow($row) {
     const bn = $row.find(".betNumber").val().trim();
-    const gm = determineGameMode(bn);
+    const gm = determineGameMode(bn, getCurrentSelectedTracks());
     $row.find(".gameMode").text(gm);
 
     const stVal = $row.find(".straight").val().trim();
-    const bxVal = $row.find(".box").val().trim(); // For Pulito, this might be "1,2" or "0.50"
+    const bxVal = $row.find(".box").val().trim(); // Box can be "1,2" for Pulito or number
     const coVal = $row.find(".combo").val().trim();
 
     const rowTotal = calculateRowTotal(bn, gm, stVal, bxVal, coVal);
     $row.find(".total").text(rowTotal);
-    // calculateMainTotal(); // This should be called once after all rows potentially change
+    calculateMainTotal(); // Update grand total whenever a row changes
 }
 
 function recalcAllMainRows() {
     $("#tablaJugadas tr").each(function() {
         recalcMainRow($(this));
     });
-    calculateMainTotal(); // Calculate grand total after all rows are recalculated
+    // calculateMainTotal is called by recalcMainRow
 }
 
-
 function calculateMainTotal() {
-    let sumOfRowTotals = 0;
+    let sum = 0;
     $("#tablaJugadas tr").each(function() {
         const totalCell = $(this).find(".total").text();
         const val = parseFloat(totalCell) || 0;
-        sumOfRowTotals += val;
+        sum += val;
     });
 
-    const daysToMultiply = selectedDaysCount > 0 ? selectedDaysCount : 1;
-    const tracksToMultiply = selectedTracksCount > 0 ? selectedTracksCount : 1;
-    // If no tracks are selected, but only Venezuela is, should the multiplier be 1 or 0?
-    // Based on original logic: selectedTracksCount already excludes Venezuela for multiplication.
-    // If selectedTracksCount is 0 (e.g. only Venezuela is selected, or no tracks at all),
-    // then tracksToMultiply will be 1, meaning no multiplication by zero for tracks.
-    // This seems to align with making Venezuela not part of the multiplier but still allowing bets.
-    
-    let finalTotal = sumOfRowTotals * daysToMultiply * tracksToMultiply;
-    
-    // Handle case where no days are selected (total should be 0)
-    if (selectedDaysCount === 0) {
+    const days = selectedDaysCount > 0 ? selectedDaysCount : 1; // If 0 days, effectively 1 for row sum
+    const tracks = selectedTracksCount > 0 ? selectedTracksCount : 1; // If 0 tracks, effectively 1 for row sum
+
+    // If no days or no billable tracks selected, the multiplier effect should be 0 for the final sum
+    // but sum of rows should be calculated first.
+    // The original logic: sum = sum * selectedTracksCount * selectedDaysCount;
+    // This seems to imply if selectedDaysCount is 0, total is 0.
+    // If selectedTracksCount is 0, total is 0.
+
+    let finalTotal = sum;
+    if (selectedDaysCount > 0 && selectedTracksCount > 0) {
+        finalTotal = sum * selectedTracksCount * selectedDaysCount;
+    } else if (sum > 0 && (selectedDaysCount === 0 || selectedTracksCount === 0) ) {
+        // If there are plays but no days/tracks, the effective total should arguably be 0
+        // or just the sum of plays without multiplication.
+        // For now, let's reflect that if either is 0, the multiplied total is 0,
+        // unless sum itself is 0.
+        // The original script implies sum becomes 0 if selectedDaysCount is 0.
+        finalTotal = (selectedDaysCount === 0 || selectedTracksCount === 0) ? 0 : sum * Math.max(1,selectedTracksCount) * Math.max(1,selectedDaysCount);
+    }
+    // Simplified: if either days or tracks is 0, and there's a sum, the total is 0.
+    if (sum > 0 && (selectedDaysCount === 0 || selectedTracksCount === 0)) {
         finalTotal = 0;
+    } else {
+        finalTotal = sum * Math.max(1,selectedTracksCount) * Math.max(1,selectedDaysCount);
+         if (sum === 0) finalTotal = 0; // Ensure if sum of plays is 0, total is 0
     }
 
+
     $("#totalJugadas").text(finalTotal.toFixed(2));
-    console.log(`calculateMainTotal: sumOfRowTotals=${sumOfRowTotals}, days=${selectedDaysCount}(${daysToMultiply}), tracks=${selectedTracksCount}(${tracksToMultiply}), finalTotal=${finalTotal}`);
-    // storeFormState(); // Usually called by the function that triggers this total calculation
+    // storeFormState(); // Store state after calculation
 }
 
-
-function determineGameMode(betNumber) {
+function determineGameMode(betNumber, tracksArray) { // Added tracksArray
     if (!betNumber) return "-";
+    betNumber = String(betNumber).trim();
 
-    isUpdatingProgrammatically = true; // Prevent change handlers from firing while getting track states
-    const $checkedTracks = $(".track-checkbox:checked:not(:disabled)");
-    isUpdatingProgrammatically = false;
-
-    const tracks = $checkedTracks.map(function() { return $(this).val(); }).get();
-    
-    const isUSA = tracks.some(t => cutoffTimes.USA[t]);
+    // const tracks = getCurrentSelectedTracks(); // Use passed or get current
+    const tracks = tracksArray;
+    const isUSA = tracks.some(t => cutoffTimes.USA[t] && t !== "Venezuela" && t !== "New York Horses");
     const isSD = tracks.some(t => cutoffTimes["Santo Domingo"][t]);
     const includesVenezuela = tracks.includes("Venezuela");
     const includesHorses = tracks.includes("New York Horses");
 
-    if (includesHorses) return "NY Horses";
-
-    const bnTrimmed = betNumber.trim();
-    if (bnTrimmed.length === 1 && isUSA && !includesVenezuela) return "Single Action";
-
-    const paleRegex = /^(\d{2})([xX+-])(\d{2})$/;
-    if (paleRegex.test(bnTrimmed)) {
+    if (includesHorses) {
+        if (betNumber.length >= 1 && betNumber.length <= 4 && /^\d+$/.test(betNumber)) return "NY Horses";
+    }
+    
+    const paleRegex = /^(\d{2})[-x+](\d{2})$/;
+    if (paleRegex.test(betNumber)) {
         if (includesVenezuela && isUSA) return "Pale-Ven";
-        if (isSD && !isUSA) return "Pale-RD";
-        if (isUSA) return "Palé"; // Default Palé for USA if not more specific
-        return "Palé"; // Generic Palé if no clear region
+        if (isSD) return "Pale-RD"; // SD Pale doesn't need USA track
+        return "Palé"; // Generic Palé if context unclear or only USA track for it
     }
 
-    const length = bnTrimmed.replace(/[^0-9]/g, "").length; // Count only digits for length check after pale
-
-    if (length === 2) {
+    if (betNumber.length === 1 && /^\d$/.test(betNumber)) {
+        if (isUSA) return "Single Action"; // Single digit on USA track
+    }
+    
+    if (betNumber.length === 2 && /^\d\d$/.test(betNumber)) {
         if (includesVenezuela && isUSA) return "Venezuela";
-        if (isUSA && !isSD) return "Pulito";
-        if (isSD && !isUSA) return "RD-Quiniela";
-        return "Pulito"; // Default for 2 digits if no specific region
+        if (isSD) return "RD-Quiniela"; // 2 digits on SD track
+        if (isUSA) return "Pulito";    // 2 digits on USA track (non-Venezuela)
     }
-    if (length === 3) return "Pick 3";
-    if (length === 4) return "Win 4";
+
+    if (betNumber.length === 3 && /^\d\d\d$/.test(betNumber)) return "Pick 3";
+    if (betNumber.length === 4 && /^\d\d\d\d$/.test(betNumber)) return "Win 4";
 
     return "-";
 }
 
 function calculateRowTotal(bn, gm, stVal, bxVal, coVal) {
     if (!bn || gm === "-") return "0.00";
-
     const st = parseFloat(stVal) || 0;
-    const combo = parseFloat(coVal) || 0;
+    const co = parseFloat(coVal) || 0;
     let numericBox = 0;
-    let total = 0;
 
+    // Handle Pulito's box value which can be comma-separated positions or a numeric amount
     if (gm === "Pulito") {
-        // For Pulito, boxVal can be a list of positions like "1,2" or a numeric amount.
-        if (bxVal && /^[0-9,.\s]+$/.test(bxVal) && bxVal.includes(',')) { // Likely positions
+        if (bxVal && typeof bxVal === 'string' && bxVal.includes(',')) {
             const positions = bxVal.split(",").map(x => x.trim()).filter(Boolean);
-            numericBox = 0; // Box amount is not added directly, it's st * num_positions
-            total = st * positions.length; // Straight amount per position
-        } else { // Treat as a normal box amount
-            numericBox = parseFloat(bxVal) || 0;
-            total = st + numericBox + combo; // Standard sum if box is a single number
+            // For Pulito, if box is positions, total is straight * number of box positions. Combo is separate.
+            // This interpretation might need to align with specific Pulito rules.
+            // Original script: return (st * positions.length).toFixed(2); - this doesn't account for combo.
+            // Let's assume straight is per position, and combo is added on top.
+            return ((st * positions.length) + co).toFixed(2);
+        } else {
+            numericBox = parseFloat(bxVal) || 0; // Treat as a normal box amount
         }
-        return total.toFixed(2);
+    } else {
+        numericBox = parseFloat(bxVal) || 0;
     }
-    
-    numericBox = parseFloat(bxVal) || 0; // For all other game modes
+
+    let total = st + numericBox + co;
 
     if (gm === "Win 4" || gm === "Pick 3") {
-        const combosCount = calcCombos(bn); // Ensure bn is just numbers for calcCombos
-        total = st + numericBox + (combo * combosCount);
-    } else {
-        // For Single Action, NY Horses, Venezuela, Palé variants, RD-Quiniela
-        total = st + numericBox + combo;
+        // For Pick 3/Win 4, combo amount is often multiplied by number of combinations
+        // However, your original script's calcCombos was for full combo, not per-dollar.
+        // The simpler st + numericBox + co is generally how tickets are entered if "combo" is a flat bet.
+        // If combo implies "combo for $X total", then it's just 'co'.
+        // If combo implies "$X per combination", then it's co * calcCombos(bn)
+        // Sticking to simpler sum for now unless calcCombos is for per-dollar wager.
+        // The original script did: total = st + numericBox + combo*calcCombos(bn);
+        // This assumes combo is a "per-way" bet. Let's use this if co > 0
+        if (co > 0) {
+            total = st + numericBox + (co * calcCombos(bn));
+        } else {
+            total = st + numericBox; // No combo amount
+        }
     }
+    // For Venezuela, Pale-RD, Pale-Ven, RD-Quiniela, original had only straight.
+    // If box/combo are allowed and entered, they should sum.
+    // The current logic (st + numericBox + co) handles this by default if they are not 0.
+
     return total.toFixed(2);
 }
 
-
-function calcCombos(strNum) {
-    const str = String(strNum).replace(/[^0-9]/g, ""); // Ensure only digits
-    if (!str) return 0;
+function calcCombos(str) { // Calculates number of ways for a combo
+    if (!str || typeof str !== 'string') return 1; // Default to 1 way if no string
     const freq = {};
     for (let c of str) {
         freq[c] = (freq[c] || 0) + 1;
@@ -638,158 +787,93 @@ function calcCombos(strNum) {
     for (let k in freq) {
         denom *= factorial(freq[k]);
     }
-    if (str.length === 0 || denom === 0) return 0; // Avoid division by zero or issues with empty strings
+    if (str.length === 0) return 1; // Avoid division by zero for empty string / ensure 1 way
     return factorial(str.length) / denom;
 }
 
+
 function storeFormState() {
-    // ... (localStorage logic) ...
+    // ... (localStorage logic - can be re-enabled later if needed) ...
+    console.log("storeFormState called (currently placeholder)");
+}
+function loadFormState() {
+    // ... (localStorage logic - can be re-enabled later if needed) ...
+    console.log("loadFormState called (currently placeholder)");
+    // Ensure defaults are set if no stored state
+    if (fpInstance && fpInstance.selectedDates.length === 0) {
+       fpInstance.setDate([new Date()], false); // Don't trigger change yet
+    }
+    // autoSelectNYTrackAndVenezuela(); // Called in ready()
+    // updateSelectedTracksAndTotal(); // Called in ready()
 }
 
-function loadFormState() {
-    // ... (localStorage logic) ...
-    // After loading, ensure totals are updated
-    // updateSelectedTracksAndTotal(); // This might be too early or cause issues if DOM isn't fully ready for it
-}
-// loadFormState(); // Call this after DOM is fully ready and other initializations
 
 function resetForm() {
-    console.log("resetForm called");
-    isUpdatingProgrammatically = true;
-    $(".track-checkbox").off('change', trackCheckboxChangeHandler);
-
-    $("#lotteryForm")[0].reset();
-    if (fpInstance) {
-        fpInstance.setDate([new Date()], false); // Set date without triggering its onChange yet
-        selectedDaysCount = 1; // Manually set after fpInstance.setDate
-    } else {
-        selectedDaysCount = 1; // Default if fpInstance not ready
-    }
-
+    console.log("resetForm function called");
+    $("#lotteryForm")[0].reset(); // Resets form inputs to their default HTML values
     $("#tablaJugadas").empty();
     playCount = 0;
-    // selectedTracksCount will be updated by autoSelectNYTrackAndVenezuela and updateSelectedTracksAndTotal
+    jugadasGlobalOCR = []; // Clear OCR results
+
+    // Detach and reattach to clear any dynamically bound events on rows if necessary (optional)
+    // $("#tablaJugadas").off(); // Be careful with this
+
+    // Reset date to today
+    if (fpInstance) {
+        fpInstance.setDate([new Date()], true); // true to trigger onChange
+    } else {
+        selectedDaysCount = 1; // Manual fallback if flatpickr not ready
+    }
+
+    // Reset tracks (uncheck all, then apply defaults)
+    $(".track-checkbox").prop('checked', false); 
+    autoSelectNYTrackAndVenezuela(); // This will mark defaults and should trigger its own update sequence
+    // updateSelectedTracksAndTotal(); // Will be called by autoSelect or flatpickr change
     
-    window.ticketImageDataUrl = null;
+    // Final state update
     $("#totalJugadas").text("0.00");
-    localStorage.removeItem("formState");
-
-    enableAllTracks(); // Enable all before auto-selecting and disabling
-    showCutoffTimes(); // Show all times
-
-    autoSelectNYTrackAndVenezuela(); // Selects defaults
-    disableTracksByTime();           // Applies time-based disabling
-
-    $(".track-checkbox").on('change', trackCheckboxChangeHandler);
-    isUpdatingProgrammatically = false;
-
-    updateSelectedTracksAndTotal(); // Crucial: Final update after all programmatic changes
-    console.log("Form reset. selectedDaysCount:", selectedDaysCount, "selectedTracksCount:", selectedTracksCount);
-}
-
-function enableAllTracks() {
-    isUpdatingProgrammatically = true;
-    $(".track-checkbox").prop('disabled', false);
-    $(".track-button-container").find(".track-button").css({
-        opacity: 1,
-        cursor: "pointer"
-    });
-    isUpdatingProgrammatically = false;
-}
-
-function getTrackCutoff(trackName) {
-    for (let region in cutoffTimes) {
-        if (cutoffTimes[region][trackName]) {
-            return cutoffTimes[region][trackName];
-        }
-    }
-    return null;
-}
-
-function userChoseToday() {
-    if (!fpInstance || !fpInstance.selectedDates || fpInstance.selectedDates.length === 0) return false;
-    const today = dayjs().startOf("day");
-    for (let date of fpInstance.selectedDates) {
-        if (dayjs(date).startOf("day").isSame(today, "day")) {
-            return true;
-        }
-    }
-    return false;
-}
-
-function disableTracksByTime() {
-    console.log("disableTracksByTime called. User chose today:", userChoseToday());
-    if (!userChoseToday()) {
-        enableAllTracks(); // If today is not selected, ensure all tracks are enabled
-        return;
-    }
-
-    isUpdatingProgrammatically = true; // Set flag before manipulating checkboxes
-    const now = dayjs();
-    $(".track-checkbox").each(function() {
-        const trackVal = $(this).val();
-        if (trackVal === "Venezuela") return; // Skip Venezuela
-
-        const rawCutoff = getTrackCutoff(trackVal);
-        if (rawCutoff) {
-            let cutoffTimeObj = dayjs(rawCutoff, "HH:mm");
-            // Your logic for cutoff (e.g., 10 mins before actual cutoff)
-            let effectiveCutoff = cutoffTimeObj.isAfter(dayjs("21:30", "HH:mm")) ?
-                dayjs("22:00", "HH:mm") :
-                cutoffTimeObj.subtract(10, "minute");
-
-            if (now.isSame(effectiveCutoff) || now.isAfter(effectiveCutoff)) {
-                $(this).prop("checked", false).prop("disabled", true);
-                $(this).closest(".track-button-container").find(".track-button").css({
-                    opacity: 0.5,
-                    cursor: "not-allowed"
-                });
-            } else {
-                $(this).prop("disabled", false); // Ensure it's enabled if before cutoff
-                $(this).closest(".track-button-container").find(".track-button").css({
-                    opacity: 1,
-                    cursor: "pointer"
-                });
-            }
-        }
-    });
-    isUpdatingProgrammatically = false; // Clear flag after manipulations
+    storeFormState(); // Store the reset state
+    console.log("Form reset complete. selectedDaysCount:", selectedDaysCount, "selectedTracksCount:", selectedTracksCount);
+    // Call calculateMainTotal one last time to be sure after all programmatic changes
+    calculateMainTotal(); 
 }
 
 
+function getCurrentSelectedTracks() {
+    return $(".track-checkbox:checked:not(:disabled)").map(function() {
+        return $(this).val();
+    }).get();
+}
+
+// Placeholder for original showCutoffTimes - can be re-enabled if disableTracksByTime is restored
 function showCutoffTimes() {
-    $(".cutoff-time").each(function() {
-        const track = $(this).data("track");
-        if (track === "Venezuela") return;
-        let raw = getTrackCutoff(track);
-
-        if (raw) {
-            let co = dayjs(raw, "HH:mm");
-            let cf = co.isAfter(dayjs("21:30", "HH:mm")) ? dayjs("22:00", "HH:mm") : co.subtract(10, "minute");
-            $(this).text(`${cf.format("HH:mm")}`);
-        } else {
-            $(this).text(""); // Clear if no cutoff defined
-        }
-    });
+    console.log("showCutoffTimes called (currently placeholder)");
 }
+// Placeholder for original disableTracksByTime
+function disableTracksByTime() {
+    console.log("disableTracksByTime called (currently placeholder - tracks always enabled)");
+    // When re-enabling, ensure this function correctly uses isUpdatingProgrammatically
+    // and that updateSelectedTracksAndTotal() is called *after* it finishes.
+    $(".track-checkbox").prop('disabled', false); // Ensure all are enabled for now
+    // If you re-enable this, you MUST call updateSelectedTracksAndTotal() AFTER this function runs
+    // in places like flatpickr onChange, resetForm, and document.ready.
+}
+
 
 function autoSelectNYTrackAndVenezuela() {
     console.log("autoSelectNYTrackAndVenezuela called");
-    isUpdatingProgrammatically = true; // Set flag
-
-    const anyChecked = $(".track-checkbox:checked").length > 0;
-    if (anyChecked && !isInitialLoad) { // Only run on initial load or if explicitly called by reset
-        isUpdatingProgrammatically = false;
-        return;
+    if ($(".track-checkbox:checked").length > 0 && playCount > 0) {
+        console.log("Tracks or plays already exist, skipping auto-selection.");
+        return; // Don't auto-select if user already made choices or has plays
     }
-
-    // Elige NY Mid Day si es antes de 14:20, si no, NY Evening
-    const now = dayjs();
-    let middayCutoff = dayjs(cutoffTimes.USA["New York Mid Day"], "HH:mm").subtract(10, "minute"); // Use effective cutoff
     
-    // Desmarcar ambos NY por si acaso antes de marcar el correcto
-    $("#trackNYMidDay").prop("checked", false);
-    $("#trackNYEvening").prop("checked", false);
+    // Temporarily prevent change handlers from firing during programmatic changes
+    // This logic was problematic, simplifying for now.
+    // The .prop('checked', true) itself will trigger the 'change' handler if attached.
+    // We rely on the 'change' handler to call updateSelectedTracksAndTotal.
+
+    const now = dayjs();
+    const middayCutoff = dayjs(cutoffTimes.USA["New York Mid Day"], "HH:mm");
 
     if (now.isBefore(middayCutoff)) {
         $("#trackNYMidDay").prop("checked", true);
@@ -798,67 +882,78 @@ function autoSelectNYTrackAndVenezuela() {
     }
     $("#trackVenezuela").prop("checked", true);
 
-    isUpdatingProgrammatically = false; // Clear flag
-}
-let isInitialLoad = true; // Flag to control autoSelect on first load
-
-
-function highlightDuplicatesInMain() { /* ... */ }
-function doGenerateTicket() { /* ... */ }
-function saveBetDataToSheetDB(ticket, cb) { /* ... */ }
-function generateUniqueTicketNumber() { /* ... */ }
-function fixTicketLayoutForMobile() { /* ... */ }
-function hasBrooklynOrFront(tracks) { /* ... */ }
-
-// Wizard Functions (Mantener como estaban, ya que no son el foco del error actual)
-function resetWizard() { /* ... */ }
-function addWizardRow(bn, gm, st, bx, co, total) { /* ... */ }
-// ... y el resto de las funciones del wizard ...
-
-
-// OCR Helper functions for loading state
-function showOcrLoading() {
-    $("#ocrLoadingSection").removeClass("d-none");
-    $("#ocrProgressBar").css("width", "5%").text("5%"); // Start with a small progress
-    $("#ocrProgressText").text("Iniciando...");
-}
-function updateOcrProgress(percentage, text) {
-    $("#ocrProgressBar").css("width", percentage + "%").text(percentage + "%");
-    if (text) $("#ocrProgressText").text(text);
-}
-function hideOcrLoading() {
-    $("#ocrLoadingSection").addClass("d-none");
-    $("#ocrProgressBar").css("width", "0%").text("");
-    $("#ocrProgressText").text("");
+    // Manually trigger change on one of them to update counts if needed,
+    // or rely on updateSelectedTracksAndTotal being called after this.
+    // For safety, let's ensure totals are updated after this.
+    // updateSelectedTracksAndTotal(); // Call after programmatic changes
 }
 
-// Make sure this is called after all function definitions and initial setup
-// $(document).ready( () => {
-//    loadFormState(); // Call this at the very end of ready if it relies on other initializations
-// });
-// Ensure all initial calls like showCutoffTimes, autoSelectNYTrackAndVenezuela, disableTracksByTime, updateSelectedTracksAndTotal are done within $(document).ready()
-// and in the correct order.
+function highlightDuplicatesInMain() {
+    $("#tablaJugadas tr .betNumber").removeClass("duplicado");
+    const counts = {};
+    $("#tablaJugadas tr .betNumber").each(function() {
+        const bn = $(this).val().trim();
+        if (bn) counts[bn] = (counts[bn] || 0) + 1;
+    });
+    $("#tablaJugadas tr .betNumber").each(function() {
+        const bn = $(this).val().trim();
+        if (counts[bn] > 1) $(this).addClass("duplicado");
+    });
+}
+function highlightDuplicatesInWizard() {
+    // Similar logic for wizard table if needed
+}
 
-// Example of how cutoffTimes is defined (needs to be at the top of the script or accessible scope)
-const cutoffTimes = {
-    "USA": {
-        "New York Mid Day": "14:20", "New York Evening": "22:00", "Georgia Mid Day": "12:20",
-        "Georgia Evening": "18:40", "New Jersey Mid Day": "12:50", "New Jersey Evening": "22:00",
-        "Florida Mid Day": "13:20", "Florida Evening": "21:30", "Connecticut Mid Day": "13:30",
-        "Connecticut Evening": "22:00", "Georgia Night": "22:00", // Assuming 22:00, adjust if different
-        "Pensilvania AM": "12:45", "Pensilvania PM": "18:15", "Venezuela": "00:00", // No real cutoff
-        "Brooklyn Midday": "14:20", "Brooklyn Evening": "22:00", "Front Midday": "14:20",
-        "Front Evening": "22:00", "New York Horses": "16:00" // Example
-    },
-    "Santo Domingo": {
-        "Real": "11:45", "Gana mas": "13:25", "Loteka": "18:30", "Nacional": "19:30",
-        "Quiniela Pale": "19:30", "Primera Día": "10:50", "Suerte Día": "11:20",
-        "Lotería Real": "11:50", "Suerte Tarde": "16:50", "Lotedom": "16:50", // Example, Lotedom is often earlier
-        "Primera Noche": "18:50", "Panama": "16:00" // Example
-    },
-    // Ensure "Venezuela" exists here if getTrackCutoff checks it, even if value is "00:00"
-    "Venezuela": { 
-        "Venezuela": "00:00"
+// --- Wizard Specific Functions (placeholders or simplified) ---
+function resetWizard() {
+    console.log("resetWizard called");
+    wizardCount = 0;
+    $("#wizardTableBody").empty();
+    // Reset locks and inputs
+}
+function addWizardRow(bn, gm, stVal, bxVal, coVal, total) {
+    console.log("addWizardRow called");
+    wizardCount++;
+    // ... (append row to wizard table) ...
+}
+function generateQuickPick(){ console.log("generateQuickPick called");}
+function generateRoundDown(){ console.log("generateRoundDown called");}
+function permuteWizardBetNumbers(){ console.log("permuteWizardBetNumbers called");}
+
+
+// --- Ticket Generation and Preview Logic (placeholders) ---
+function doGenerateTicket() {
+    console.log("doGenerateTicket called");
+    // Basic validation
+    if (!fpInstance || fpInstance.selectedDates.length === 0) {
+        alert("Please select at least one date.");
+        return;
     }
-};
-// END OF SCRIPT
+    if (selectedTracksCount === 0 && !getCurrentSelectedTracks().includes("Venezuela")) { // Venezuela can be a 0 multiplier track
+        alert("Please select at least one track (excluding Venezuela if it's the only one).");
+        return;
+    }
+    if (playCount === 0) {
+        alert("Please add at least one play.");
+        return;
+    }
+    // ... more validation from original script ...
+    alert("Ticket generation logic placeholder. Check console for data.");
+    // ... (populate ticket modal) ...
+    if(ticketModalInstance) ticketModalInstance.show();
+}
+
+
+// --- Tutorial and Manual functions (placeholders) ---
+function startTutorial(lang) { console.log("startTutorial called with lang:", lang); }
+function showManualText(elementId) { console.log("showManualText for:", elementId); }
+
+// Utility: Get current selected tracks for game mode determination
+// This ensures determineGameMode always has the latest track selection
+function getCurrentSelectedTracks() {
+    return $(".track-checkbox:checked:not(:disabled)").map(function() {
+        return $(this).val();
+    }).get();
+}
+
+    
