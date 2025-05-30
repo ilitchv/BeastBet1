@@ -475,6 +475,16 @@ h2 {
 .introjs-progress .introjs-progressbar {
     background-color: #007bff !important; /* Color de la barra de progreso */
 }
+
+/* Estilo específico para el botón Reset Form */
+#resetForm {
+  background-color: #800080; /* Morado */
+  border-color: #800080; /* Morado */
+}
+
+#resetForm:hover {
+  background-color: #660066; /* Morado más oscuro al pasar el mouse */
+}
 ```
 Hecho. He revertido los archivos `/public/index.html` y `/public/styles.css` a un estado anterior, eliminando los cambios de responsividad y otras modificaciones que introduje y que alteraron la apariencia.
 

@@ -505,16 +505,40 @@ $(document).ready(function() {
     });
 
     $("#confirmarTicket").click(function() {
-        // ... (logic for confirming ticket, generating QR, saving, etc.) ...
-        // This function's original logic is complex and involves html2canvas, SheetDB
-        // For now, it's just a placeholder for the original functionality.
-         $(this).prop("disabled", true);
+        const $confirmButton = $(this);
+        $confirmButton.prop("disabled", true); // Disable to prevent double click
         $("#editButton").addClass("d-none");
 
         const uniqueTicket = generateUniqueTicketNumber();
         $("#numeroTicket").text(uniqueTicket);
         transactionDateTime = dayjs().format("MM/DD/YYYY hh:mm A");
         $("#ticketTransaccion").text(transactionDateTime);
+        
+        // Generate image of the ticket using html2canvas
+        html2canvas(document.getElementById("preTicket")).then(function(canvas) {
+            // Create an anchor tag for download
+            const link = document.createElement('a');
+            link.download = `ticket_${uniqueTicket}.png`;
+            link.href = canvas.toDataURL('image/png');
+            
+            // Append to body and click programmatically to trigger download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link); // Clean up the element
+            
+            console.log("Ticket image generated and download triggered.");
+            
+            // Re-enable button if needed, though typically modal closes or state changes
+            // $confirmButton.prop("disabled", false); 
+            $("#shareTicket").removeClass("d-none"); // Show share button after confirmed/downloaded
+
+            // Placeholder for SheetDB logic if needed
+            // saveBetDataToSheetDB(uniqueTicket, success => { ... });
+
+        }).catch(function(error) {
+            console.error("Error generating ticket image:", error);
+            alert("Error generating ticket image.");
+        });
 
         $("#qrcode").empty();
         if (typeof QRCode !== 'undefined') {
@@ -542,7 +566,19 @@ $(document).ready(function() {
 
     $("#shareTicket").click(async function(){
         // ... (original share logic) ...
-        alert("Share functionality placeholder.");
+ if (navigator.share) {
+            try {
+                const canvas = await html2canvas(document.getElementById("preTicket"));
+                canvas.toBlob(async function(blob) {
+                    const file = new File([blob], 'ticket.png', {type: 'image/png'});
+                    await navigator.share({
+                        files: [file],
+                        title: 'Mi Ticket de Lotería',
+                        text: '¡Aquí tienes mi ticket generado!',
+                    });
+                });
+            } catch (error) { console.error('Error sharing:', error); alert('Could not share ticket.'); }
+        } else { alert('Web Share API is not supported in your browser.'); }
     });
 
 
