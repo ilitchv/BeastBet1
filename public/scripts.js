@@ -1,4 +1,3 @@
-
 // Global variable for OCR modal instance
 let modalOcrInstance = null;
 let wizardModalInstance = null;
@@ -150,7 +149,7 @@ async function procesarOCR() {
                             <td>${j.comboAmount !== null ? j.comboAmount.toFixed(2) : "-"}</td>
                           </tr></tbody>
                         </table>
-                        <button class="btn btn-sm btn-info mt-1 mb-2" onclick="usarJugadaOCR(${idx})">
+                        <button class="btn btn-sm btn-info mt-1 mb-2" type="button" onclick="usarJugadaOCR(${idx}); return false;">
                           Usar esta Jugada
                         </button>
                       </div><hr class="ocr-play-separator">`;
@@ -182,41 +181,71 @@ async function procesarOCR() {
 }
 window.procesarOCR = procesarOCR;
 
-function usarJugadaOCR(idx) {
-    console.log('usarJugadaOCR called with index:', idx);
+window.usarJugadaOCR = function(idx) {
+    console.log('=== usarJugadaOCR INICIO ===');
+    console.log('Index:', idx);
+    
+    // PREVENIR CIERRE DEL MODAL
+    const modalElement = document.getElementById('modalOcr');
+    const modalInstance = bootstrap.Modal.getInstance(modalElement);
+    
     if (!jugadasGlobalOCR || !jugadasGlobalOCR[idx]) {
         alert("No se encontró la jugada seleccionada.");
-        return;
-    }
-    const j = jugadasGlobalOCR[idx];
-    console.log('Play data to add:', j);
-
-    if (playCount >= MAX_PLAYS) {
-        alert(`Se ha alcanzado el límite de ${MAX_PLAYS} jugadas en el formulario principal.`);
-        return;
+        return false;
     }
     
-    const newRow = addMainRow(j); // Pass the bet object
+    const j = jugadasGlobalOCR[idx];
+    console.log('Jugada a agregar:', j);
+
+    if (playCount >= MAX_PLAYS) {
+        alert(`Límite de ${MAX_PLAYS} jugadas alcanzado.`);
+        return false;
+    }
+    
+    const newRow = addMainRow(j);
     if (newRow) {
-        console.log("Row added by usarJugadaOCR, now updating totals/highlights for main table.");
-        recalcAllMainRows(); // Recalculate all rows for game modes and individual totals
-        calculateMainTotal();  // Recalculate overall total
-        highlightDuplicatesInMain();
-        storeFormState();
+        console.log("Fila agregada, actualizando tabla...");
+        
+        // FORZAR QUE EL MODAL PERMANEZCA ABIERTO
+        if (modalInstance) {
+            modalInstance.show();
+        }
+        
+        // Actualizar con delay para asegurar renderizado
+        setTimeout(() => {
+            recalcAllMainRows();
+            calculateMainTotal();
+            highlightDuplicatesInMain();
+            storeFormState();
+            
+            // Verificar visualmente
+            console.log("Total filas en tabla:", $("#tablaJugadas tr").length);
+            
+            // Hacer scroll a la nueva fila
+            if (newRow[0] && typeof newRow[0].scrollIntoView === 'function') {
+                newRow[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }, 200);
     } else {
         console.error("Failed to add row from usarJugadaOCR");
     }
-    // Do NOT hide the modal: modalOcrInstance.hide(); 
-}
-window.usarJugadaOCR = usarJugadaOCR;
+    
+    return false;
+};
 
 function handleCargarTodasLasJugadasClick() {
     console.log("¡handleCargarTodasLasJugadasClick EJECUTADA!");
     
+    // PREVENIR cualquier comportamiento por defecto
+    if (window.event) {
+        window.event.preventDefault();
+        window.event.stopPropagation();
+    }
+    
     if (!jugadasGlobalOCR || jugadasGlobalOCR.length === 0) {
         console.log("No hay jugadas OCR para cargar.");
         alert("No hay jugadas OCR para cargar.");
-        return;
+        return false;
     }
     
     console.log(`Intentando cargar ${jugadasGlobalOCR.length} jugadas del OCR...`);
@@ -260,6 +289,8 @@ function handleCargarTodasLasJugadasClick() {
     } else {
         console.error("modalOcrInstance no está definida al intentar cerrar (desde handleCargarTodasLasJugadasClick).");
     }
+    
+    return false;
 }
 window.handleCargarTodasLasJugadasClick = handleCargarTodasLasJugadasClick;
 
@@ -351,6 +382,29 @@ $(document).ready(function() {
     } else {
         console.error("Bootstrap or Bootstrap Modal not loaded!");
     }
+    
+    // SOLUCIÓN PARA EL BOTÓN QUE NO RESPONDE
+    $('#modalOcr').on('shown.bs.modal', function () {
+        console.log("=== FORZANDO BINDING DEL BOTÓN OCR ===");
+        const btn = document.getElementById('btnCargarJugadas');
+        if (btn) {
+            // Limpiar cualquier handler previo
+            btn.onclick = null;
+            $(btn).off('click');
+            
+            // Forzar nuevo handler
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log("¡¡¡ CLICK FORZADO CAPTURADO !!!");
+                handleCargarTodasLasJugadasClick();
+            }, true);
+            
+            console.log("Handler forzado instalado en btnCargarJugadas");
+        } else {
+            console.error("ERROR: Botón btnCargarJugadas no encontrado");
+        }
+    });
 
     dayjs.extend(window.dayjs_plugin_customParseFormat);
     dayjs.extend(window.dayjs_plugin_arraySupport);
@@ -1236,4 +1290,3 @@ window.startTutorial = startTutorial;
 // window.nombreDeTuFuncionWizard = nombreDeTuFuncionWizard;
 
 console.log("End of scripts.js reached");
-
