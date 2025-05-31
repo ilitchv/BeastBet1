@@ -262,11 +262,11 @@ h2 {
     cursor: pointer;
     font-weight: bold;
     transition: background-color 0.2s ease, box-shadow 0.2s ease;
- border-radius: 4px; /* Bordes redondeados sutiles */
-    padding: 0.25rem 0.5rem; /* Padding consistente con los inputs */
+    border-radius: 4px; /* Bordes redondeados sutiles */    padding: 0.25rem 0.5rem; /* Restaurar un padding sutil */
     display: flex; /* Usar flexbox para centrar contenido */
     justify-content: center;
     align-items: center;
+    line-height: normal; /* Restaurar line-height a normal */
 }
 
 .table .total-cell:hover {
