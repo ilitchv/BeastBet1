@@ -1,4 +1,4 @@
-// Global variable for OCR modal instance
+ // Global variable for OCR modal instance
 let modalOcrInstance = null;
 let wizardModalInstance = null;
 let ticketModalInstance = null;
@@ -15,12 +15,15 @@ let playCount = 0;
 const MAX_PLAYS = 200; // Increased limit
 let wizardCount = 0;
 
+// Global variable to store copied amounts for pasting, now visible globally
+window.copiedAmounts = {};
+
 // Cutoff times (remains unchanged)
 const cutoffTimes = {
-    "USA": { /* ... existing cutoff times ... */ 
+    "USA": { 
         "New York Mid Day": "14:20", "New York Evening": "22:00", "Georgia Mid Day": "12:20", "Georgia Evening": "18:40", "New Jersey Mid Day": "12:50", "New Jersey Evening": "22:00", "Florida Mid Day": "13:20", "Florida Evening": "21:30", "Connecticut Mid Day": "13:30", "Connecticut Evening": "22:00", "Georgia Night": "22:00", "Pensilvania AM": "12:45", "Pensilvania PM": "18:15", "Venezuela": "00:00", "Brooklyn Midday": "14:20", "Brooklyn Evening": "22:00", "Front Midday": "14:20", "Front Evening": "22:00", "New York Horses": "16:00"
     },
-    "Santo Domingo": { /* ... existing cutoff times ... */ 
+    "Santo Domingo": { 
         "Real": "11:45", "Gana mas": "13:25", "Loteka": "18:30", "Nacional": "19:30", "Quiniela Pale": "19:30", "Primera Día": "10:50", "Suerte Día": "11:20", "Lotería Real": "11:50", "Suerte Tarde": "16:50", "Lotedom": "16:50", "Primera Noche": "18:50", "Panama": "16:00"
     },
     "Venezuela": { "Venezuela": "00:00" }
@@ -37,9 +40,9 @@ function abrirModalOCR() {
     $("#ocrJugadas").empty().html("<p>Sube una imagen para ver las jugadas detectadas aquí.</p>");
     
     $("#btnProcesarOCR").prop('disabled', true);
-    $("#btnCargarJugadas").prop('disabled', true); // Ensure this is disabled initially
+    $("#btnCargarJugadas").prop('disabled', true); 
 
-    hideOcrLoading(); // Make sure loading UI is hidden
+    hideOcrLoading(); 
     $("#ocrDebugPanel").addClass("d-none");
 
     if (modalOcrInstance) {
@@ -84,7 +87,7 @@ function handleFileChangeOCR(e) {
     }
 }
 window.handleFileChangeOCR = handleFileChangeOCR;
-
+ 
 function showOcrLoading() { $("#ocrLoadingSection").removeClass("d-none"); $("#ocrProgressBar").css("width", "0%"); $("#ocrProgressText").text("Subiendo/Procesando..."); }
 function updateOcrProgress(percentage, text) { $("#ocrProgressBar").css("width", percentage + "%"); $("#ocrProgressText").text(text); }
 function hideOcrLoading() { $("#ocrLoadingSection").addClass("d-none"); }
@@ -131,7 +134,7 @@ async function procesarOCR() {
 
             const interpretedBets = await response.json();
             console.log("Received interpretedBets:", interpretedBets);
-            jugadasGlobalOCR = interpretedBets; // Store for later use
+            jugadasGlobalOCR = interpretedBets; 
 
             if (Array.isArray(jugadasGlobalOCR) && jugadasGlobalOCR.length > 0) {
                 let html = `<h5>Jugadas Detectadas (${jugadasGlobalOCR.length}):</h5>`;
@@ -155,7 +158,7 @@ async function procesarOCR() {
                       </div><hr class="ocr-play-separator">`;
                 });
                 $("#ocrJugadas").html(html);
-                $("#btnCargarJugadas").prop('disabled', false); // Enable button to load all
+                $("#btnCargarJugadas").prop('disabled', false); 
             } else {
                 $("#ocrJugadas").html("<p>No se detectaron jugadas válidas en la imagen o la respuesta no es un array.</p>");
                 $("#btnCargarJugadas").prop('disabled', true);
@@ -169,7 +172,7 @@ async function procesarOCR() {
             hideOcrLoading();
             $("#btnCargarJugadas").prop('disabled', true);
         } finally {
-            $("#btnProcesarOCR").prop('disabled', !(selectedFileGlobalOCR)); // Re-enable if a file is still selected
+            $("#btnProcesarOCR").prop('disabled', !(selectedFileGlobalOCR)); 
         }
     };
     reader.onerror = () => {
@@ -185,7 +188,6 @@ window.usarJugadaOCR = function(idx) {
     console.log('=== usarJugadaOCR INICIO ===');
     console.log('Index:', idx);
     
-    // PREVENIR CIERRE DEL MODAL
     const modalElement = document.getElementById('modalOcr');
     const modalInstance = bootstrap.Modal.getInstance(modalElement);
     
@@ -206,22 +208,18 @@ window.usarJugadaOCR = function(idx) {
     if (newRow) {
         console.log("Fila agregada, actualizando tabla...");
         
-        // FORZAR QUE EL MODAL PERMANEZCA ABIERTO
         if (modalInstance) {
             modalInstance.show();
         }
         
-        // Actualizar con delay para asegurar renderizado
         setTimeout(() => {
             recalcAllMainRows();
             calculateMainTotal();
             highlightDuplicatesInMain();
             storeFormState();
             
-            // Verificar visualmente
-            console.log("Total filas en tabla:", $("#tablaJugadas tr").length);
+            console.log("Total filas en tabla:", $("#tablaJugadas > tr").length); // Corrected selector
             
-            // Hacer scroll a la nueva fila
             if (newRow[0] && typeof newRow[0].scrollIntoView === 'function') {
                 newRow[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
@@ -236,7 +234,6 @@ window.usarJugadaOCR = function(idx) {
 function handleCargarTodasLasJugadasClick() {
     console.log("¡handleCargarTodasLasJugadasClick EJECUTADA!");
     
-    // PREVENIR cualquier comportamiento por defecto
     if (window.event) {
         window.event.preventDefault();
         window.event.stopPropagation();
@@ -264,7 +261,7 @@ function handleCargarTodasLasJugadasClick() {
         
         console.log(`Añadiendo jugada OCR ${index + 1}:`, j);
         
-        const newRow = addMainRow(j); // Pass the bet object
+        const newRow = addMainRow(j); 
         if (newRow) {
             jugadasCargadas++;
             console.log(`Jugada ${index + 1} cargada exitosamente por handleCargarTodasLasJugadasClick`);
@@ -303,36 +300,28 @@ window.toggleOcrDebug = toggleOcrDebug;
 
 // --- Main Form Logic ---
 let selectedTracksCount = 0;
-let selectedDaysCount = 1; // Default to 1 day (today)
+let selectedDaysCount = 1; 
 
-// Flag to prevent event recursion
 let isUpdatingProgrammatically = false;
 
 function trackCheckboxChangeHandler() {
     if (isUpdatingProgrammatically) {
-        // console.log("Track change CANCELED due to isUpdatingProgrammatically flag");
         return;
     }
-    // console.log("Track checkbox changed BY USER - calling updateSelectedTracksAndTotal");
     updateSelectedTracksAndTotal();
 }
 
 function updateSelectedTracksAndTotal() {
-    // console.log("updateSelectedTracksAndTotal called");
     let count = 0;
     $(".track-checkbox:checked").each(function() {
         if ($(this).val() !== "Venezuela" && !$(this).prop('disabled')) {
             count++;
         }
     });
-    selectedTracksCount = count > 0 ? count : 0; // If only Venezuela is checked, count is 0 for multiplication
+    selectedTracksCount = count > 0 ? count : 0; 
     if ($(".track-checkbox:checked").length > 0 && selectedTracksCount === 0 && $(".track-checkbox:checked[value='Venezuela']").length > 0) {
-        // If only Venezuela is checked, we still need a base for calculation, but it doesn't multiply
-        // This scenario is a bit tricky. For now, if only Venezuela is checked, it doesn't multiply.
-        // If Venezuela + 1 USA track, multiplier is 1.
+        // Handled in calculateMainTotal
     }
-
-    // console.log("Track checkboxes changed - selectedTracksCount:", selectedTracksCount);
     calculateMainTotal();
     storeFormState();
 }
@@ -383,16 +372,19 @@ $(document).ready(function() {
         console.error("Bootstrap or Bootstrap Modal not loaded!");
     }
     
-    // SOLUCIÓN PARA EL BOTÓN QUE NO RESPONDE
+    setupThemeToggle();
+
+    $("#openDailyReportBtn").click(function() {
+        window.open('DailyReport.html', '_blank');
+    });
+
     $('#modalOcr').on('shown.bs.modal', function () {
         console.log("=== FORZANDO BINDING DEL BOTÓN OCR ===");
         const btn = document.getElementById('btnCargarJugadas');
         if (btn) {
-            // Limpiar cualquier handler previo
             btn.onclick = null;
             $(btn).off('click');
             
-            // Forzar nuevo handler
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -406,6 +398,12 @@ $(document).ready(function() {
         }
     });
 
+    // Add the Paste Wagers button initially hidden
+    if ($("#pasteAmountsButton").length === 0) {
+        // Removed d-none class to make it always visible
+        $("#formButtons").append('<button type="button" id="pasteAmountsButton" class="btn btn-dark ml-2"><i class="bi bi-clipboard-fill"></i> Paste Wagers</button>');
+    }
+
     dayjs.extend(window.dayjs_plugin_customParseFormat);
     dayjs.extend(window.dayjs_plugin_arraySupport);
 
@@ -415,46 +413,41 @@ $(document).ready(function() {
         minDate: "today",
         defaultDate: [new Date()],
         clickOpens: true,
-        allowInput: false, // Prevent manual input
-        appendTo: document.body, // Append to body to avoid z-index issues
+        allowInput: false, 
+        appendTo: document.body, 
         onOpen: function(selectedDates, dateStr, instance) {
-            // Optional: Adjust calendar position or style if needed
-            // instance.calendarContainer.style.zIndex = "1056"; // Ensure above modal if any
+            // instance.calendarContainer.style.zIndex = "1056"; 
         },
         onChange: function(selectedDates, dateStr, instance) {
             selectedDaysCount = selectedDates.length > 0 ? selectedDates.length : 1;
-            // console.log("Flatpickr onChange - selectedDaysCount:", selectedDaysCount);
             
-            // Temporarily detach change handler to prevent recursion
             $(".track-checkbox").off('change', trackCheckboxChangeHandler);
             isUpdatingProgrammatically = true;
             
-            // disableTracksByTime(); // Temporarily commented out to fight recursion
+            // disableTracksByTime(); 
             
             isUpdatingProgrammatically = false;
             $(".track-checkbox").on('change', trackCheckboxChangeHandler);
             
-            updateSelectedTracksAndTotal(); // This will call calculateMainTotal
+            updateSelectedTracksAndTotal(); 
             storeFormState();
         }
     });
-    // Initial day count
     selectedDaysCount = fpInstance.selectedDates.length > 0 ? fpInstance.selectedDates.length : 1;
 
 
     $(".track-checkbox").on('change', trackCheckboxChangeHandler);
     
-    // showCutoffTimes(); // Temporarily commented out
+    // showCutoffTimes(); 
 
     isUpdatingProgrammatically = true;
     autoSelectNYTrackAndVenezuela();
-    // disableTracksByTime(); // Temporarily commented out
+    // disableTracksByTime(); 
     isUpdatingProgrammatically = false;
     
-    updateSelectedTracksAndTotal(); // Initial calculation based on defaults and current date
+    updateSelectedTracksAndTotal(); 
 
-    // Load state from localStorage
-    // loadFormState(); // This might also trigger changes, be careful with order
+    loadFormState(); 
 
     $("#agregarJugada").click(function() {
         const $newRow = addMainRow();
@@ -463,34 +456,142 @@ $(document).ready(function() {
         }
     });
 
+    // Feature: Select/Deselect All Rows
+    $("#selectAllCheckbox").on('change', function() {
+        $("#tablaJugadas .row-select-checkbox").prop('checked', $(this).prop('checked')); // Corrected selector
+    });
+
+    // Corrected selector for event delegation: #tablaJugadas is the tbody
+    $("#tablaJugadas").on('change', '.row-select-checkbox', function() {
+        if (!$(this).prop('checked')) {
+            $("#selectAllCheckbox").prop('checked', false);
+        } else {
+            if ($("#tablaJugadas .row-select-checkbox:checked").length === $("#tablaJugadas .row-select-checkbox").length) { // Corrected selector
+                $("#selectAllCheckbox").prop('checked', true);
+            }
+        }
+    });
+    
+    // Feature: Copy amounts from a row
+    // Corrected selector for event delegation: #tablaJugadas is the tbody
+    $("#tablaJugadas").on("click", ".total-cell", function() { // Target the td with class total-cell
+        const $row = $(this).closest("tr");
+        const straight = $row.find(".straight").val();
+        const box = $row.find(".box").val();
+        const combo = $row.find(".combo").val();
+ 
+         window.copiedAmounts = {
+            straight: straight,
+            box: box,
+            combo: combo
+        };
+        $(this).fadeOut(100).fadeIn(100).fadeOut(100).fadeIn(100); 
+        $("#pasteAmountsButton").prop('disabled', false); 
+        console.log("Montos copiados:", window.copiedAmounts);    });
+
+    // Feature: Paste amounts to selected rows
+    $("#pasteAmountsButton").on("click", function() {
+        if (Object.keys(window.copiedAmounts).length === 0) {
+            alert("No hay montos copiados para pegar.");
+            return;
+        }
+
+        const $selectedRows = $("#tablaJugadas .row-select-checkbox:checked").closest("tr"); // Corrected selector
+        if ($selectedRows.length === 0) {
+            alert("No hay filas seleccionadas para pegar los montos.");
+            return;
+        }
+
+        let modified = false;
+        $selectedRows.each(function() {
+            const $row = $(this);
+            let rowChanged = false;
+            if (window.copiedAmounts.straight !== "" && window.copiedAmounts.straight !== undefined && window.copiedAmounts.straight !== null) {
+                if ($row.find(".straight").val() !== window.copiedAmounts.straight) {
+                    $row.find(".straight").val(window.copiedAmounts.straight);
+                    rowChanged = true;
+                }
+            }
+            if (window.copiedAmounts.box !== "" && window.copiedAmounts.box !== undefined && window.copiedAmounts.box !== null) {
+                 if ($row.find(".box").val() !== window.copiedAmounts.box) {
+                    $row.find(".box").val(window.copiedAmounts.box);
+                    rowChanged = true;
+                }
+            }
+            if (window.copiedAmounts.combo !== "" && window.copiedAmounts.combo !== undefined && window.copiedAmounts.combo !== null) {
+                if ($row.find(".combo").val() !== window.copiedAmounts.combo) {
+                    $row.find(".combo").val(window.copiedAmounts.combo);
+                    rowChanged = true;
+                }
+            }
+            if (rowChanged) {
+                recalcMainRow($row); 
+                modified = true;
+            }
+        });
+
+        if (modified) {
+            calculateMainTotal(); 
+            highlightDuplicatesInMain(); 
+            storeFormState(); 
+            console.log("Montos pegados y totales recalculados.");
+        }
+
+        window.copiedAmounts = {}; 
+        // $("#pasteAmountsButton").prop('disabled', true); 
+        $("#selectAllCheckbox").prop('checked', false); 
+        $("#tablaJugadas .row-select-checkbox").prop('checked', false); // Corrected selector
+    });
+
+
     $("#eliminarJugada").click(function() {
         if (playCount === 0) {
             alert("No plays to remove.");
             return;
         }
-        $("#tablaJugadas tr:last").remove();
-        playCount--;
+        const $selectedRows = $("#tablaJugadas .row-select-checkbox:checked").closest("tr"); // Corrected selector
+        if ($selectedRows.length > 0) {
+            $selectedRows.remove();
+            playCount -= $selectedRows.length;
+        } else if (playCount > 0) {
+             $("#tablaJugadas > tr:last").remove(); // Corrected selector
+             playCount--;
+        }
         renumberMainRows();
         calculateMainTotal();
         highlightDuplicatesInMain();
+        storeFormState(); 
+        if ($("#tablaJugadas .row-select-checkbox").length === 0) { // Corrected selector
+            $("#selectAllCheckbox").prop('checked', false);
+        }
     });
 
+    // Corrected selector for event delegation: #tablaJugadas is the tbody
     $("#tablaJugadas").on("click", ".removeMainBtn", function() {
         $(this).closest("tr").remove();
         playCount--;
         renumberMainRows();
         calculateMainTotal();
         highlightDuplicatesInMain();
+        storeFormState(); 
+        if ($("#tablaJugadas .row-select-checkbox").length === 0) { // Corrected selector
+            $("#selectAllCheckbox").prop('checked', false);
+        } else if ($("#tablaJugadas .row-select-checkbox:checked").length === $("#tablaJugadas .row-select-checkbox").length) { // Corrected selector
+            $("#selectAllCheckbox").prop('checked', true);
+        } else {
+             $("#selectAllCheckbox").prop('checked', false);
+        }
     });
 
+    // Corrected selector for event delegation: #tablaJugadas is the tbody
     $("#tablaJugadas").on("input", ".betNumber, .straight, .box, .combo", function() {
         const $row = $(this).closest("tr");
         recalcMainRow($row);
-        // highlightDuplicatesInMain(); // Can be performance intensive on every input
         storeFormState();
     });
+    // Corrected selector for event delegation: #tablaJugadas is the tbody
      $("#tablaJugadas").on("blur", ".betNumber, .straight, .box, .combo", function() {
-        highlightDuplicatesInMain(); // Highlight only on blur
+        highlightDuplicatesInMain(); 
     });
 
 
@@ -506,7 +607,7 @@ $(document).ready(function() {
 
     $("#confirmarTicket").click(function() {
         const $confirmButton = $(this);
-        $confirmButton.prop("disabled", true); // Disable to prevent double click
+        $confirmButton.prop("disabled", true); 
         $("#editButton").addClass("d-none");
 
         const uniqueTicket = generateUniqueTicketNumber();
@@ -514,26 +615,18 @@ $(document).ready(function() {
         transactionDateTime = dayjs().format("MM/DD/YYYY hh:mm A");
         $("#ticketTransaccion").text(transactionDateTime);
         
-        // Generate image of the ticket using html2canvas
         html2canvas(document.getElementById("preTicket")).then(function(canvas) {
-            // Create an anchor tag for download
             const link = document.createElement('a');
             link.download = `ticket_${uniqueTicket}.png`;
             link.href = canvas.toDataURL('image/png');
             
-            // Append to body and click programmatically to trigger download
             document.body.appendChild(link);
             link.click();
-            document.body.removeChild(link); // Clean up the element
+            document.body.removeChild(link); 
             
             console.log("Ticket image generated and download triggered.");
             
-            // Re-enable button if needed, though typically modal closes or state changes
-            // $confirmButton.prop("disabled", false); 
-            $("#shareTicket").removeClass("d-none"); // Show share button after confirmed/downloaded
-
-            // Placeholder for SheetDB logic if needed
-            // saveBetDataToSheetDB(uniqueTicket, success => { ... });
+            $("#shareTicket").removeClass("d-none"); 
 
         }).catch(function(error) {
             console.error("Error generating ticket image:", error);
@@ -550,13 +643,8 @@ $(document).ready(function() {
         } else {
             console.error("QRCode library not loaded");
         }
-       
-
+        
         $("#shareTicket").removeClass("d-none");
-        alert("Ticket confirmed (simulation). QR code generated. Download/share would happen here.");
-
-        // Placeholder for actual image generation and save/share
-        // saveBetDataToSheetDB(uniqueTicket, success => { ... });
     });
     
     $("#editButton").click(function(){
@@ -565,8 +653,7 @@ $(document).ready(function() {
     });
 
     $("#shareTicket").click(async function(){
-        // ... (original share logic) ...
- if (navigator.share) {
+        if (navigator.share) {
             try {
                 const canvas = await html2canvas(document.getElementById("preTicket"));
                 canvas.toBlob(async function(blob) {
@@ -582,7 +669,7 @@ $(document).ready(function() {
     });
 
 
-    // Wizard Modal Logic (Copied from user's script.js, might need adjustments)
+    // Wizard Modal Logic 
     $("#wizardButton").click(function() {
         console.log("Wizard button clicked");
         resetWizard();
@@ -597,7 +684,6 @@ $(document).ready(function() {
     });
 
     $("#wizardAddNext").click(function() {
-        // ... (original wizard add next logic) ...
         const bn = $("#wizardBetNumber").val().trim();
         const gm = determineGameMode(bn, getCurrentSelectedTracks());
         if (gm === "-") {
@@ -625,13 +711,85 @@ $(document).ready(function() {
         highlightDuplicatesInWizard();
     });
 
-    $("#btnGenerateQuickPick").click(function() { /* ... original logic ... */ });
-    $("#btnGenerateRoundDown").click(function() { /* ... original logic ... */ });
+    $("#btnGenerateQuickPick").click(function() {
+        const count = parseInt($("#qpCount").val()) || 5; 
+        const gameMode = $("#qpGameMode").val() || "Pick 3"; 
+        const stVal = $("#wizardStraight").val().trim() || "";
+        const bxVal = $("#wizardBox").val().trim() || "";
+        const coVal = $("#wizardCombo").val().trim() || "";
+
+        if (count <= 0) {
+            alert("Please enter a valid number of plays (greater than 0).");
+            return;
+        }
+
+        for (let i = 0; i < count; i++) {
+            let betNumber;
+            if (["Palé", "Pale-Ven", "Pale-RD"].includes(gameMode)) {
+                const num1 = Math.floor(Math.random() * 100);
+                const num2 = Math.floor(Math.random() * 100);
+                betNumber = padNumberForMode(num1, "Pulito") + "-" + padNumberForMode(num2, "Pulito"); 
+            } else {
+                betNumber = generateRandomNumberForMode(gameMode); 
+                betNumber = padNumberForMode(betNumber, gameMode);
+            }
+
+            const rowTotal = calculateRowTotal(betNumber, gameMode, stVal, bxVal, coVal);
+            addWizardRow(betNumber, gameMode, stVal, bxVal, coVal, rowTotal);
+        }
+
+        renumberWizard();
+        highlightDuplicatesInWizard();
+    });
+
+    $("#btnGenerateRoundDown").click(function() {
+        const baseNumberInput = $("#roundDownBaseNumber");
+        const baseNumber = baseNumberInput.length > 0 ? baseNumberInput.val().trim() : $("#wizardBetNumber").val().trim();
+
+        const rangeMatch = baseNumber.match(/^(\d+)-(\d+)$/);
+
+        if (!rangeMatch) {
+            alert("Round Down requires a number range in the format XXX-XXX (e.g., 033-933). Please enter it in the 'Bet Number' field or the dedicated Round Down field if available.");
+            return;
+        }
+
+        const startStr = rangeMatch[1];
+        const endStr = rangeMatch[2];
+
+        if (startStr.length !== endStr.length || startStr.length === 0) {
+             alert("Invalid Round Down range format. Start and end numbers must have the same length and be non-empty.");
+             return;
+        }
+
+        let varyingDigitIndex = -1;
+        for (let i = 0; i < startStr.length; i++) {
+            if (startStr[i] === '0' && endStr[i] === '9') {
+                varyingDigitIndex = i;
+                break; 
+            }
+        }
+
+        if (varyingDigitIndex === -1) {
+            alert("Round Down requires exactly one digit position that varies from 0 to 9 in the range (e.g., 033-039 or 104-194).");
+            return;
+        }
+
+        const stVal = $("#wizardStraight").val().trim() || "";
+
+        for (let i = 0; i <= 9; i++) {
+            const generatedNumber = startStr.substring(0, varyingDigitIndex) + i + startStr.substring(varyingDigitIndex + 1);
+            const gm = determineGameMode(generatedNumber, getCurrentSelectedTracks());
+            const rowTotal = calculateRowTotal(generatedNumber, gm, stVal, "", ""); 
+            addWizardRow(generatedNumber, gm, stVal, "-", "-", rowTotal); 
+        }
+
+        renumberWizard();
+        highlightDuplicatesInWizard();
+    });
     $("#btnPermute").click(function() { permuteWizardBetNumbers(); });
 
     $("#wizardAddAllToMain").click(function() {
-        // ... (original wizard add all to main logic) ...
-         const wizardRows = $("#wizardTableBody tr");
+        const wizardRows = $("#wizardTableBody tr");
         if (wizardRows.length === 0) {
             alert("No plays in the wizard table.");
             return;
@@ -681,7 +839,6 @@ $(document).ready(function() {
     $("#manualSpanishBtn").click(function() { /* ... */ });
     $("#manualCreoleBtn").click(function() { /* ... */ });
 
-    // Debugging: Log para confirmar que el script llega al final de $(document).ready()
     console.log("Document fully loaded and initial scripts executed.");
 });
 
@@ -692,11 +849,9 @@ function getCurrentSelectedTracks() {
 }
 
 function determineGameMode(betNumber, selectedTracks = []) {
-    // console.log(`determineGameMode called with betNumber: ${betNumber}, tracks: ${selectedTracks.join(', ')}`);
     if (!betNumber) return "-";
 
     const tracks = selectedTracks.length > 0 ? selectedTracks : getCurrentSelectedTracks();
-    // console.log("Effective tracks for game mode determination:", tracks);
 
     const isUSA = tracks.some(t => cutoffTimes.USA && cutoffTimes.USA[t]);
     const isSD = tracks.some(t => cutoffTimes["Santo Domingo"] && cutoffTimes["Santo Domingo"][t]);
@@ -705,24 +860,27 @@ function determineGameMode(betNumber, selectedTracks = []) {
 
     if (includesHorses) return "NY Horses";
 
-    const cleanBetNumber = String(betNumber).replace(/[^0-9x+-]/gi, ''); // Clean up a bit more
+    const cleanBetNumber = String(betNumber).replace(/[^0-9x+-]/gi, ''); 
     const paleRegex = /^(\d{2})([x+-])(\d{2})$/;
 
     if (paleRegex.test(cleanBetNumber)) {
         if (includesVenezuela && isUSA) return "Pale-Ven";
         if (isSD && !isUSA) return "Pale-RD";
-        if (isUSA) return "Palé"; // Default Palé for USA if no other specific context
-        return "Palé"; // General Palé
+        if (isUSA) return "Palé"; 
+        return "Palé"; 
     }
     
-    const length = cleanBetNumber.replace(/[^0-9]/g, '').length; // Count only digits for length check
+    const length = cleanBetNumber.replace(/[^0-9]/g, '').length; 
 
     if (length === 1 && isUSA && !includesVenezuela && !includesHorses) return "Single Action";
     if (length === 2) {
-        if (includesVenezuela && isUSA) return "Venezuela";
-        if (isUSA && !isSD) return "Pulito";
-        if (isSD && !isUSA) return "RD-Quiniela";
-        return "Pulito"; // Default for 2 digits if context is unclear
+        if (includesVenezuela && isUSA) return "Venezuela"; 
+        if (isUSA && !isSD) return "Pulito";      
+        if (isSD && !isUSA) return "RD-Quiniela"; 
+        if (tracks.includes("Venezuela") && tracks.length === 1) return "Venezuela"; 
+        if (tracks.some(t => cutoffTimes.USA[t]) && !tracks.some(t => cutoffTimes["Santo Domingo"][t])) return "Pulito"; 
+        if (tracks.some(t => cutoffTimes["Santo Domingo"][t]) && !tracks.some(t => cutoffTimes.USA[t])) return "RD-Quiniela"; 
+        return "Pulito"; 
     }
     if (length === 3) return "Pick 3";
     if (length === 4) return "Win 4";
@@ -731,7 +889,6 @@ function determineGameMode(betNumber, selectedTracks = []) {
 }
 
 function calculateRowTotal(betNumber, gameMode, stVal, bxVal, coVal) {
-    // console.log(`calculateRowTotal: bn=${betNumber}, gm=${gameMode}, st=${stVal}, bx=${bxVal}, co=${coVal}`);
     if (!betNumber || gameMode === "-") return "0.00";
 
     const st = parseFloat(stVal) || 0;
@@ -743,15 +900,14 @@ function calculateRowTotal(betNumber, gameMode, stVal, bxVal, coVal) {
             const positions = bxVal.split(",").map(x => x.trim()).filter(Boolean).length;
             return (st * positions).toFixed(2);
         } else {
-            numericBox = parseFloat(bxVal) || 0; // If not positions, treat as a regular box amount
+            numericBox = parseFloat(bxVal) || 0; 
         }
     } else {
         numericBox = parseFloat(bxVal) || 0;
     }
 
     if (["Venezuela", "Pale-RD", "Pale-Ven", "RD-Quiniela", "Palé"].includes(gameMode)) {
-        return st.toFixed(2); // For these modes, traditionally only straight amount counts, box/combo might be extra.
-                               // If you want to sum them for these modes too, change this line.
+        return st.toFixed(2); 
     }
     
     if (gameMode === "Win 4" || gameMode === "Pick 3") {
@@ -759,7 +915,6 @@ function calculateRowTotal(betNumber, gameMode, stVal, bxVal, coVal) {
         return (st + numericBox + (combo * combosCount)).toFixed(2);
     }
     
-    // Default for Single Action, NY Horses, and any other case
     return (st + numericBox + combo).toFixed(2);
 }
 
@@ -776,9 +931,16 @@ function calcCombos(str) {
 // --- Main Table Row Management ---
 function addMainRow(bet = null) {
     console.log("addMainRow llamada. playCount actual:", playCount, "Datos de jugada:", bet);
+    // Check if the tbody element itself exists
+    if ($("#tablaJugadas").length === 0) { 
+        console.error("CRITICAL: El elemento con ID #tablaJugadas (que debería ser el tbody) no se encuentra. Por favor, verifica tu archivo HTML (index.html). Las jugadas no se pueden agregar.");
+        alert("Error crítico: Falta el elemento #tablaJugadas (tbody) en la tabla. Contacte al administrador.");
+        return null;
+    }
+
      if (playCount >= MAX_PLAYS) {
         alert(`You have reached the limit of ${MAX_PLAYS} plays in the main form.`);
-        return null; 
+        return null;
     }
     playCount++;
     const rowIndex = playCount;
@@ -792,7 +954,6 @@ function addMainRow(bet = null) {
     if (bet) {
         bn_val = bet.betNumber || "";
         st_val = (bet.straightAmount !== null && bet.straightAmount !== undefined) ? String(bet.straightAmount) : "";
-        // For box, if it's a string with commas (like from Pulito positions), keep as string. Otherwise, convert.
         if (typeof bet.boxAmount === 'string' && bet.boxAmount.includes(',')) {
             bx_val = bet.boxAmount;
         } else {
@@ -800,52 +961,58 @@ function addMainRow(bet = null) {
         }
         co_val = (bet.comboAmount !== null && bet.comboAmount !== undefined) ? String(bet.comboAmount) : "";
         
-        // Determine gameMode: use provided if available, else calculate
         const currentTracks = getCurrentSelectedTracks();
         gm_val = bet.gameMode || determineGameMode(bn_val, currentTracks);
-        // console.log(`Game mode for new row (bn: ${bn_val}): ${gm_val}`);
     }
 
     const rowHTML = `
       <tr data-playindex="${rowIndex}">
+        <td><input type="checkbox" class="row-select-checkbox form-check-input"></td>
         <td><button type="button" class="btnRemovePlay removeMainBtn btn btn-sm btn-danger" data-row="${rowIndex}">${rowIndex}</button></td>
         <td><input type="text" class="form-control betNumber" value="${bn_val}" /></td>
         <td class="gameMode">${gm_val}</td>
         <td><input type="number" step="0.01" class="form-control straight" value="${st_val}" /></td>
-        <td><input type="text" class="form-control box" value="${bx_val}" /></td> 
+        <td><input type="text" class="form-control box" value="${bx_val}" /></td>
         <td><input type="number" step="0.01" class="form-control combo" value="${co_val}" /></td>
-        <td class="total">0.00</td>
+        <td class="total total-cell" title="Copiar montos">0.00 <i class="bi bi-copy" style="pointer-events: none; margin-left: 5px;"></i></td>
       </tr>
     `;
+    // CORRECTED: Append directly to #tablaJugadas (which is the tbody)
     $("#tablaJugadas").append(rowHTML);
-    const $newRow = $("#tablaJugadas tr[data-playindex='" + rowIndex + "']");
+    // CORRECTED: Select the new row as a direct child of #tablaJugadas
+    const $newRow = $("#tablaJugadas > tr[data-playindex='" + rowIndex + "']");
 
     if ($newRow.length === 0) {
-        console.error("Error: La fila no se agregó correctamente al DOM por addMainRow");
+        console.error("Error: La fila no se agregó correctamente al DOM por addMainRow. playCount actual:", playCount, "rowIndex intentado:", rowIndex);
         playCount--; 
         return null;
     }
 
-    if (bet) { // If data was passed (e.g., from OCR), recalc this specific row
+    if (bet) {
         recalcMainRow($newRow);
+    }
+    
+    if ($("#selectAllCheckbox").prop('checked')) {
+        if ($("#tablaJugadas .row-select-checkbox:not(:checked)").length > 0) { // Corrected selector
+             $("#selectAllCheckbox").prop('checked', false);
+        }
     }
     console.log(`Fila ${rowIndex} agregada exitosamente por addMainRow`);
     return $newRow;
 }
 
 
-function renumberMainRows() { /* ... original ... */ 
+function renumberMainRows() { 
     let i = 0;
-    $("#tablaJugadas tr").each(function() {
+    $("#tablaJugadas > tr").each(function() { // Corrected selector
         i++;
-        $(this).attr("data-playIndex", i);
+        $(this).attr("data-playindex", i); 
         $(this).find(".removeMainBtn").attr("data-row", i).text(i);
     });
     playCount = i;
-    // storeFormState(); // Storing state too often can be an issue.
 }
 
-function recalcMainRow($row) { /* ... original ... */ 
+function recalcMainRow($row) { 
     const bn = $row.find(".betNumber").val().trim();
     const currentTracks = getCurrentSelectedTracks();
     const gm = determineGameMode(bn, currentTracks);
@@ -856,158 +1023,145 @@ function recalcMainRow($row) { /* ... original ... */
     const coVal = $row.find(".combo").val().trim();
 
     const rowTotal = calculateRowTotal(bn, gm, stVal, bxVal, coVal);
-    $row.find(".total").text(rowTotal);
-    // calculateMainTotal(); // Avoid calling this for every row recalc if done in batch
+    $row.find(".total").contents().first()[0].nodeValue = rowTotal + " "; // Keep the text node for total value
 }
 
-function recalcAllMainRows() { /* ... original ... */
-    $("#tablaJugadas tr").each(function() {
+function recalcAllMainRows() { 
+    $("#tablaJugadas > tr").each(function() { // Corrected selector
         recalcMainRow($(this));
     });
-    calculateMainTotal(); // Calculate grand total once after all rows are recalculated
+    calculateMainTotal(); 
 }
 
 
 // --- Total Calculation & State Management ---
-function calculateMainTotal() { /* ... original ... */ 
-    // console.log(`calculateMainTotal called. Days: ${selectedDaysCount} Tracks: ${selectedTracksCount}`);
+function calculateMainTotal() { 
     let sum = 0;
-    $("#tablaJugadas tr").each(function() {
-        const totalCell = $(this).find(".total").text();
-        sum += parseFloat(totalCell) || 0;
+    $("#tablaJugadas > tr").each(function() { // Corrected selector
+        const totalTextNode = $(this).find(".total").contents().first()[0];
+        if (totalTextNode) {
+             sum += parseFloat(totalTextNode.nodeValue) || 0;
+        }
     });
 
     let effectiveDays = selectedDaysCount > 0 ? selectedDaysCount : 1;
     let effectiveTracks = selectedTracksCount > 0 ? selectedTracksCount : 1;
     
-    // If no tracks are selected BUT Venezuela is, the multiplier should effectively be 1 (for Venezuela)
     const $checkedTracks = $(".track-checkbox:checked");
     if ($checkedTracks.length > 0 && effectiveTracks === 0 && $checkedTracks.filter("[value='Venezuela']").length > 0) {
-        effectiveTracks = 1;
+        effectiveTracks = 1; 
     }
 
 
     const finalTotal = sum * effectiveTracks * effectiveDays;
     $("#totalJugadas").text(finalTotal.toFixed(2));
-    // console.log("Main total updated to:", finalTotal.toFixed(2));
 }
 
-function storeFormState() { /* ... original ... */ 
+function storeFormState() { 
     const st = {
-        // selectedTracksCount, // This is derived, no need to store
-        // selectedDaysCount, // This is derived, no need to store
-        dateVal: fpInstance ? fpInstance.input.value : "", // Get value from flatpickr instance
-        // playCount, // This is derived
+        dateVal: fpInstance ? fpInstance.input.value : "", 
         plays: []
     };
-    $("#tablaJugadas tr").each(function() {
+    $("#tablaJugadas > tr").each(function() { // Corrected selector
+        const totalTextNode = $(this).find(".total").contents().first()[0];
         st.plays.push({
             betNumber: $(this).find(".betNumber").val() || "",
             gameMode: $(this).find(".gameMode").text() || "-",
             straight: $(this).find(".straight").val() || "",
             box: $(this).find(".box").val() || "",
             combo: $(this).find(".combo").val() || "",
-            total: $(this).find(".total").text() || "0.00"
+            total: totalTextNode ? totalTextNode.nodeValue.trim() : "0.00"
         });
     });
     localStorage.setItem("formState", JSON.stringify(st));
-    // console.log("Form state stored.");
 }
 
-function loadFormState() { /* ... original ... */
+function loadFormState() { 
     console.log("loadFormState called");
     const data = JSON.parse(localStorage.getItem("formState"));
     if (!data) return;
 
     if (fpInstance && data.dateVal) {
-        // Parse dates from "m-d-Y, m-d-Y" format
         const datesToSet = data.dateVal.split(', ').map(dateStr => {
             const parts = dateStr.split('-');
             if (parts.length === 3) {
-                // Ensure parts[2] is a 4-digit year
                 const year = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
                 return `${parts[0]}-${parts[1]}-${year}`;
             }
             return null;
         }).filter(d => d !== null);
-        fpInstance.setDate(datesToSet, false); // false to not trigger onChange yet
+        fpInstance.setDate(datesToSet, false); 
         selectedDaysCount = datesToSet.length > 0 ? datesToSet.length : 1;
     }
 
 
-    $("#tablaJugadas").empty();
-    playCount = 0; // Reset playCount before adding rows
+    $("#tablaJugadas").empty(); // Corrected selector
+    playCount = 0; 
     if (data.plays && data.plays.length > 0) {
         data.plays.forEach((p) => {
-            // Pass an object similar to what OCR would provide to addMainRow
             addMainRow({ 
                 betNumber: p.betNumber, 
-                gameMode: p.gameMode, // gameMode from stored state
+                gameMode: p.gameMode, 
                 straightAmount: parseFloat(p.straight) || null,
-                boxAmount: p.box, // Keep as string if it was stored as such (e.g., for Pulito positions)
+                boxAmount: p.box, 
                 comboAmount: parseFloat(p.combo) || null
             });
         });
     }
     
-    // After all rows are added and their individual game modes/totals potentially set by addMainRow + recalcMainRow
-    recalcAllMainRows(); // This will recalculate game modes and totals for all loaded rows.
-    calculateMainTotal(); // This calculates the grand total.
+    recalcAllMainRows(); 
+    calculateMainTotal(); 
     highlightDuplicatesInMain();
-    // console.log("Form state loaded.");
+    $("#selectAllCheckbox").prop('checked', false); 
 }
 
 
 // --- Form Actions ---
-function resetForm() { /* ... original ... */
+function resetForm() { 
     console.log("resetForm called");
     
-    // Temporarily detach track checkbox change handler
     $(".track-checkbox").off('change', trackCheckboxChangeHandler);
     isUpdatingProgrammatically = true;
 
-    $("#lotteryForm")[0].reset(); // Resets form inputs
-    $("#tablaJugadas").empty();
+    $("#lotteryForm")[0].reset(); 
+    $("#tablaJugadas").empty(); // Corrected selector
     playCount = 0;
     jugadasGlobalOCR = [];
     selectedFileGlobalOCR = null;
 
-    // Reset OCR UI
     $("#ocrFile").val("");
     $("#ocrPreview").addClass("d-none").attr("src", "");
     $("#ocrJugadas").empty().html("<p>Sube una imagen para ver las jugadas detectadas aquí.</p>");
     $("#btnProcesarOCR").prop('disabled', true);
     $("#btnCargarJugadas").prop('disabled', true);
-    hideOcrLoading();
+ hideOcrLoading();
 
-
+    $("#selectAllCheckbox").prop('checked', false);
+    window.copiedAmounts = {};
+    $("#pasteAmountsButton").prop('disabled', true).hide(); 
+ 
     if (fpInstance) {
-        fpInstance.setDate([new Date()], false); // Set to today, don't trigger onChange yet
+        fpInstance.setDate([new Date()], false); 
         selectedDaysCount = 1;
     } else {
         selectedDaysCount = 1;
     }
     
-    // Uncheck all track checkboxes
     $(".track-checkbox").prop('checked', false);
-    autoSelectNYTrackAndVenezuela(); // This will check defaults
+    autoSelectNYTrackAndVenezuela(); 
 
-    // Re-attach handler and then update everything
     isUpdatingProgrammatically = false;
     $(".track-checkbox").on('change', trackCheckboxChangeHandler);
 
-    // showCutoffTimes(); // Temporarily commented out
-    // disableTracksByTime(); // Temporarily commented out
-
-    updateSelectedTracksAndTotal(); // This recalculates counts and grand total based on new state
+    updateSelectedTracksAndTotal(); 
     
     localStorage.removeItem("formState");
     console.log("Form reset complete.");
 }
 
-function doGenerateTicket() { /* ... original, with added console logs ... */ 
+function doGenerateTicket() { 
     console.log("doGenerateTicket called");
-     const dateVal = fpInstance ? fpInstance.input.value : "";
+ const dateVal = fpInstance ? fpInstance.input.value : "";
     if (!dateVal) {
         alert("Please select at least one date.");
         return;
@@ -1021,17 +1175,14 @@ function doGenerateTicket() { /* ... original, with added console logs ... */
     }
     $("#ticketTracks").text(chosenTracks.join(", "));
 
-    // ... (rest of validation logic for cutoff, rows, limits etc.)
 
-    const rows = $("#tablaJugadas tr");
+    const rows = $("#tablaJugadas > tr"); // Corrected selector
     if (rows.length === 0) {
         alert("No plays to generate a ticket for.");
         return;
     }
-    // ... (rest of validation for each row) ...
-    let formIsValid = true; // Assume valid initially
-    // Placeholder for actual validation logic
-    // rows.each(function() { /* ... actual validation ... */ }); 
+    let formIsValid = true; 
+
 
     if (!formIsValid) {
         // alert("Some plays have errors or exceed limits. Please fix them.");
@@ -1041,16 +1192,20 @@ function doGenerateTicket() { /* ... original, with added console logs ... */
     $("#ticketJugadas").empty();
     rows.each(function(idx) {
         const $row = $(this);
-        // ... (populate ticketJugadas from $row) ...
-         const bn = $row.find(".betNumber").val().trim();
+        const bn = $row.find(".betNumber").val().trim();
         const gm = $row.find(".gameMode").text();
         let stVal = $row.find(".straight").val().trim() || "0.00";
         let bxVal = $row.find(".box").val().trim(); 
         let coVal = $row.find(".combo").val().trim() || "0.00";
-        let totVal = $row.find(".total").text() || "0.00";
+        let totVal = "0.00";
+        const totalTextNode = $row.find(".total").contents().first()[0];
+        if (totalTextNode) {
+            totVal = totalTextNode.nodeValue.trim();
+        }
 
-         if (bxVal === "" && (gm === "Pulito" || gm === "Single Action" || gm === "NY Horses")) {
-            bxVal = "-"; // Display '-' if box is empty and game mode allows it
+
+        if (bxVal === "" && (gm === "Pulito" || gm === "Single Action" || gm === "NY Horses")) {
+            bxVal = "-"; 
         }
 
 
@@ -1070,7 +1225,6 @@ function doGenerateTicket() { /* ... original, with added console logs ... */
 
 
     $("#ticketTotal").text($("#totalJugadas").text());
-    // ... (set ticket number, transaction date, QR code) ...
 
     if (ticketModalInstance) {
         $("#editButton").removeClass("d-none");
@@ -1085,7 +1239,7 @@ function doGenerateTicket() { /* ... original, with added console logs ... */
 
 
 // --- Track Management ---
-function getTrackCutoff(trackName) { /* ... original ... */ 
+function getTrackCutoff(trackName) { 
     for (let region in cutoffTimes) {
         if (cutoffTimes[region] && cutoffTimes[region][trackName]) {
             return cutoffTimes[region][trackName];
@@ -1093,105 +1247,44 @@ function getTrackCutoff(trackName) { /* ... original ... */
     }
     return null;
 }
-function hasBrooklynOrFront(tracks) { /* ... original ... */ 
+function hasBrooklynOrFront(tracks) { 
     const bfSet = new Set(["Brooklyn Midday", "Brooklyn Evening", "Front Midday", "Front Evening"]);
     return tracks.some(t => bfSet.has(t));
 }
-function userChoseToday() { /* ... original ... */ 
+function userChoseToday() { 
     const val = fpInstance ? fpInstance.input.value : "";
     if (!val) return false;
     const arr = val.split(", ");
     const today = dayjs().startOf("day");
     for (let ds of arr) {
-        const parsedDate = dayjs(ds, "MM-DD-YYYY"); // Use consistent format
+        const parsedDate = dayjs(ds, "MM-DD-YYYY"); 
         if (parsedDate.isValid() && parsedDate.isSame(today, "day")) return true;
     }
     return false;
 }
 
-// Commented out functions to avoid recursion issues until fully debugged
 /*
 function disableTracksByTime() {
-    // console.log("disableTracksByTime called");
-    // if (!userChoseToday()) {
-    //     enableAllTracks();
-    //     return;
-    // }
-    // const now = dayjs();
-    // isUpdatingProgrammatically = true;
-    // $(".track-checkbox").off('change', trackCheckboxChangeHandler);
-
-    // $(".track-checkbox").each(function() {
-    //     const trackVal = $(this).val();
-    //     if (trackVal === "Venezuela") return; 
-
-    //     const rawCutoff = getTrackCutoff(trackVal);
-    //     if (rawCutoff) {
-    //         let cutoffTimeObj = dayjs(rawCutoff, "HH:mm");
-    //         // Standard cutoff is 10 mins before actual draw time, unless it's after 9:30 PM, then it's exactly 10 PM
-    //         let effectiveCutoff = cutoffTimeObj.isAfter(dayjs("21:30", "HH:mm")) 
-    //                               ? dayjs().hour(22).minute(0).second(0) 
-    //                               : cutoffTimeObj.subtract(10, "minute");
-
-    //         if (now.isSameOrAfter(effectiveCutoff)) {
-    //             $(this).prop("checked", false).prop("disabled", true);
-    //             $(this).closest(".track-button-container").find(".track-button").css({ opacity: 0.5, cursor: "not-allowed" });
-    //         } else {
-    //             $(this).prop("disabled", false);
-    //             $(this).closest(".track-button-container").find(".track-button").css({ opacity: 1, cursor: "pointer" });
-    //         }
-    //     }
-    // });
-    // isUpdatingProgrammatically = false;
-    // $(".track-checkbox").on('change', trackCheckboxChangeHandler);
-    // updateSelectedTracksAndTotal(); // Call after all changes
+    // ... (original, ensure it doesn't cause issues with new logic if uncommented)
 }
-
 function enableAllTracks() {
-    // console.log("enableAllTracks called");
-    // isUpdatingProgrammatically = true;
-    // $(".track-checkbox").off('change', trackCheckboxChangeHandler);
-    // $(".track-checkbox").each(function() {
-    //     $(this).prop("disabled", false);
-    //     $(this).closest(".track-button-container").find(".track-button").css({ opacity: 1, cursor: "pointer" });
-    // });
-    // isUpdatingProgrammatically = false;
-    // $(".track-checkbox").on('change', trackCheckboxChangeHandler);
-    // updateSelectedTracksAndTotal(); // Call after all changes
+    // ... (original, ensure it doesn't cause issues with new logic if uncommented)
 }
-
 function showCutoffTimes() {
-    // console.log("showCutoffTimes called");
-    // $(".cutoff-time").each(function() {
-    //     const track = $(this).data("track");
-    //     if (track === "Venezuela") return;
-    //     const rawCutoff = getTrackCutoff(track);
-    //     if (rawCutoff) {
-    //         let cutoffTimeObj = dayjs(rawCutoff, "HH:mm");
-    //         let effectiveCutoff = cutoffTimeObj.isAfter(dayjs("21:30", "HH:mm")) 
-    //                               ? dayjs().hour(22).minute(0) 
-    //                               : cutoffTimeObj.subtract(10, "minute");
-    //         $(this).text(effectiveCutoff.format("HH:mm"));
-    //     } else {
-    //         $(this).text("-");
-    //     }
-    // });
+    // ... (original, ensure it doesn't cause issues with new logic if uncommented)
 }
 */
 
-function autoSelectNYTrackAndVenezuela() { /* ... original, but simplified ... */ 
+function autoSelectNYTrackAndVenezuela() { 
     console.log("autoSelectNYTrackAndVenezuela called");
     const anyChecked = $(".track-checkbox:checked").length > 0;
-    if (anyChecked && !isResettingForm) return; // Don't auto-select if user has already made selections, unless during reset
+    if (anyChecked && !isResettingForm) return; 
 
     isUpdatingProgrammatically = true;
     $(".track-checkbox").off('change', trackCheckboxChangeHandler);
 
-    // Uncheck all first to ensure a clean slate for default selection
-    // $(".track-checkbox").prop('checked', false); // Already done in resetForm if called from there
-
     const now = dayjs();
-    const middayCutoff = dayjs().hour(14).minute(20); // 2:20 PM
+    const middayCutoff = dayjs().hour(14).minute(20); 
 
     if (now.isBefore(middayCutoff)) {
         $("#trackNYMidDay").prop("checked", true);
@@ -1202,23 +1295,22 @@ function autoSelectNYTrackAndVenezuela() { /* ... original, but simplified ... *
     
     isUpdatingProgrammatically = false;
     $(".track-checkbox").on('change', trackCheckboxChangeHandler);
-    // updateSelectedTracksAndTotal(); // Will be called by the calling context (e.g., end of document.ready or resetForm)
 }
 
 // --- Utility Functions ---
-function highlightDuplicatesInMain() { /* ... original ... */ 
-    $("#tablaJugadas tr .betNumber").removeClass("duplicado");
+function highlightDuplicatesInMain() { 
+    $("#tablaJugadas > tr .betNumber").removeClass("duplicado"); // Corrected selector
     const counts = {};
-    $("#tablaJugadas tr .betNumber").each(function() {
+    $("#tablaJugadas > tr .betNumber").each(function() { // Corrected selector
         const bn = $(this).val().trim();
         if (bn) counts[bn] = (counts[bn] || 0) + 1;
     });
-    $("#tablaJugadas tr .betNumber").each(function() {
+    $("#tablaJugadas > tr .betNumber").each(function() { // Corrected selector
         const bn = $(this).val().trim();
         if (counts[bn] > 1) $(this).addClass("duplicado");
     });
 }
-function highlightDuplicatesInWizard() { /* ... original ... */ 
+function highlightDuplicatesInWizard() { 
     $("#wizardTableBody tr td:nth-child(2)").removeClass("duplicado");
     const counts = {};
     $("#wizardTableBody tr").each(function() {
@@ -1233,20 +1325,20 @@ function highlightDuplicatesInWizard() { /* ... original ... */
 
 function generateUniqueTicketNumber() { return Math.floor(10000000 + Math.random() * 90000000).toString(); }
 
-let transactionDateTime = ''; // For ticket confirmation
-let isResettingForm = false; // Flag for resetForm context
+let transactionDateTime = ''; 
+let isResettingForm = false; 
 
 // Wizard specific functions
-function resetWizard() { /* ... original ... */ 
+function resetWizard() { 
     wizardCount = 0;
     $("#wizardTableBody").empty();
     lockedFields.straight = false; $("#lockStraight").html(`<i class="bi bi-unlock"></i>`);
     lockedFields.box = false;      $("#lockBox").html(`<i class="bi bi-unlock"></i>`);
     lockedFields.combo = false;    $("#lockCombo").html(`<i class="bi bi-unlock"></i>`);
-    $("#wizardBetNumber, #wizardStraight, #wizardBox, #wizardCombo, #rdFirstNumber, #rdLastNumber").val("");
-    $("#qpGameMode").val("Pick 3"); $("#qpCount").val("5");
+    $("#wizardBetNumber, #wizardStraight, #wizardBox, #wizardCombo").val("");
+    $("#qpGameMode").val("Pick 3"); $("#qpCount").val("5"); 
 }
-function addWizardRow(bn, gm, stVal, bxVal, coVal, total) { /* ... original ... */ 
+function addWizardRow(bn, gm, stVal, bxVal, coVal, total) { 
     wizardCount++;
     const i = wizardCount;
     const rowHTML = `
@@ -1258,29 +1350,38 @@ function addWizardRow(bn, gm, stVal, bxVal, coVal, total) { /* ... original ... 
       </tr>`;
     $("#wizardTableBody").append(rowHTML);
 }
-function renumberWizard() { /* ... original ... */ 
+function renumberWizard() { 
     let i = 0;
     $("#wizardTableBody tr").each(function() { i++; $(this).attr("data-wizardIndex", i).find(".removeWizardBtn").attr("data-row", i).text(i); });
     wizardCount = i;
 }
-function generateRandomNumberForMode(mode) { /* ... original ... */ 
-    if (mode === "NY Horses") { const length = Math.floor(Math.random() * 4) + 1; const maxVal = Math.pow(10, length) - 1; return Math.floor(Math.random() * (maxVal + 1)); }
-    if (mode === "Single Action") { return Math.floor(Math.random() * 10); }
-    if (["Win 4", "Pale-Ven", "Pale-RD", "Palé"].includes(mode)) { return Math.floor(Math.random() * 10000); }
-    if (mode === "Pick 3") { return Math.floor(Math.random() * 1000); }
-    if (["Venezuela", "Pulito", "RD-Quiniela"].includes(mode)) { return Math.floor(Math.random() * 100); }
-    return Math.floor(Math.random() * 1000); // Default
+
+function generateRandomNumberForMode(mode) {
+    if (mode === "NY Horses") { const length = Math.floor(Math.random() * 4) + 1; return Math.floor(Math.random() * Math.pow(10, length)); }
+    if (mode === "Single Action") { return Math.floor(Math.random() * 10); } 
+    if (["Win 4"].includes(mode)) { return Math.floor(Math.random() * 10000); } 
+    if (["Venezuela", "Pulito", "RD-Quiniela"].includes(mode)) { return Math.floor(Math.random() * 100); } 
+    if (["Pick 3"].includes(mode)) { return Math.floor(Math.random() * 1000); }
+    return Math.floor(Math.random() * 1000); 
 }
-function padNumberForMode(num, mode) { /* ... original ... */
+
+function padNumberForMode(num, mode) { 
     let s = String(num);
-    if (["NY Horses", "Single Action"].includes(mode)) return s;
-    if (["Win 4", "Pale-Ven", "Pale-RD", "Palé"].includes(mode)) { while (s.length < 4) s = "0" + s; return s; }
-    if (["Pick 3"].includes(mode)) { while (s.length < 3) s = "0" + s; return s; }
-    if (["Venezuela", "Pulito", "RD-Quiniela"].includes(mode)) { while (s.length < 2) s = "0" + s; return s; }
-    while (s.length < 3) s = "0" + s; return s; // Default
+    if (["NY Horses", "Single Action"].includes(mode)) return s; 
+    if (["Win 4", "Pale-Ven", "Pale-RD", "Palé"].includes(mode)) { 
+        while (s.length < 4) s = "0" + s; return s; 
+    }
+    if (["Pick 3"].includes(mode)) { 
+        while (s.length < 3) s = "0" + s; return s; 
+    }
+    if (["Venezuela", "Pulito", "RD-Quiniela"].includes(mode)) { 
+        while (s.length < 2) s = "0" + s; return s; 
+    }
+    while (s.length < 3) s = "0" + s; return s; 
 }
-function permuteWizardBetNumbers() { /* ... original ... */ 
-     const rows = $("#wizardTableBody tr");
+
+function permuteWizardBetNumbers() { 
+ const rows = $("#wizardTableBody tr");
     if (rows.length === 0) { alert("No plays in the wizard table."); return; }
     let allDigits = []; let lengths = [];
     rows.each(function() { const bn = $(this).find("td").eq(1).text().trim(); lengths.push(bn.length); for (let c of bn) allDigits.push(c); });
@@ -1305,8 +1406,8 @@ function startTutorial(lang) { /* ... */ }
 // ... (manual button handlers)
 
 
-const lockedFields = { straight: false, box: false, combo: false }; // For wizard
-let fpDateInstance = null; // To store Flatpickr instance for date picker
+const lockedFields = { straight: false, box: false, combo: false }; 
+let fpDateInstance = null; 
 
 // Ensure all global functions that are called from HTML onclick are on window
 window.usarJugadaOCR = usarJugadaOCR;
@@ -1319,10 +1420,37 @@ window.handleFileChangeOCR = handleFileChangeOCR;
 window.procesarOCR = procesarOCR;
 window.toggleOcrDebug = toggleOcrDebug;
 window.startTutorial = startTutorial;
-// window.debugOcrState = debugOcrState; // If you have this function
 
-// Ensure other global functions if any called from HTML are also exposed
-// Example: For wizard or other modals if they use onclick in HTML
-// window.nombreDeTuFuncionWizard = nombreDeTuFuncionWizard;
+// --- Theme Toggle Logic ---
+function setupThemeToggle() {
+    const body = document.body;
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const moonIcon = themeToggleBtn ? themeToggleBtn.querySelector('.bi-moon') : null;
+    const sunIcon = themeToggleBtn ? themeToggleBtn.querySelector('.bi-sun') : null;
+
+    if (!themeToggleBtn || !moonIcon || !sunIcon) {
+        console.error("Theme toggle elements not found.");
+        return;
+    }
+
+    const savedTheme = localStorage.getItem('themeMode');
+    if (savedTheme === 'light') {
+        body.classList.add('light-mode');
+        moonIcon.style.display = 'none';
+        sunIcon.style.display = 'inline-block';
+    } else {
+        body.classList.remove('light-mode');
+        moonIcon.style.display = 'inline-block';
+        sunIcon.style.display = 'none';
+    }
+
+    themeToggleBtn.addEventListener('click', function() {
+        const isLightMode = body.classList.contains('light-mode');
+        body.classList.toggle('light-mode', !isLightMode);
+        localStorage.setItem('themeMode', isLightMode ? 'dark' : 'light');
+        moonIcon.style.display = isLightMode ? 'inline-block' : 'none';
+        sunIcon.style.display = isLightMode ? 'none' : 'inline-block';
+    });
+}
 
 console.log("End of scripts.js reached");

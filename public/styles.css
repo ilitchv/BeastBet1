@@ -1,33 +1,51 @@
 /* Estilos Generales */
 body {
   font-family: 'Poppins', sans-serif;
-  background-color: #333; /* Fondo oscuro principal */
-  color: #f0f0f0; /* Texto claro */
   margin-top: 60px; /* Espacio para los botones de tutorial fijos */
+}
+
+:root {
+  /* Dark Mode (Default) */
+ --main-bg: #111; /* Very dark */
+ --text-color: #eee; /* Light grey */
+ --container-bg: #222; /* Slightly lighter dark */
+ --border-color: #0ff; /* Cyan */
+ --glow-color: rgba(0, 255, 255, 0.5); /* Cyan glow */
+ --glow-intense: rgba(0, 255, 255, 0.7); /* Intense cyan glow */
+ --input-bg: #333; /* Dark grey */
+ --input-text: #fff; /* White */
+ --input-border: #00cyan;
+ --placeholder-color: #aaa;
 }
 
 .container {
   background-color: #444; /* Fondo del contenedor un poco más claro */
   padding: 30px;
-  border-radius: 15px;
+ border-radius: 15px;
   box-shadow: 0 0 20px rgba(0, 255, 255, 0.5), 0 0 30px rgba(0, 123, 255, 0.3); /* Sombra neón */
   border: 1px solid rgba(0, 255, 255, 0.3);
 }
 
+body {
+  font-family: 'Poppins', sans-serif;
+  margin-top: 60px; /* Espacio para los botones de tutorial fijos */
+ background-color: var(--main-bg); /* Use dark mode background by default */
+ color: var(--text-color); /* Use dark mode text color by default */
+}
+
 h2, h4, h5, h6, label, .form-label {
-  color: #00cyan; /* Color cian para títulos y etiquetas */
-  font-family: 'Montserrat', sans-serif;
 }
 h2 {
+    color: #00cyan; /* Color cian para títulos */
     text-shadow: 0 0 10px #00FFFF, 0 0 15px #00FFFF;
 }
 
 
 /* Inputs con efecto glow */
 .glow-input, .form-control, .form-select {
-  background-color: #555;
-  color: #fff;
-  border: 1px solid #00cyan;
+ background-color: var(--input-bg);
+ color: var(--input-text);
+ border: 1px solid var(--input-border);
   box-shadow: 0 0 8px rgba(0, 255, 255, 0.3);
   transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
@@ -37,7 +55,7 @@ h2 {
   border-color: #00FFFF; /* Cian más brillante */
   box-shadow: 0 0 15px rgba(0, 255, 255, 0.7); /* Glow más intenso */
 }
-.form-control::placeholder {
+.form-control::placeholder, .form-select::placeholder {
   color: #aaa;
 }
 
@@ -107,16 +125,16 @@ h2 {
 
 /* Acordeón de Tracks */
 .accordion-item {
-  background-color: #5a5a5a;
-  border: 1px solid #00cyan;
+ background-color: var(--container-bg); /* Use container background */
+ border: 1px solid var(--border-color); /* Use border color */
   margin-bottom: 10px;
   border-radius: 10px;
 }
 .accordion-button {
-  background-color: #505050;
-  color: #00FFFF; /* Cian */
+ background-color: var(--container-bg); /* Use container background */
+ color: var(--border-color); /* Use accent color */
   font-weight: bold;
-  border-radius: 10px !important; /* Para anular estilos de Bootstrap */
+ border-radius: 10px !important; /* To override Bootstrap styles */
 }
 .accordion-button:not(.collapsed) {
   background-color: #007bff; /* Azul cuando está activo */
@@ -127,9 +145,9 @@ h2 {
   box-shadow: 0 0 0 0.25rem rgba(0, 255, 255, 0.5); /* Glow al enfocar */
 }
 .accordion-body {
-  background-color: #484848;
+ background-color: var(--container-bg); /* Use container background */
   padding: 15px;
-  display: flex;
+ display: flex;
   flex-wrap: wrap; /* Para que los botones se ajusten */
   gap: 10px; /* Espacio entre botones */
   border-radius: 0 0 10px 10px;
@@ -145,9 +163,9 @@ h2 {
 }
 .track-button {
   display: inline-block;
-  padding: 8px 15px;
-  background-color: #666;
-  color: #fff;
+ padding: 8px 15px;
+ background-color: var(--input-bg); /* Use input background */
+ color: var(--input-text); /* Use input text color */
   border: 2px solid transparent;
   border-radius: 20px;
   cursor: pointer;
@@ -197,21 +215,17 @@ h2 {
 
 /* Tabla de Jugadas */
 .glow-table {
-  border: 2px solid #00FFFF; /* Borde cian */
-  box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); /* Sombra neón */
+ border: 2px solid var(--border-color); /* Use border color */
+ box-shadow: 0 0 15px var(--glow-color); /* Sombra neón */
 }
 .table-dark {
-  --bs-table-bg: #3e3e3e; /* Fondo de tabla un poco más oscuro */
-  --bs-table-border-color: #00cyan;
-  --bs-table-color: #f0f0f0; /* Texto claro en la tabla */
+  --bs-table-bg: var(--container-bg); /* Use container background */
+  --bs-table-border-color: var(--border-color); /* Use border color */
+  --bs-table-color: var(--text-color); /* Use text color */
 }
 .table th, .table td {
   vertical-align: middle;
   text-align: center;
-}
-.table thead th {
-  background-color: #333; /* Cabecera más oscura */
-  color: #00FFFF; /* Texto cian en cabecera */
 }
 .table .form-control { /* Inputs dentro de la tabla */
   text-align: center;
@@ -243,13 +257,41 @@ h2 {
     box-shadow: 0 0 10px orange !important;
 }
 
+/* Estilo para las celdas de 'Totals' como botones */
+.table td.total-cell {
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+ border-radius: 4px; /* Bordes redondeados sutiles */
+    padding: 0.25rem 0.5rem; /* Padding consistente con los inputs */
+    display: flex; /* Usar flexbox para centrar contenido */
+    justify-content: center;
+    align-items: center;
+}
+
+.table .total-cell:hover {
+ background-color: rgba(0, 255, 255, 0.2); /* Fondo cian semi-transparente al pasar el mouse */
+    box-shadow: 0 0 8px rgba(0, 255, 255, 0.3); /* Glow sutil al pasar el mouse */
+}
+
+.table td.total-cell i {
+    vertical-align: middle; /* Asegurar alineación vertical del icono */
+}
+
+/* Estilo para el botón 'Paste Wagers' */
+#pasteWagersBtn {
+    display: none; /* Oculto por defecto */
+ margin-top: 15px; /* Espacio encima del botón */
+    /* Inherits standard .btn and .btn-success/info/primary styles */
+}
+
 
 /* Total Section */
 .total-section {
-  font-size: 1.5rem; /* Texto grande para el total */
-  font-weight: bold;
-  color: #00FFFF; /* Cian */
-  text-shadow: 0 0 8px #00FFFF;
+ font-size: 1.5rem; /* Large text for total */
+ font-weight: bold;
+ color: var(--border-color); /* Use border color */
+ text-shadow: 0 0 8px var(--input-border);
 }
 
 /* Modales */
@@ -267,7 +309,7 @@ h2 {
   filter: invert(1) grayscale(100%) brightness(200%); /* Botón de cierre blanco */
 }
 .modal-title {
-  color: #00FFFF; /* Cian */
+ color: var(--input-border); /* Cian */
 }
 .modal-footer {
   border-top: 1px solid #007bff;
@@ -336,7 +378,7 @@ h2 {
   border-radius: 5px;
 }
 #ocrJugadas strong {
-  color: #00FFFF;
+ color: var(--input-border);
 }
 
 /* Wizard Modal */
@@ -396,12 +438,12 @@ h2 {
 
 /* Manual Section */
 #manualAccordion .accordion-button {
-    background-color: #333; /* Fondo oscuro */
-    color: #ffc107; /* Amarillo para el título del manual */
+ background-color: var(--container-bg); /* Use container background */
+ color: var(--border-color); /* Use accent color (or pick one that fits) */
 }
 #manualAccordion .accordion-button:not(.collapsed) {
-    background-color: #ffc107;
-    color: #333;
+ background-color: var(--border-color); /* Use accent color */
+ color: var(--container-bg); /* Use container background */
 }
 #manualAccordion .accordion-body {
     background-color: #3a3a3a; /* Un poco más claro que el botón */
@@ -485,6 +527,225 @@ h2 {
 #resetForm:hover {
   background-color: #660066; /* Morado más oscuro al pasar el mouse */
 }
+
+/* Estilos Generales para el Calendario Flatpickr */
+.flatpickr-calendar.open { /* Target the calendar when it's open for specificity */
+ background: #222; /* Dark background */
+ border: 1px solid #00cyan; /* Accent border */
+ box-shadow: 0 0 10px rgba(0, 255, 255, 0.5); /* Neon shadow */
+ color: #f0f0f0; /* Light text color */
+}
+.flatpickr-calendar.open .flatpickr-innerContainer {
+    background: #222; /* Ensure inner parts also have dark background */
+}
+
+/* Cabecera (Mes y Año) */
+.flatpickr-calendar.open .flatpickr-months .flatpickr-month,
+.flatpickr-calendar.open .flatpickr-current-month .flatpickr-monthTitle {
+ color: #00FFFF; /* Cyan color for month/year */
+}
+
+/* Días de la Semana */
+.flatpickr-calendar.open .flatpickr-weekdays,
+.flatpickr-calendar.open .flatpickr-weekday {
+ color: #ccc; /* Slightly muted text for weekdays */
+}
+
+/* Días Individuales */
+.flatpickr-calendar.open .flatpickr-day {
+ color: #f0f0f0; /* Light text color for Mon-Fri */
+}
+
+/* Días Seleccionados o en Rango */
+.flatpickr-calendar.open .flatpickr-day.selected,
+.flatpickr-calendar.open .flatpickr-day.startRange,
+.flatpickr-calendar.open .flatpickr-day.endRange,
+.flatpickr-calendar.open .flatpickr-day.selected.startRange,
+.flatpickr-calendar.open .flatpickr-day.selected.endRange,
+.flatpickr-calendar.open .flatpickr-day.startRange.endRange {
+ background: #007bff; /* Primary blue for selected days */
+ border-color: #007bff;
+ color: white;
+}
+
+/* Día de Hoy */
+.flatpickr-calendar.open .flatpickr-day.today {
+ border-color: #ffc107; /* Warning yellow border */
+ color: #ffc107; /* Warning yellow text */
+ background: transparent; /* Ensure background remains dark, not the theme's default */
+ font-weight: bold; /* Make it stand out */
+}
+
+/* Días Deshabilitados */
+.flatpickr-day.disabled {
+ color: #666; /* Muted text for disabled days */
+ cursor: not-allowed;
+}
+
+/* Light Mode Styles */
+body.light-mode {
+ --main-bg: #f3f0e3; /* Light background from DailyReport */
+ --text-color: #000; /* Black text from DailyReport */
+ --container-bg: #fbf9f0; /* Light container background from DailyReport */
+ --border-color: #0066cc; /* Blue accent from DailyReport */
+ --glow-color: rgba(0, 102, 204, 0.3); /* Subtle blue glow */
+ --glow-intense: rgba(0, 102, 204, 0.5); /* Intense blue glow */
+ --input-bg: #fff; /* White input background */
+ --input-text: #000; /* Black input text */
+ --input-border: #ced4da; /* Light grey input border (standard Bootstrap) */
+ --placeholder-color: #6c757d; /* Muted placeholder (standard Bootstrap) */
+
+ /* Apply the light mode variables */
+ background-color: var(--main-bg);
+ color: var(--text-color);
+}
+
+body.light-mode .container {
+ background-color: var(--container-bg);
+ box-shadow: 0 0 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for light mode */
+ border-color: var(--border-color);
+}
+
+body.light-mode h2,
+body.light-mode h4,
+body.light-mode h5,
+body.light-mode label,
+body.light-mode .form-label {
+ color: var(--text-color); /* Use dark text color */
+}
+
+/* Adjust h6 specifically in light mode if needed, but keeping it text-color matches DailyReport */
+body.light-mode h6 {
+    color: var(--text-color);
+}
+
+
+body.light-mode h2 {
+ color: var(--border-color); /* Use accent color for main title */
+ text-shadow: none; /* Remove text shadow */
+}
+
+/* Ensure headers inside manualAccordion in light mode use the correct text color */
+body.light-mode #manualAccordion h4 {
+    color: var(--text-color);
+}
+
+
+body.light-mode .glow-input,
+body.light-mode .form-control,
+body.light-mode .form-select {
+ background-color: var(--input-bg);
+ color: var(--input-text);
+ border: 1px solid var(--input-border); /* Use standard light border */
+ box-shadow: none; /* No initial glow */
+}
+
+body.light-mode .glow-input:focus,
+body.light-mode .form-control:focus,
+body.light-mode .form-select:focus {
+ background-color: var(--input-bg); /* Keep input background white */
+ color: var(--text-color);
+ border-color: #007bff; /* Primary blue on focus */
+ box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Subtle blue glow on focus */
+}
+
+body.light-mode .form-control::placeholder {
+ color: var(--placeholder-color);
+}
+
+/* Adjust button styles for light mode */
+body.light-mode .btn-primary {
+ background-color: #007bff;
+ border-color: #007bff;
+ box-shadow: none;
+}
+body.light-mode .btn-primary:hover {
+ background-color: #0056b3;
+ box-shadow: none;
+}
+body.light-mode .btn-info {
+ background-color: #17a2b8;
+ border-color: #17a2b8;
+ box-shadow: none;
+}
+body.light-mode .btn-warning {
+ background-color: #ffc107;
+ border-color: #ffc107;
+ color: #212529;
+ box-shadow: none;
+}
+body.light-mode .btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    box-shadow: none;
+}
+body.light-mode .btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+    box-shadow: none;
+}
+body.light-mode .btn-secondary {
+ background-color: #6c757d;
+ border-color: #6c757d;
+ box-shadow: none;
+}
+
+/* Adjust Accordion/Track section styles for light mode */
+body.light-mode .accordion-item {
+ background-color: var(--container-bg); /* Use light container background */
+ border: 1px solid var(--border-color); /* Use blue accent border */
+}
+body.light-mode .accordion-button {
+ background-color: var(--container-bg); /* Use light container background */
+ color: var(--text-color); /* Use dark text */
+}
+body.light-mode .accordion-button:not(.collapsed) {
+ background-color: var(--border-color); /* Use blue accent */
+ color: white; /* White text on blue */
+}
+body.light-mode .accordion-body {
+ background-color: var(--container-bg); /* Use light container background */
+}
+
+body.light-mode .track-button {
+ background-color: #e9ecef; /* Light grey background for track buttons */
+ color: var(--text-color); /* Dark text */
+ border: 2px solid transparent; /* No border initially */
+}
+
+/* Adjust table styles for light mode */
+body.light-mode .table-dark { /* Remove dark table styles */
+ --bs-table-bg: var(--container-bg);
+ --bs-table-border-color: var(--border-color);
+ --bs-table-color: var(--text-color);
+}
+
+body.light-mode .table-dark thead th {
+ background-color: var(--input-bg);
+ color: var(--text-color);
+}
+
+/* Adjust manual accordion for light mode */
+body.light-mode #manualAccordion .accordion-button {
+    background-color: var(--container-bg); /* Use light container background */
+    color: var(--text-color); /* Use dark text */
+}
+body.light-mode #manualAccordion .accordion-button:not(.collapsed) {
+    background-color: var(--border-color); /* Use blue accent */
+    color: white; /* White text on blue */
+}
+body.light-mode #manualAccordion .accordion-body {
+    background-color: var(--container-bg); /* Use light container background */
+    color: var(--text-color); /* Use dark text */
+}
+
+/* Add more specific light mode overrides as needed, following the pattern */
+/* Style for Sundays (first day of the week in Flatpickr) and Saturdays (last day) */
+.flatpickr-days .flatpickr-day:nth-child(7n+1), /* Sundays */
+.flatpickr-days .flatpickr-day:nth-child(7n) { /* Saturdays */
+ color: #ff8c00; /* Orange color for Sundays and Saturdays */
+}
+/* Note: Selected weekend days will take on the .selected style which is intended */
 ```
 Hecho. He revertido los archivos `/public/index.html` y `/public/styles.css` a un estado anterior, eliminando los cambios de responsividad y otras modificaciones que introduje y que alteraron la apariencia.
 

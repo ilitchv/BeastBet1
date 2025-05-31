@@ -1,0 +1,62 @@
+
+# Beast Reader (BETA) East New York - Memory Bank
+
+## 1. Project Brief
+<!-- Describe the core requirements and goals of the application -->
+Construir una aplicación web que permita a los usuarios ingresar detalles de boletos de lotería, incluyendo fechas, sorteos (tracks) y jugadas (número, modo y montos). La aplicación debe facilitar la entrada de datos (manualmente y a través de OCR), calcular totales, detectar duplicados, generar un resumen tipo ticket y permitir el copiado/pegado rápido de montos.
+
+## 2. Product Context
+<!-- Explain why the project exists, problems it solves, how it should work, and user experience goals -->
+El proyecto busca agilizar el proceso manual de registro de boletos de lotería para vendedores o jugadores frecuentes, reduciendo errores y tiempo. Debe ser intuitiva y fácil de usar, especialmente en dispositivos móviles. La funcionalidad de OCR busca automatizar la entrada de datos desde imágenes de boletos físicos. La capacidad de copiar/pegar montos mejora la eficiencia al registrar múltiples jugadas con montos similares. La generación de tickets proporciona un resumen verificable.
+
+## 3. System Patterns
+<!-- Document the system architecture, key technical decisions, design patterns, and component relationships -->
+La aplicación utiliza una arquitectura de cliente pesado con la mayor parte de la lógica de interfaz y manejo de datos en el frontend (HTML, CSS, JavaScript/jQuery). Se utiliza Bootstrap para el diseño responsive y componentes de UI. Se integra una API backend (Next.js API Route) para el procesamiento de OCR utilizando Genkit/IA. La persistencia de datos en el frontend se maneja con localStorage para mantener el estado del formulario entre sesiones. La tabla de jugadas se gestiona dinámicamente con JavaScript.
+
+## 4. Tech Context
+<!-- List technologies used, development setup, technical constraints, dependencies, and tool usage patterns -->
+- Frontend: HTML5, CSS3 (con estilos personalizados en `styles.css` y Bootstrap), JavaScript/jQuery, Flatpickr (para selección de fechas), qrcode.js (para códigos QR), dayjs (para manejo de fechas), html2canvas (para generar imágenes de tickets).
+- Backend (para OCR): Next.js, Genkit, Google AI (modelo Gemini).
+- Herramientas de desarrollo: npm/yarn (manejo de dependencias), Git (control de versiones - asumido), Vercel (posible despliegue - asumido dada la estructura Next.js).
+- Dependencias de Bootstrap: Popper.js.
+
+## 5. Active Context
+<!-- Current work focus, recent changes, next steps, active decisions and considerations, important patterns and preferences, learnings and project insights -->
+El enfoque actual ha sido mejorar la usabilidad y completar funcionalidades clave del formulario principal. Se han realizado ajustes en la interfaz y se resolvió el problema de visibilidad del botón "Paste Wagers". Los próximos pasos incluyen refinar la funcionalidad existente, abordar posibles bugs restantes en la interacción de elementos y considerar mejoras en la experiencia de usuario.
+
+## 6. Progress Log
+<!-- What works, what's left to build, current status, known issues, evolution of project decisions -->
+
+- **Inicialización del Memory Bank:** Creación del archivo `progress_log.txt` para documentar el estado y progreso del proyecto.
+
+- **Análisis Inicial de la Estructura:** Se realizó un análisis inicial de los archivos del proyecto (`index.html`, `scripts.js`, `styles.css`, componentes React/Next.js, API routes) para comprender la arquitectura y la ubicación de las diferentes lógicas (interfaz, lógica de cliente, backend OCR).
+
+- **Funcionalidad de Copiar y Pegar Wagers:**
+  - **Objetivo:** Implementar un botón "Paste Wagers" que siempre esté visible debajo de la tabla de jugadas para facilitar el pegado de montos copiados desde la columna "Total" a las filas seleccionadas con checkboxes.
+  - **Contexto Inicial:** Existía una funcionalidad parcial con checkboxes en la primera columna para seleccionar filas y la columna "Total" actuando como botones de "copiar". El botón de "pegar" estaba condicionalmente oculto y no funcionaba consistentemente.
+  - **Archivos Modificados:** `public/index.html`, `public/scripts.js`.
+  - **Cambios Realizados:**
+    1.  En `public/index.html`, se eliminó la clase `d-none` del botón `#pasteAmountsButton` y se cambió su clase de estilo a `btn-dark` para visibilidad constante y color distintivo.
+    2.  En `public/scripts.js`, se ajustó la lógica en el manejador de click de `.total-cell` para eliminar la llamada `.show()` al botón de pegar, ya que siempre está visible. Se verificó la lógica del manejador de click de `#pasteAmountsButton` para asegurar que pegue los montos copiados (`window.copiedAmounts`) en los campos "straight", "box" y "combo" de las filas con checkboxes marcados (`.row-select-checkbox:checked`) y recalcule la fila y el total general.
+  - **Resultado:** El botón "Paste Wagers" ahora aparece siempre visible debajo de la tabla con un color distintivo. La funcionalidad de copiar un monto de una fila y pegarlo en múltiples filas seleccionadas mediante checkboxes funciona correctamente y de forma intuitiva para el usuario.
+
+## 7. AI Instructions / Memory Management
+<!-- Instructions for el modelo de lenguaje sobre cómo leer y actualizar este archivo para mantener el contexto. Esto actuaría como tu "custom instructions" dentro del archivo. -->
+Al inicio de cada sesión, DEBES leer completamente este archivo para reconstruir el contexto del proyecto.
+
+- La sección "Project Brief" y "Product Context" te darán una comprensión general de la aplicación y sus objetivos.
+- "System Patterns" y "Tech Context" te informarán sobre la arquitectura y las tecnologías utilizadas.
+- "Active Context" te indicará en qué estábamos trabajando recientemente y los próximos pasos planificados.
+- "Progress Log" es el registro histórico de los logros, problemas resueltos y el estado de las funcionalidades.
+
+Cuando se complete una tarea, se resuelva un problema, o haya una decisión importante, debes añadir una nueva entrada DETALLADA en la sección "6. Progress Log". Cada entrada debe incluir:
+- Una descripción clara del logro o cambio.
+- Los archivos específicos que fueron modificados.
+- Una breve explicación de *por qué* se realizó el cambio y *cómo* se relaciona con la funcionalidad general.
+- Cualquier aprendizaje o patrón importante descubierto durante la tarea.
+
+Mantén las entradas del "Progress Log" en orden cronológico (las más recientes al final de la sección).
+
+Si el usuario solicita "actualizar memoria" o "documentar progreso", revisa las secciones "Active Context" y "Progress Log" para asegurarte de que reflejan el estado actual del proyecto antes de añadir nuevas entradas.
+
+Tu objetivo es mantener este archivo como la fuente única de verdad sobre el proyecto para poder retomarlo en cualquier momento.
