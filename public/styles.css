@@ -1,845 +1,837 @@
- /* Estilos Generales */
+/* Estilos Generales */
 body {
-  font-family: 'Poppins', sans-serif;
-  margin-top: 60px; /* Espacio para los botones de tutorial fijos */
-}
-
-:root {
-  /* Dark Mode (Default) */
-  --main-bg: #111; /* Very dark */
-  --text-color: #eee; /* Light grey */
-  --container-bg: #222; /* Slightly lighter dark */
-  --border-color: #0ff; /* Cyan */
-  --glow-color: rgba(0, 255, 255, 0.5); /* Cyan glow */
-  --glow-intense: rgba(0, 255, 255, 0.7); /* Intense cyan glow */
-  --input-bg: #333; /* Dark grey */
-  --input-text: #fff; /* White */
-  --input-border: #00cyan; /* Typo, should be #0ff or similar */
-  --placeholder-color: #aaa;
-}
-
-.container {
-  background-color: #444; /* Fondo del contenedor un poco más claro */
-  padding: 30px;
-  border-radius: 15px;
-  box-shadow: 0 0 20px rgba(0, 255, 255, 0.5), 0 0 30px rgba(0, 123, 255, 0.3); /* Sombra neón */
-  border: 1px solid rgba(0, 255, 255, 0.3);
-}
-
-body {
-  font-family: 'Poppins', sans-serif;
-  margin-top: 60px; /* Espacio para los botones de tutorial fijos */
-  background-color: var(--main-bg); /* Use dark mode background by default */
-  color: var(--text-color); /* Use dark mode text color by default */
-}
-
-h2, h4, h5, h6, label, .form-label {
-    /* color: var(--text-color); Default color from body */
-}
-h2 {
-    color: #00FFFF; /* Color cian para títulos (corrected from #00cyan) */
-    text-shadow: 0 0 10px #00FFFF, 0 0 15px #00FFFF;
-}
-
-
-/* Inputs con efecto glow */
-.glow-input, .form-control, .form-select {
-  background-color: var(--input-bg);
-  color: var(--input-text);
-  border: 1px solid var(--border-color); /* Corrected from --input-border which had a typo */
-  box-shadow: 0 0 8px rgba(0, 255, 255, 0.3);
-  transition: box-shadow 0.3s ease, border-color 0.3s ease;
-}
-.glow-input:focus, .form-control:focus, .form-select:focus {
-  background-color: #666; /* Consider using a variable or slightly darker than --input-bg */
-  color: #fff;
-  border-color: #00FFFF; /* Cian más brillante */
-  box-shadow: 0 0 15px rgba(0, 255, 255, 0.7); /* Glow más intenso */
-}
-.form-control::placeholder, .form-select::placeholder { /* This is not standard, usually it's ::-webkit-input-placeholder, ::-moz-placeholder, etc. */
-  color: var(--placeholder-color);
-}
-/* Standard placeholder styling */
-.form-control::-webkit-input-placeholder { color: var(--placeholder-color); }
-.form-control::-moz-placeholder          { color: var(--placeholder-color); opacity: 1; } /* Firefox 19+ */
-.form-control:-ms-input-placeholder     { color: var(--placeholder-color); } /* IE 10+ */
-.form-control::-ms-input-placeholder    { color: var(--placeholder-color); } /* Microsoft Edge */
-.form-control::placeholder              { color: var(--placeholder-color); } /* Most modern browsers */
-
-
-/* Botones */
-.btn {
-  border-radius: 20px; /* Bordes redondeados */
-  transition: all 0.3s ease;
-  font-weight: bold;
-  padding: 10px 20px;
-}
-.btn-primary {
-  background-color: #007bff;
-  border-color: #007bff;
-  box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
-}
-.btn-primary:hover {
-  background-color: #0056b3;
-  box-shadow: 0 0 15px rgba(0, 123, 255, 0.8);
-}
-.btn-info {
-  background-color: #17a2b8;
-  border-color: #17a2b8;
-  box-shadow: 0 0 10px rgba(23, 162, 184, 0.5);
-}
-.btn-info:hover {
-  background-color: #117a8b;
-  box-shadow: 0 0 15px rgba(23, 162, 184, 0.8);
-}
-.btn-danger {
-  background-color: #dc3545;
-  border-color: #dc3545;
-  box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
-}
-.btn-danger:hover {
-  background-color: #c82333;
-  box-shadow: 0 0 15px rgba(220, 53, 69, 0.8);
-}
-.btn-warning {
-  background-color: #ffc107;
-  border-color: #ffc107;
-  color: #212529;
-  box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
-}
-.btn-warning:hover {
-  background-color: #e0a800;
-  box-shadow: 0 0 15px rgba(255, 193, 7, 0.8);
-}
-.btn-success {
-  background-color: #28a745;
-  border-color: #28a745;
-  box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
-}
-.btn-success:hover {
-  background-color: #1e7e34;
-  box-shadow: 0 0 15px rgba(40, 167, 69, 0.8);
-}
-.btn-secondary {
-  background-color: #6c757d;
-  border-color: #6c757d;
-  box-shadow: 0 0 8px rgba(108, 117, 125, 0.4);
-}
-.btn-secondary:hover {
-  background-color: #545b62;
-  box-shadow: 0 0 12px rgba(108, 117, 125, 0.6);
-}
-
-
-/* Acordeón de Tracks */
-.accordion-item {
-  background-color: var(--container-bg); 
-  border: 1px solid var(--border-color); 
-  margin-bottom: 10px;
-  border-radius: 10px;
-}
-.accordion-button {
-  background-color: var(--container-bg); 
-  color: var(--border-color); 
-  font-weight: bold;
-  border-radius: 10px !important; 
-}
-.accordion-button:not(.collapsed) {
-  background-color: #007bff; 
-  color: white;
-  box-shadow: inset 0 -3px 0 rgba(0,0,0,.1);
-}
-.accordion-button:focus {
-  box-shadow: 0 0 0 0.25rem rgba(0, 255, 255, 0.5); 
-}
-.accordion-body {
-  background-color: var(--container-bg); 
-  padding: 15px;
-  display: flex;
-  flex-wrap: wrap; 
-  gap: 10px; 
-  border-radius: 0 0 10px 10px;
-}
-
-/* Estilo de botones de Tracks (checkbox + label) */
-.track-button-container {
-  display: inline-block; 
-  margin: 5px;
-}
-.track-checkbox {
-  display: none; 
-}
-.track-button {
-  display: inline-block;
-  padding: 8px 15px;
-  background-color: var(--input-bg); 
-  color: var(--input-text); 
-  border: 2px solid transparent;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-align: center;
-  min-width: 150px; 
-}
-.track-checkbox:checked + .track-button {
-  background-color: #007bff; 
-  border-color: #00FFFF; 
-  color: white;
-  box-shadow: 0 0 10px #007bff, 0 0 5px #00FFFF; 
-}
-.track-button:hover {
-  background-color: #777; /* Consider using a variable: var(--input-bg-hover, #777); */
-  border-color: #888; /* Consider using a variable */
-}
-.track-checkbox:checked + .track-button:hover {
-  background-color: #0056b3; 
-}
-.track-name {
-  display: block; 
-  font-weight: bold;
-}
-.cutoff-time {
-  display: block;
-  font-size: 0.8em;
-  color: #ccc; /* Consider var(--text-color-muted, #ccc); */
-}
-.track-button.disabled { 
-    background-color: #555;
-    color: #999;
-    cursor: not-allowed;
-    opacity: 0.6;
-    box-shadow: none;
-    border-color: #666;
-}
-.track-checkbox:disabled + .track-button { 
-    background-color: #555;
-    color: #999;
-    cursor: not-allowed;
-    opacity: 0.6;
-    box-shadow: none;
-    border-color: #666;
-}
-
-
-/* Tabla de Jugadas */
-/* Asumiendo que la tabla tiene id="jugadasTable" y también la clase .table de Bootstrap */
-#jugadasTable.glow-table { /* Más específico si glow-table es solo para esta tabla */
-  border: 2px solid var(--border-color); 
-  box-shadow: 0 0 15px var(--glow-color); 
-}
-#jugadasTable.table-dark { /* Si la tabla es table-dark */
-  --bs-table-bg: var(--container-bg); 
-  --bs-table-border-color: var(--border-color); 
-  --bs-table-color: var(--text-color); 
-}
-#jugadasTable th, #jugadasTable td {
-  vertical-align: middle;
-  text-align: center;
-}
-#jugadasTable .form-control { 
-  text-align: center;
-  padding: 0.25rem 0.5rem; 
-  font-size: 0.9rem;
-}
-#jugadasTable .btnRemovePlay { 
-    background-color: #ff4d4d;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    line-height: 30px; /* For vertical centering of text if font allows */
-    display: inline-flex; /* For better centering of icon/text if it were an icon */
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    margin-top: 60px; /* Espacio para los botones de tutorial fijos */
+  }
+  
+  :root {
+    /* Dark Mode (Default) */
+    --main-bg: #111; /* Very dark */
+    --text-color: #eee; /* Light grey */
+    --container-bg: #222; /* Slightly lighter dark */
+    --border-color: #0ff; /* Cyan */
+    --glow-color: rgba(0, 255, 255, 0.5); /* Cyan glow */
+    --glow-intense: rgba(0, 255, 255, 0.7); /* Intense cyan glow */
+    --input-bg: #333; /* Dark grey */
+    --input-text: #fff; /* White */
+    --input-border: #0ff; /* Corrected typo from #00cyan */
+    --placeholder-color: #aaa;
+  }
+  
+  .container {
+    background-color: #444; /* Fondo del contenedor un poco más claro */
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5), 0 0 30px rgba(0, 123, 255, 0.3); /* Sombra neón */
+    border: 1px solid rgba(0, 255, 255, 0.3);
+  }
+  
+  body {
+    font-family: 'Poppins', sans-serif;
+    margin-top: 60px; /* Espacio para los botones de tutorial fijos */
+    background-color: var(--main-bg); /* Use dark mode background by default */
+    color: var(--text-color); /* Use dark mode text color by default */
+  }
+  
+  h2, h4, h5, h6, label, .form-label {
+      /* color: var(--text-color); Default color from body */
+  }
+  h2 {
+      color: #00FFFF; /* Color cian para títulos (corrected from #00cyan) */
+      text-shadow: 0 0 10px #00FFFF, 0 0 15px #00FFFF;
+  }
+  
+  
+  /* Inputs con efecto glow */
+  .glow-input, .form-control, .form-select {
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    border: 1px solid var(--border-color); 
+    box-shadow: 0 0 8px rgba(0, 255, 255, 0.3);
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+  .glow-input:focus, .form-control:focus, .form-select:focus {
+    background-color: #666; 
+    color: #fff;
+    border-color: #00FFFF; /* Cian más brillante */
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.7); /* Glow más intenso */
+  }
+  
+  /* Standard placeholder styling */
+  .form-control::-webkit-input-placeholder { color: var(--placeholder-color); }
+  .form-control::-moz-placeholder          { color: var(--placeholder-color); opacity: 1; } /* Firefox 19+ */
+  .form-control:-ms-input-placeholder     { color: var(--placeholder-color); } /* IE 10+ */
+  .form-control::-ms-input-placeholder    { color: var(--placeholder-color); } /* Microsoft Edge */
+  .form-control::placeholder              { color: var(--placeholder-color); } /* Most modern browsers */
+  
+  
+  /* Botones */
+  .btn {
+    border-radius: 20px; /* Bordes redondeados */
+    transition: all 0.3s ease;
     font-weight: bold;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-}
-#jugadasTable .btnRemovePlay:hover {
-    background-color: #cc0000;
-}
-#jugadasTable .duplicado { 
-    border: 2px solid red !important;
-    box-shadow: 0 0 10px red !important;
-}
-#jugadasTable .error-field { 
-    border: 2px solid orange !important;
-    box-shadow: 0 0 10px orange !important;
-}
-
-/* MODIFIED SECTION FOR TOTAL CELL */
-/* Estilo para las celdas de 'Total' (con clase "total-cell") en #jugadasTable */
-#jugadasTable td.total-cell {
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.2s ease, box-shadow 0.2s ease;
-    
-    /* Para que el fondo del hover rellene la celda de forma rectangular: */
-    border-radius: 0; /* Elimina el redondeo para un relleno completo rectangular */
-
-    /* Padding interno de la celda. Ajusta este valor si el contenido 
-       parece muy separado de los bordes del área interactiva. */
-    padding: 0.4rem 0.5rem; /* Ajustado ligeramente para que sea menos alto y más ancho */
-
-    /* Usar Flexbox para centrar el contenido (texto e icono) */
-    display: flex;
-    justify-content: center; /* Centrado horizontal */
-    align-items: center;   /* Centrado vertical */
-    
-    text-align: center; /* Fallback, aunque flex lo maneja */
-
-    /* Opcional: asegurar una altura mínima para mejor clicabilidad y consistencia */
-    min-height: 2.2em; /* Ajusta según el tamaño de fuente y necesidades */
-    
-    box-sizing: border-box; 
-
-    /* Espacio entre el texto del total y el icono de copiar, si ambos existen */
-    gap: 0.4em; 
-}
-
-#jugadasTable td.total-cell:hover {
-    background-color: rgba(0, 255, 255, 0.2); /* Cian semi-transparente */
-    box-shadow: 0 0 8px rgba(0, 255, 255, 0.3); /* Glow sutil */
-}
-
-/* Estilos para los elementos hijos directos (el texto/monto y el icono) */
-/* No se necesitan estilos complejos aquí, flexbox en el padre los maneja. */
-#jugadasTable td.total-cell > span, /* Si el monto está en un span */
-#jugadasTable td.total-cell > i {   /* Para el icono */
-    margin: 0; 
-    padding: 0; 
-    /* display: inline-block; /* Opcional, si se necesita control de línea */
-}
-/* END OF MODIFIED SECTION */
-
-
-/* Estilo para el botón 'Paste Wagers' (o 'Pegar Montos') */
-/* El ID en el HTML es #pasteAmountsButton */
-#pasteAmountsButton { /* Corregido el ID según el HTML */
-    display: none; 
-    margin-top: 15px; 
-}
-
-
-/* Total Section */
-.total-section {
-  font-size: 1.5rem; 
-  font-weight: bold;
-  color: var(--border-color); 
-  text-shadow: 0 0 8px var(--input-border, var(--border-color)); /* Fallback for input-border */
-}
-
-/* Modales */
-.modal-content {
-  background-color: #444; 
-  border: 2px solid #00FFFF;
-  box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
-  color: #f0f0f0;
-  border-radius: 15px;
-}
-.modal-header {
-  border-bottom: 1px solid #007bff; 
-}
-.modal-header .btn-close {
-  filter: invert(1) grayscale(100%) brightness(200%); 
-}
-.modal-title {
-  color: var(--border-color); /* Usar --border-color en lugar de --input-border que tenía typo */
-}
-.modal-footer {
-  border-top: 1px solid #007bff;
-}
-
-/* Estilos para el ticket preview */
-#preTicket {
-  background-color: #fff; 
-  color: #000; 
-  border: 1px solid #ccc;
-  font-family: 'Courier New', Courier, monospace; 
-}
-#preTicket h4 {
-  color: #000;
-  text-shadow: none;
-}
-#preTicket p, #preTicket span, #preTicket strong, #preTicket div {
-  color: #000;
-  text-shadow: none;
-}
-#preTicket table {
-  font-size: 0.9rem;
-  --bs-table-bg: #f8f9fa;
-  --bs-table-border-color: #dee2e6;
-  --bs-table-color: #000;
-}
-#preTicket table thead th {
-  background-color: #e9ecef;
-  color: #000;
-}
-#preTicket .total-section {
-  font-size: 1.2rem;
-  color: #000;
-  text-align: right;
-}
-#preTicket .ticket-number, #preTicket .transaction-date {
-  font-size: 0.9rem;
-}
-
-/* Drop zone y preview en modal OCR */
-.drop-zone {
-  border: 2px dashed #00FFFF;
-  padding: 25px;
-  text-align: center;
-  cursor: pointer;
-  margin-bottom: 15px;
-  color: #00FFFF;
-  background-color: rgba(0, 255, 255, 0.05);
-}
-.drop-zone.dragover {
-  background-color: rgba(0, 255, 255, 0.1);
-  border-style: solid;
-}
-.preview {
-  max-width: 100%;
-  max-height: 250px; 
-  margin-top: 15px;
-  border: 1px solid #00FFFF; /* Corrected from #00cyan */
-  border-radius: 5px;
-}
-#ocrJugadas div {
-  border: 1px solid #666;
-  padding: 10px;
-  margin-bottom: 10px;
-  background-color: #505050;
-  border-radius: 5px;
-}
-#ocrJugadas strong {
-  color: var(--border-color); /* Corrected from --input-border */
-}
-
-/* Wizard Modal */
-#wizardModal .form-label {
-  font-size: 0.9rem;
-}
-#wizardModal .form-control, #wizardModal .form-select {
-  font-size: 0.9rem;
-  padding: 0.375rem 0.75rem;
-}
-#wizardModal .btn {
-  padding: 0.375rem 0.75rem;
-  font-size: 0.9rem;
-}
-#wizardModal .table {
-  font-size: 0.85rem;
-}
-#wizardModal h6 { 
-    color: #17a2b8; 
-    margin-top: 15px;
-    margin-bottom: 10px;
-    border-bottom: 1px solid #17a2b8;
-    padding-bottom: 5px;
-}
-
-/* Ajustes para los botones de candado en el Wizard */
-.lockBtn {
-    padding: 0.375rem 0.5rem; 
-    font-size: 0.8rem;
-}
-.lockBtn i {
-    vertical-align: middle;
-}
-
-
-/* Estilo de los botones de tutorial (fijos en la esquina) */
-#tutorialButtonsContainer {
-    position: fixed; 
-    top: 15px;
-    right: 15px;
-    z-index: 1050; 
-    display: flex;
-    gap: 5px; 
-}
-#tutorialButtonsContainer .btn-secondary {
-    background-color: rgba(108, 117, 125, 0.8); 
-    border-color: rgba(108, 117, 125, 1);
-    padding: 5px 10px; 
-    font-size: 0.8rem;
-    border-radius: 5px; 
-}
-#tutorialButtonsContainer .btn-secondary:hover {
-    background-color: rgba(84, 91, 98, 1);
-}
-
-
-/* Manual Section */
-#manualAccordion .accordion-button {
-  background-color: var(--container-bg); 
-  color: var(--border-color); 
-}
-#manualAccordion .accordion-button:not(.collapsed) {
-  background-color: var(--border-color); 
-  color: var(--container-bg); 
-}
-#manualAccordion .accordion-body {
-    background-color: #3a3a3a; 
-    color: #f0f0f0;
-}
-#manualAccordion .accordion-body h4 {
-    color: #ffc107; 
-}
-
-/* Estilo para el spinner y barra de progreso */
-.modern-spinner { 
-    /* width: 50px; height: 50px; border-width: 6px; etc */
-}
-.progress-ocr-container { 
-    /* height: 8px; etc */
-}
-.progress-ocr-bar { 
-}
-
-/* Estilos específicos para intro.js para que el tooltip sea blanco con texto negro */
-.introjs-tooltip {
-  background-color: #ffffff !important; 
-  color: #000000 !important;             
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-  padding: 15px;
-  text-align: left; 
-}
-
-.introjs-tooltiptext {
-  color: #000000 !important; 
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.introjs-button {
-  background-color: #007bff !important; 
-  color: white !important;
-  border: none !important;
-  padding: 8px 12px !important;
-  border-radius: 4px !important;
-  text-shadow: none !important;
-  font-weight: bold !important;
-  transition: background-color 0.2s ease !important;
-}
-.introjs-button:hover {
-  background-color: #0056b3 !important;
-}
-.introjs-prevbutton {
-  background-color: #6c757d !important; 
-}
-.introjs-prevbutton:hover {
-  background-color: #545b62 !important;
-}
-.introjs-skipbutton {
-  color: #6c757d !important;
-  background-color: transparent !important;
-}
-.introjs-skipbutton:hover {
-  color: #343a40 !important;
-}
-
-.introjs-bullets ul li a {
-    background: #ccc !important;
-}
-.introjs-bullets ul li a.active {
-    background: #007bff !important;
-}
-
-.introjs-progress .introjs-progressbar {
-    background-color: #007bff !important; 
-}
-
-/* Estilo específico para el botón Reset Form */
-#resetForm {
-  background-color: #800080; /* Morado */
-  border-color: #800080; /* Morado */
-}
-
-#resetForm:hover {
-  background-color: #660066; /* Morado más oscuro al pasar el mouse */
-}
-
-/* Estilos Generales para el Calendario Flatpickr */
-.flatpickr-calendar.open { 
-  background: #222; 
-  border: 1px solid #00FFFF; /* Corrected from #00cyan */
-  box-shadow: 0 0 10px rgba(0, 255, 255, 0.5); 
-  color: #f0f0f0; 
-}
-.flatpickr-calendar.open .flatpickr-innerContainer {
-    background: #222; 
-}
-
-/* Cabecera (Mes y Año) */
-.flatpickr-calendar.open .flatpickr-months .flatpickr-month,
-.flatpickr-calendar.open .flatpickr-current-month .flatpickr-monthTitle {
-  color: #00FFFF; 
-}
-
-/* Días de la Semana */
-.flatpickr-calendar.open .flatpickr-weekdays,
-.flatpickr-calendar.open .flatpickr-weekday {
-  color: #ccc; 
-}
-
-/* Días Individuales */
-.flatpickr-calendar.open .flatpickr-day {
-  color: #f0f0f0; 
-}
-
-/* Días Seleccionados o en Rango */
-.flatpickr-calendar.open .flatpickr-day.selected,
-.flatpickr-calendar.open .flatpickr-day.startRange,
-.flatpickr-calendar.open .flatpickr-day.endRange,
-.flatpickr-calendar.open .flatpickr-day.selected.startRange,
-.flatpickr-calendar.open .flatpickr-day.selected.endRange,
-.flatpickr-calendar.open .flatpickr-day.startRange.endRange {
-  background: #007bff; 
-  border-color: #007bff;
-  color: white;
-}
-
-/* Día de Hoy */
-.flatpickr-calendar.open .flatpickr-day.today {
-  border-color: #ffc107; 
-  color: #ffc107; 
-  background: transparent; 
-  font-weight: bold; 
-}
-
-/* Días Deshabilitados */
-.flatpickr-day.disabled {
-  color: #666; 
-  cursor: not-allowed;
-}
-
-/* Light Mode Styles */
-body.light-mode {
-  --main-bg: #f3f0e3; 
-  --text-color: #000; 
-  --container-bg: #fbf9f0; 
-  --border-color: #0066cc; 
-  --glow-color: rgba(0, 102, 204, 0.3); 
-  --glow-intense: rgba(0, 102, 204, 0.5); 
-  --input-bg: #fff; 
-  --input-text: #000; 
-  --input-border: #ced4da; 
-  --placeholder-color: #6c757d; 
-
-  background-color: var(--main-bg);
-  color: var(--text-color);
-}
-
-body.light-mode .container {
-  background-color: var(--container-bg);
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1); 
-  border-color: var(--border-color);
-}
-
-body.light-mode h2,
-body.light-mode h4,
-body.light-mode h5,
-body.light-mode label,
-body.light-mode .form-label {
-  color: var(--text-color); 
-}
-
-body.light-mode h6 {
-    color: var(--text-color);
-}
-
-
-body.light-mode h2 {
-  color: var(--border-color); 
-  text-shadow: none; 
-}
-
-body.light-mode #manualAccordion h4 {
-    color: var(--text-color);
-}
-
-
-body.light-mode .glow-input,
-body.light-mode .form-control,
-body.light-mode .form-select {
-  background-color: var(--input-bg);
-  color: var(--input-text);
-  border: 1px solid var(--input-border); 
-  box-shadow: none; 
-}
-
-body.light-mode .glow-input:focus,
-body.light-mode .form-control:focus,
-body.light-mode .form-select:focus {
-  background-color: var(--input-bg); 
-  color: var(--text-color);
-  border-color: #007bff; 
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); 
-}
-
-body.light-mode .form-control::-webkit-input-placeholder { color: var(--placeholder-color); }
-body.light-mode .form-control::-moz-placeholder          { color: var(--placeholder-color); opacity: 1; }
-body.light-mode .form-control:-ms-input-placeholder     { color: var(--placeholder-color); }
-body.light-mode .form-control::-ms-input-placeholder    { color: var(--placeholder-color); }
-body.light-mode .form-control::placeholder              { color: var(--placeholder-color); }
-
-
-/* Adjust button styles for light mode */
-body.light-mode .btn-primary {
-  background-color: #007bff;
-  border-color: #007bff;
-  box-shadow: none;
-}
-body.light-mode .btn-primary:hover {
-  background-color: #0056b3;
-  box-shadow: none;
-}
-body.light-mode .btn-info {
-  background-color: #17a2b8;
-  border-color: #17a2b8;
-  box-shadow: none;
-}
-body.light-mode .btn-warning {
-  background-color: #ffc107;
-  border-color: #ffc107;
-  color: #212529;
-  box-shadow: none;
-}
-body.light-mode .btn-danger {
+    padding: 10px 20px;
+  }
+  .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+  }
+  .btn-primary:hover {
+    background-color: #0056b3;
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.8);
+  }
+  .btn-info {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+    box-shadow: 0 0 10px rgba(23, 162, 184, 0.5);
+  }
+  .btn-info:hover {
+    background-color: #117a8b;
+    box-shadow: 0 0 15px rgba(23, 162, 184, 0.8);
+  }
+  .btn-danger {
     background-color: #dc3545;
     border-color: #dc3545;
-    box-shadow: none;
-}
-body.light-mode .btn-success {
+    box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
+  }
+  .btn-danger:hover {
+    background-color: #c82333;
+    box-shadow: 0 0 15px rgba(220, 53, 69, 0.8);
+  }
+  .btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+    box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+  }
+  .btn-warning:hover {
+    background-color: #e0a800;
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.8);
+  }
+  .btn-success {
     background-color: #28a745;
     border-color: #28a745;
+    box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+  }
+  .btn-success:hover {
+    background-color: #1e7e34;
+    box-shadow: 0 0 15px rgba(40, 167, 69, 0.8);
+  }
+  .btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    box-shadow: 0 0 8px rgba(108, 117, 125, 0.4);
+  }
+  .btn-secondary:hover {
+    background-color: #545b62;
+    box-shadow: 0 0 12px rgba(108, 117, 125, 0.6);
+  }
+  
+  
+  /* Acordeón de Tracks */
+  .accordion-item {
+    background-color: var(--container-bg); 
+    border: 1px solid var(--border-color); 
+    margin-bottom: 10px;
+    border-radius: 10px;
+  }
+  .accordion-button {
+    background-color: var(--container-bg); 
+    color: var(--border-color); 
+    font-weight: bold;
+    border-radius: 10px !important; 
+  }
+  .accordion-button:not(.collapsed) {
+    background-color: #007bff; 
+    color: white;
+    box-shadow: inset 0 -3px 0 rgba(0,0,0,.1);
+  }
+  .accordion-button:focus {
+    box-shadow: 0 0 0 0.25rem rgba(0, 255, 255, 0.5); 
+  }
+  .accordion-body {
+    background-color: var(--container-bg); 
+    padding: 15px;
+    display: flex;
+    flex-wrap: wrap; 
+    gap: 10px; 
+    border-radius: 0 0 10px 10px;
+  }
+  
+  /* Estilo de botones de Tracks (checkbox + label) */
+  .track-button-container {
+    display: inline-block; 
+    margin: 5px;
+  }
+  .track-checkbox {
+    display: none; 
+  }
+  .track-button {
+    display: inline-block;
+    padding: 8px 15px;
+    background-color: var(--input-bg); 
+    color: var(--input-text); 
+    border: 2px solid transparent;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    min-width: 150px; 
+  }
+  .track-checkbox:checked + .track-button {
+    background-color: #007bff; 
+    border-color: #00FFFF; 
+    color: white;
+    box-shadow: 0 0 10px #007bff, 0 0 5px #00FFFF; 
+  }
+  .track-button:hover {
+    background-color: #777; 
+    border-color: #888; 
+  }
+  .track-checkbox:checked + .track-button:hover {
+    background-color: #0056b3; 
+  }
+  .track-name {
+    display: block; 
+    font-weight: bold;
+  }
+  .cutoff-time {
+    display: block;
+    font-size: 0.8em;
+    color: #ccc; 
+  }
+  .track-button.disabled { 
+      background-color: #555;
+      color: #999;
+      cursor: not-allowed;
+      opacity: 0.6;
+      box-shadow: none;
+      border-color: #666;
+  }
+  .track-checkbox:disabled + .track-button { 
+      background-color: #555;
+      color: #999;
+      cursor: not-allowed;
+      opacity: 0.6;
+      box-shadow: none;
+      border-color: #666;
+  }
+  
+  
+  /* Tabla de Jugadas */
+  #jugadasTable.glow-table { 
+    border: 2px solid var(--border-color); 
+    box-shadow: 0 0 15px var(--glow-color); 
+  }
+  #jugadasTable.table-dark { 
+    --bs-table-bg: var(--container-bg); 
+    --bs-table-border-color: var(--border-color); 
+    --bs-table-color: var(--text-color); 
+  }
+  #jugadasTable th, #jugadasTable td {
+    vertical-align: middle;
+    text-align: center;
+  }
+  #jugadasTable .form-control { 
+    text-align: center;
+    padding: 0.25rem 0.5rem; 
+    font-size: 0.9rem;
+  }
+  #jugadasTable .btnRemovePlay { 
+      background-color: #ff4d4d;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      line-height: 30px; 
+      display: inline-flex; 
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 0;
+      font-weight: bold;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  }
+  #jugadasTable .btnRemovePlay:hover {
+      background-color: #cc0000;
+  }
+  #jugadasTable .duplicado { 
+      border: 2px solid red !important;
+      box-shadow: 0 0 10px red !important;
+  }
+  #jugadasTable .error-field { 
+      border: 2px solid orange !important;
+      box-shadow: 0 0 10px orange !important;
+  }
+  
+  /* MODIFIED SECTION FOR TOTAL CELL */
+  /* Estilo para las celdas de 'Total' (con clase "total-cell") en #jugadasTable */
+  #jugadasTable td.total-cell {
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.2s ease, box-shadow 0.2s ease;
+      
+      border-radius: 0; /* Para un relleno rectangular completo */
+      
+      /* Padding para dar espacio interno y definir el área del "botón".
+         Este valor es crucial para el "espacio" alrededor del contenido. */
+      padding: 0.5rem; /* Ajusta este valor si es necesario. */
+
+      display: flex;
+      justify-content: center; /* Centrado horizontal */
+      align-items: center;   /* Centrado vertical */
+
+      text-align: center; /* Como fallback */
+      box-sizing: border-box; 
+      gap: 0.4em; /* Espacio entre el texto del total y el icono de copiar */
+  }
+
+  #jugadasTable td.total-cell:hover {
+      background-color: rgba(0, 255, 255, 0.2); 
+      box-shadow: 0 0 8px rgba(0, 255, 255, 0.3); 
+  }
+  
+  /* Los hijos directos (span para el monto, i para el icono) */
+  /* Establecer line-height a 1 para evitar espacio extra vertical por la altura de línea. */
+  #jugadasTable td.total-cell > span, 
+  #jugadasTable td.total-cell > i {
+      margin: 0;
+      padding: 0;
+      line-height: 1; /* Ayuda a controlar la altura del texto/icono de forma más predecible */
+  }
+
+  /* Ajustar la alineación vertical del icono si es necesario */
+  #jugadasTable td.total-cell i {
+      vertical-align: middle;
+  }
+  /* END OF MODIFIED SECTION */
+
+  
+  /* Estilo para el botón 'Paste Wagers' (o 'Pegar Montos') */
+  #pasteAmountsButton { 
+      margin-top: 15px; 
+  }
+  
+  
+  /* Total Section */
+  .total-section {
+    font-size: 1.5rem; 
+    font-weight: bold;
+    color: var(--border-color); 
+    text-shadow: 0 0 8px var(--input-border, var(--border-color)); 
+  }
+  
+  /* Modales */
+  .modal-content {
+    background-color: #444; 
+    border: 2px solid #00FFFF;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    color: #f0f0f0;
+    border-radius: 15px;
+  }
+  .modal-header {
+    border-bottom: 1px solid #007bff; 
+  }
+  .modal-header .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%); 
+  }
+  .modal-title {
+    color: var(--border-color); 
+  }
+  .modal-footer {
+    border-top: 1px solid #007bff;
+  }
+  
+  /* Estilos para el ticket preview */
+  #preTicket {
+    background-color: #fff; 
+    color: #000; 
+    border: 1px solid #ccc;
+    font-family: 'Courier New', Courier, monospace; 
+  }
+  #preTicket h4 {
+    color: #000;
+    text-shadow: none;
+  }
+  #preTicket p, #preTicket span, #preTicket strong, #preTicket div {
+    color: #000;
+    text-shadow: none;
+  }
+  #preTicket table {
+    font-size: 0.9rem;
+    --bs-table-bg: #f8f9fa;
+    --bs-table-border-color: #dee2e6;
+    --bs-table-color: #000;
+  }
+  #preTicket table thead th {
+    background-color: #e9ecef;
+    color: #000;
+  }
+  #preTicket .total-section {
+    font-size: 1.2rem;
+    color: #000;
+    text-align: right;
+  }
+  #preTicket .ticket-number, #preTicket .transaction-date {
+    font-size: 0.9rem;
+  }
+  
+  /* Drop zone y preview en modal OCR */
+  .drop-zone {
+    border: 2px dashed #00FFFF;
+    padding: 25px;
+    text-align: center;
+    cursor: pointer;
+    margin-bottom: 15px;
+    color: #00FFFF;
+    background-color: rgba(0, 255, 255, 0.05);
+  }
+  .drop-zone.dragover {
+    background-color: rgba(0, 255, 255, 0.1);
+    border-style: solid;
+  }
+  .preview {
+    max-width: 100%;
+    max-height: 250px; 
+    margin-top: 15px;
+    border: 1px solid #00FFFF; 
+    border-radius: 5px;
+  }
+  #ocrJugadas div {
+    border: 1px solid #666;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #505050;
+    border-radius: 5px;
+  }
+  #ocrJugadas strong {
+    color: var(--border-color); 
+  }
+  
+  /* Wizard Modal */
+  #wizardModal .form-label {
+    font-size: 0.9rem;
+  }
+  #wizardModal .form-control, #wizardModal .form-select {
+    font-size: 0.9rem;
+    padding: 0.375rem 0.75rem;
+  }
+  #wizardModal .btn {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.9rem;
+  }
+  #wizardModal .table {
+    font-size: 0.85rem;
+  }
+  #wizardModal h6 { 
+      color: #17a2b8; 
+      margin-top: 15px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #17a2b8;
+      padding-bottom: 5px;
+  }
+  
+  /* Ajustes para los botones de candado en el Wizard */
+  .lockBtn {
+      padding: 0.375rem 0.5rem; 
+      font-size: 0.8rem;
+  }
+  .lockBtn i {
+      vertical-align: middle;
+  }
+  
+  
+  /* Estilo de los botones de tutorial (fijos en la esquina) */
+  #tutorialButtonsContainer {
+      position: fixed; 
+      top: 15px;
+      right: 15px;
+      z-index: 1050; 
+      display: flex;
+      gap: 5px; 
+  }
+  #tutorialButtonsContainer .btn-secondary {
+      background-color: rgba(108, 117, 125, 0.8); 
+      border-color: rgba(108, 117, 125, 1);
+      padding: 5px 10px; 
+      font-size: 0.8rem;
+      border-radius: 5px; 
+  }
+  #tutorialButtonsContainer .btn-secondary:hover {
+      background-color: rgba(84, 91, 98, 1);
+  }
+  
+  
+  /* Manual Section */
+  #manualAccordion .accordion-button {
+    background-color: var(--container-bg); 
+    color: var(--border-color); 
+  }
+  #manualAccordion .accordion-button:not(.collapsed) {
+    background-color: var(--border-color); 
+    color: var(--container-bg); 
+  }
+  #manualAccordion .accordion-body {
+      background-color: #3a3a3a; 
+      color: #f0f0f0;
+  }
+  #manualAccordion .accordion-body h4 {
+      color: #ffc107; 
+  }
+  
+  /* Estilo para el spinner y barra de progreso */
+  .modern-spinner { 
+      /* width: 50px; height: 50px; border-width: 6px; etc */
+  }
+  .progress-ocr-container { 
+      /* height: 8px; etc */
+  }
+  .progress-ocr-bar { 
+  }
+  
+  /* Estilos específicos para intro.js para que el tooltip sea blanco con texto negro */
+  .introjs-tooltip {
+    background-color: #ffffff !important; 
+    color: #000000 !important;             
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    padding: 15px;
+    text-align: left; 
+  }
+  
+  .introjs-tooltiptext {
+    color: #000000 !important; 
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  
+  .introjs-button {
+    background-color: #007bff !important; 
+    color: white !important;
+    border: none !important;
+    padding: 8px 12px !important;
+    border-radius: 4px !important;
+    text-shadow: none !important;
+    font-weight: bold !important;
+    transition: background-color 0.2s ease !important;
+  }
+  .introjs-button:hover {
+    background-color: #0056b3 !important;
+  }
+  .introjs-prevbutton {
+    background-color: #6c757d !important; 
+  }
+  .introjs-prevbutton:hover {
+    background-color: #545b62 !important;
+  }
+  .introjs-skipbutton {
+    color: #6c757d !important;
+    background-color: transparent !important;
+  }
+  .introjs-skipbutton:hover {
+    color: #343a40 !important;
+  }
+  
+  .introjs-bullets ul li a {
+      background: #ccc !important;
+  }
+  .introjs-bullets ul li a.active {
+      background: #007bff !important;
+  }
+  
+  .introjs-progress .introjs-progressbar {
+      background-color: #007bff !important; 
+  }
+  
+  /* Estilo específico para el botón Reset Form */
+  #resetForm {
+    background-color: #800080; /* Morado */
+    border-color: #800080; /* Morado */
+  }
+  
+  #resetForm:hover {
+    background-color: #660066; /* Morado más oscuro al pasar el mouse */
+  }
+  
+  /* Estilos Generales para el Calendario Flatpickr */
+  .flatpickr-calendar.open { 
+    background: #222; 
+    border: 1px solid #00FFFF; 
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5); 
+    color: #f0f0f0; 
+  }
+  .flatpickr-calendar.open .flatpickr-innerContainer {
+      background: #222; 
+  }
+  
+  /* Cabecera (Mes y Año) */
+  .flatpickr-calendar.open .flatpickr-months .flatpickr-month,
+  .flatpickr-calendar.open .flatpickr-current-month .flatpickr-monthTitle {
+    color: #00FFFF; 
+  }
+  
+  /* Días de la Semana */
+  .flatpickr-calendar.open .flatpickr-weekdays,
+  .flatpickr-calendar.open .flatpickr-weekday {
+    color: #ccc; 
+  }
+  
+  /* Días Individuales */
+  .flatpickr-calendar.open .flatpickr-day {
+    color: #f0f0f0; 
+  }
+  
+  /* Días Seleccionados o en Rango */
+  .flatpickr-calendar.open .flatpickr-day.selected,
+  .flatpickr-calendar.open .flatpickr-day.startRange,
+  .flatpickr-calendar.open .flatpickr-day.endRange,
+  .flatpickr-calendar.open .flatpickr-day.selected.startRange,
+  .flatpickr-calendar.open .flatpickr-day.selected.endRange,
+  .flatpickr-calendar.open .flatpickr-day.startRange.endRange {
+    background: #007bff; 
+    border-color: #007bff;
+    color: white;
+  }
+  
+  /* Día de Hoy */
+  .flatpickr-calendar.open .flatpickr-day.today {
+    border-color: #ffc107; 
+    color: #ffc107; 
+    background: transparent; 
+    font-weight: bold; 
+  }
+  
+  /* Días Deshabilitados */
+  .flatpickr-day.disabled {
+    color: #666; 
+    cursor: not-allowed;
+  }
+  
+  /* Light Mode Styles */
+  body.light-mode {
+    --main-bg: #f3f0e3; 
+    --text-color: #000; 
+    --container-bg: #fbf9f0; 
+    --border-color: #0066cc; 
+    --glow-color: rgba(0, 102, 204, 0.3); 
+    --glow-intense: rgba(0, 102, 204, 0.5); 
+    --input-bg: #fff; 
+    --input-text: #000; 
+    --input-border: #ced4da; 
+    --placeholder-color: #6c757d; 
+  
+    background-color: var(--main-bg);
+    color: var(--text-color);
+  }
+  
+  body.light-mode .container {
+    background-color: var(--container-bg);
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.1); 
+    border-color: var(--border-color);
+  }
+  
+  body.light-mode h2,
+  body.light-mode h4,
+  body.light-mode h5,
+  body.light-mode label,
+  body.light-mode .form-label {
+    color: var(--text-color); 
+  }
+  
+  body.light-mode h6 {
+      color: var(--text-color);
+  }
+  
+  
+  body.light-mode h2 {
+    color: var(--border-color); 
+    text-shadow: none; 
+  }
+  
+  body.light-mode #manualAccordion h4 {
+      color: var(--text-color);
+  }
+  
+  
+  body.light-mode .glow-input,
+  body.light-mode .form-control,
+  body.light-mode .form-select {
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    border: 1px solid var(--input-border); 
+    box-shadow: none; 
+  }
+  
+  body.light-mode .glow-input:focus,
+  body.light-mode .form-control:focus,
+  body.light-mode .form-select:focus {
+    background-color: var(--input-bg); 
+    color: var(--text-color);
+    border-color: #007bff; 
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); 
+  }
+  
+  body.light-mode .form-control::-webkit-input-placeholder { color: var(--placeholder-color); }
+  body.light-mode .form-control::-moz-placeholder          { color: var(--placeholder-color); opacity: 1; }
+  body.light-mode .form-control:-ms-input-placeholder     { color: var(--placeholder-color); }
+  body.light-mode .form-control::-ms-input-placeholder    { color: var(--placeholder-color); }
+  body.light-mode .form-control::placeholder              { color: var(--placeholder-color); }
+  
+  
+  /* Adjust button styles for light mode */
+  body.light-mode .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
     box-shadow: none;
-}
-body.light-mode .btn-secondary {
-  background-color: #6c757d;
-  border-color: #6c757d;
-  box-shadow: none;
-}
-
-/* Adjust Accordion/Track section styles for light mode */
-body.light-mode .accordion-item {
-  background-color: var(--container-bg); 
-  border: 1px solid var(--border-color); 
-}
-body.light-mode .accordion-button {
-  background-color: var(--container-bg); 
-  color: var(--text-color); 
-}
-body.light-mode .accordion-button:not(.collapsed) {
-  background-color: var(--border-color); 
-  color: white; 
-}
-body.light-mode .accordion-body {
-  background-color: var(--container-bg); 
-}
-
-body.light-mode .track-button {
-  background-color: #e9ecef; 
-  color: var(--text-color); 
-  border: 2px solid transparent; 
-}
-body.light-mode .track-checkbox:checked + .track-button {
-  background-color: #007bff; /* Primary blue when selected in light mode */
-  border-color: #0056b3; /* Darker blue border */
-  color: white;
-  box-shadow: 0 0 8px rgba(0, 123, 255, 0.5); /* Subtle blue glow */
-}
-body.light-mode .track-button:hover:not(body.light-mode .track-checkbox:checked + .track-button) {
-  background-color: #ced4da; /* Lighter grey on hover for non-selected */
-  border-color: #adb5bd;
-}
-body.light-mode .track-checkbox:checked + .track-button:hover {
-  background-color: #0056b3; /* Darker blue for selected hover */
-}
-
-
-/* Adjust table styles for light mode */
-body.light-mode #jugadasTable.table-dark, /* Target specific table if it has .table-dark */
-body.light-mode .table { /* General table adjustments for light mode if no .table-dark */
-  --bs-table-bg: var(--container-bg, #fff); /* Use light container or white */
-  --bs-table-border-color: var(--border-color, #dee2e6); /* Use blue accent or light grey */
-  --bs-table-color: var(--text-color, #000); /* Use dark text */
-  color: var(--text-color, #000); /* Ensure text color for td/th */
-}
-
-body.light-mode #jugadasTable thead th, /* More specific for thead */
-body.light-mode .table thead th {
-  background-color: var(--input-bg, #e9ecef); /* Use light input bg or light grey */
-  color: var(--text-color, #000); /* Dark text */
-  border-bottom-width: 2px; /* Bootstrap default, ensure it's visible */
-  border-color: var(--border-color, #dee2e6);
-}
-/* Ensure td.total-cell hover effect is visible in light mode */
-body.light-mode #jugadasTable td.total-cell:hover {
-    background-color: rgba(0, 102, 204, 0.1); /* Lighter blue hover */
-    box-shadow: 0 0 8px rgba(0, 102, 204, 0.2);
-}
-
-
-/* Adjust manual accordion for light mode */
-body.light-mode #manualAccordion .accordion-button {
+  }
+  body.light-mode .btn-primary:hover {
+    background-color: #0056b3;
+    box-shadow: none;
+  }
+  body.light-mode .btn-info {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+    box-shadow: none;
+  }
+  body.light-mode .btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+    box-shadow: none;
+  }
+  body.light-mode .btn-danger {
+      background-color: #dc3545;
+      border-color: #dc3545;
+      box-shadow: none;
+  }
+  body.light-mode .btn-success {
+      background-color: #28a745;
+      border-color: #28a745;
+      box-shadow: none;
+  }
+  body.light-mode .btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    box-shadow: none;
+  }
+  
+  /* Adjust Accordion/Track section styles for light mode */
+  body.light-mode .accordion-item {
+    background-color: var(--container-bg); 
+    border: 1px solid var(--border-color); 
+  }
+  body.light-mode .accordion-button {
     background-color: var(--container-bg); 
     color: var(--text-color); 
-}
-body.light-mode #manualAccordion .accordion-button:not(.collapsed) {
+  }
+  body.light-mode .accordion-button:not(.collapsed) {
     background-color: var(--border-color); 
     color: white; 
-}
-body.light-mode #manualAccordion .accordion-body {
+  }
+  body.light-mode .accordion-body {
     background-color: var(--container-bg); 
+  }
+  
+  body.light-mode .track-button {
+    background-color: #e9ecef; 
     color: var(--text-color); 
-}
-
-/* Style for Sundays (first day of the week in Flatpickr) and Saturdays (last day) */
-.flatpickr-days .flatpickr-day:nth-child(7n+1), /* Sundays */
-.flatpickr-days .flatpickr-day:nth-child(7n) { /* Saturdays */
-  color: #ff8c00; /* Orange color for Sundays and Saturdays */
-}
-
-/* Flatpickr light mode adjustments */
-body.light-mode .flatpickr-calendar.open {
-  background: var(--input-bg, #fff);
-  border: 1px solid var(--input-border, #ccc);
-  box-shadow: 0 0 8px rgba(0,0,0,0.1);
-  color: var(--text-color, #000);
-}
-body.light-mode .flatpickr-calendar.open .flatpickr-innerContainer {
+    border: 2px solid transparent; 
+  }
+  body.light-mode .track-checkbox:checked + .track-button {
+    background-color: #007bff; /* Primary blue when selected in light mode */
+    border-color: #0056b3; /* Darker blue border */
+    color: white;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.5); /* Subtle blue glow */
+  }
+  body.light-mode .track-button:hover:not(body.light-mode .track-checkbox:checked + .track-button) {
+    background-color: #ced4da; /* Lighter grey on hover for non-selected */
+    border-color: #adb5bd;
+  }
+  body.light-mode .track-checkbox:checked + .track-button:hover {
+    background-color: #0056b3; /* Darker blue for selected hover */
+  }
+  
+  
+  /* Adjust table styles for light mode */
+  body.light-mode #jugadasTable.table-dark, /* Target specific table if it has .table-dark */
+  body.light-mode .table { /* General table adjustments for light mode if no .table-dark */
+    --bs-table-bg: var(--container-bg, #fff); /* Use light container or white */
+    --bs-table-border-color: var(--border-color, #dee2e6); /* Use blue accent or light grey */
+    --bs-table-color: var(--text-color, #000); /* Use dark text */
+    color: var(--text-color, #000); /* Ensure text color for td/th */
+  }
+  
+  body.light-mode #jugadasTable thead th, /* More specific for thead */
+  body.light-mode .table thead th {
+    background-color: var(--input-bg, #e9ecef); /* Use light input bg or light grey */
+    color: var(--text-color, #000); /* Dark text */
+    border-bottom-width: 2px; /* Bootstrap default, ensure it's visible */
+    border-color: var(--border-color, #dee2e6);
+  }
+  /* Ensure td.total-cell hover effect is visible in light mode */
+  body.light-mode #jugadasTable td.total-cell:hover {
+      background-color: rgba(0, 102, 204, 0.1); /* Lighter blue hover */
+      box-shadow: 0 0 8px rgba(0, 102, 204, 0.2);
+  }
+  
+  
+  /* Adjust manual accordion for light mode */
+  body.light-mode #manualAccordion .accordion-button {
+      background-color: var(--container-bg); 
+      color: var(--text-color); 
+  }
+  body.light-mode #manualAccordion .accordion-button:not(.collapsed) {
+      background-color: var(--border-color); 
+      color: white; 
+  }
+  body.light-mode #manualAccordion .accordion-body {
+      background-color: var(--container-bg); 
+      color: var(--text-color); 
+  }
+  
+  /* Style for Sundays (first day of the week in Flatpickr) and Saturdays (last day) */
+  .flatpickr-days .flatpickr-day:nth-child(7n+1), /* Sundays */
+  .flatpickr-days .flatpickr-day:nth-child(7n) { /* Saturdays */
+    color: #ff8c00; /* Orange color for Sundays and Saturdays */
+  }
+  
+  /* Flatpickr light mode adjustments */
+  body.light-mode .flatpickr-calendar.open {
     background: var(--input-bg, #fff);
-}
-body.light-mode .flatpickr-calendar.open .flatpickr-months .flatpickr-month,
-body.light-mode .flatpickr-calendar.open .flatpickr-current-month .flatpickr-monthTitle {
-  color: var(--border-color, #0066cc); /* Blue accent */
-}
-body.light-mode .flatpickr-calendar.open .flatpickr-weekdays,
-body.light-mode .flatpickr-calendar.open .flatpickr-weekday {
-  color: #6c757d; /* Muted grey */
-}
-body.light-mode .flatpickr-calendar.open .flatpickr-day {
-  color: var(--text-color, #000);
-}
-body.light-mode .flatpickr-calendar.open .flatpickr-day.selected,
-body.light-mode .flatpickr-calendar.open .flatpickr-day.startRange,
-body.light-mode .flatpickr-calendar.open .flatpickr-day.endRange {
-  background: var(--border-color, #0066cc);
-  border-color: var(--border-color, #0066cc);
-  color: #fff;
-}
-body.light-mode .flatpickr-calendar.open .flatpickr-day.today {
-  border-color: #ffc107; /* Warning yellow */
-  color: #212529; /* Dark text for better contrast on light bg */
-  background: #fff7e6; /* Very light yellow background for today */
-}
-body.light-mode .flatpickr-day.disabled {
-  color: #adb5bd; /* Lighter grey for disabled */
-}
-
+    border: 1px solid var(--input-border, #ccc);
+    box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    color: var(--text-color, #000);
+  }
+  body.light-mode .flatpickr-calendar.open .flatpickr-innerContainer {
+      background: var(--input-bg, #fff);
+  }
+  body.light-mode .flatpickr-calendar.open .flatpickr-months .flatpickr-month,
+  body.light-mode .flatpickr-calendar.open .flatpickr-current-month .flatpickr-monthTitle {
+    color: var(--border-color, #0066cc); /* Blue accent */
+  }
+  body.light-mode .flatpickr-calendar.open .flatpickr-weekdays,
+  body.light-mode .flatpickr-calendar.open .flatpickr-weekday {
+    color: #6c757d; /* Muted grey */
+  }
+  body.light-mode .flatpickr-calendar.open .flatpickr-day {
+    color: var(--text-color, #000);
+  }
+  body.light-mode .flatpickr-calendar.open .flatpickr-day.selected,
+  body.light-mode .flatpickr-calendar.open .flatpickr-day.startRange,
+  body.light-mode .flatpickr-calendar.open .flatpickr-day.endRange {
+    background: var(--border-color, #0066cc);
+    border-color: var(--border-color, #0066cc);
+    color: #fff;
+  }
+  body.light-mode .flatpickr-calendar.open .flatpickr-day.today {
+    border-color: #ffc107; /* Warning yellow */
+    color: #212529; /* Dark text for better contrast on light bg */
+    background: #fff7e6; /* Very light yellow background for today */
+  }
+  body.light-mode .flatpickr-day.disabled {
+    color: #adb5bd; /* Lighter grey for disabled */
+  }
+  

@@ -1,4 +1,4 @@
- // Global variable for OCR modal instance
+// Global variable for OCR modal instance
 let modalOcrInstance = null;
 let wizardModalInstance = null;
 let ticketModalInstance = null;
@@ -218,7 +218,7 @@ window.usarJugadaOCR = function(idx) {
             highlightDuplicatesInMain();
             storeFormState();
             
-            console.log("Total filas en tabla:", $("#tablaJugadas > tr").length); // Corrected selector
+            console.log("Total filas en tabla:", $("#tablaJugadas > tr").length); 
             
             if (newRow[0] && typeof newRow[0].scrollIntoView === 'function') {
                 newRow[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -398,11 +398,11 @@ $(document).ready(function() {
         }
     });
 
-    // Add the Paste Wagers button initially hidden
-    if ($("#pasteAmountsButton").length === 0) {
-        // Removed d-none class to make it always visible
-        $("#formButtons").append('<button type="button" id="pasteAmountsButton" class="btn btn-dark ml-2"><i class="bi bi-clipboard-fill"></i> Paste Wagers</button>');
-    }
+    // REMOVED: Redundant button adding code
+    // if ($("#pasteAmountsButton").length === 0) {
+    // // Removed d-none class to make it always visible
+    // $("#formButtons").append('<button type="button" id="pasteAmountsButton" class="btn btn-dark ml-2"><i class="bi bi-clipboard-fill"></i> Paste Wagers</button>');
+    // }
 
     dayjs.extend(window.dayjs_plugin_customParseFormat);
     dayjs.extend(window.dayjs_plugin_arraySupport);
@@ -424,8 +424,6 @@ $(document).ready(function() {
             $(".track-checkbox").off('change', trackCheckboxChangeHandler);
             isUpdatingProgrammatically = true;
             
-            // disableTracksByTime(); 
-            
             isUpdatingProgrammatically = false;
             $(".track-checkbox").on('change', trackCheckboxChangeHandler);
             
@@ -438,11 +436,8 @@ $(document).ready(function() {
 
     $(".track-checkbox").on('change', trackCheckboxChangeHandler);
     
-    // showCutoffTimes(); 
-
     isUpdatingProgrammatically = true;
     autoSelectNYTrackAndVenezuela();
-    // disableTracksByTime(); 
     isUpdatingProgrammatically = false;
     
     updateSelectedTracksAndTotal(); 
@@ -456,47 +451,41 @@ $(document).ready(function() {
         }
     });
 
-    // Feature: Select/Deselect All Rows
     $("#selectAllCheckbox").on('change', function() {
-        $("#tablaJugadas .row-select-checkbox").prop('checked', $(this).prop('checked')); // Corrected selector
+        $("#tablaJugadas .row-select-checkbox").prop('checked', $(this).prop('checked')); 
     });
 
-    // Corrected selector for event delegation: #tablaJugadas is the tbody
     $("#tablaJugadas").on('change', '.row-select-checkbox', function() {
         if (!$(this).prop('checked')) {
             $("#selectAllCheckbox").prop('checked', false);
         } else {
-            if ($("#tablaJugadas .row-select-checkbox:checked").length === $("#tablaJugadas .row-select-checkbox").length) { // Corrected selector
+            if ($("#tablaJugadas .row-select-checkbox:checked").length === $("#tablaJugadas .row-select-checkbox").length) { 
                 $("#selectAllCheckbox").prop('checked', true);
             }
         }
     });
     
-    // Feature: Copy amounts from a row
-    // Corrected selector for event delegation: #tablaJugadas is the tbody
-    $("#tablaJugadas").on("click", ".total-cell", function() { // Target the td with class total-cell
+    $("#tablaJugadas").on("click", ".total-cell", function() { 
         const $row = $(this).closest("tr");
         const straight = $row.find(".straight").val();
         const box = $row.find(".box").val();
         const combo = $row.find(".combo").val();
  
-         window.copiedAmounts = {
+        window.copiedAmounts = {
             straight: straight,
             box: box,
             combo: combo
         };
-        $(this).fadeOut(100).fadeIn(100).fadeOut(100).fadeIn(100); 
         $("#pasteAmountsButton").prop('disabled', false); 
-        console.log("Montos copiados:", window.copiedAmounts);    });
+        console.log("Montos copiados:", window.copiedAmounts);     });
 
-    // Feature: Paste amounts to selected rows
     $("#pasteAmountsButton").on("click", function() {
         if (Object.keys(window.copiedAmounts).length === 0) {
             alert("No hay montos copiados para pegar.");
             return;
         }
 
-        const $selectedRows = $("#tablaJugadas .row-select-checkbox:checked").closest("tr"); // Corrected selector
+        const $selectedRows = $("#tablaJugadas .row-select-checkbox:checked").closest("tr"); 
         if ($selectedRows.length === 0) {
             alert("No hay filas seleccionadas para pegar los montos.");
             return;
@@ -513,7 +502,7 @@ $(document).ready(function() {
                 }
             }
             if (window.copiedAmounts.box !== "" && window.copiedAmounts.box !== undefined && window.copiedAmounts.box !== null) {
-                 if ($row.find(".box").val() !== window.copiedAmounts.box) {
+                if ($row.find(".box").val() !== window.copiedAmounts.box) {
                     $row.find(".box").val(window.copiedAmounts.box);
                     rowChanged = true;
                 }
@@ -538,9 +527,9 @@ $(document).ready(function() {
         }
 
         window.copiedAmounts = {}; 
-        // $("#pasteAmountsButton").prop('disabled', true); 
+        // $("#pasteAmountsButton").prop('disabled', true); // Assuming it should become disabled or hidden
         $("#selectAllCheckbox").prop('checked', false); 
-        $("#tablaJugadas .row-select-checkbox").prop('checked', false); // Corrected selector
+        $("#tablaJugadas .row-select-checkbox").prop('checked', false); 
     });
 
 
@@ -549,24 +538,23 @@ $(document).ready(function() {
             alert("No plays to remove.");
             return;
         }
-        const $selectedRows = $("#tablaJugadas .row-select-checkbox:checked").closest("tr"); // Corrected selector
+        const $selectedRows = $("#tablaJugadas .row-select-checkbox:checked").closest("tr"); 
         if ($selectedRows.length > 0) {
             $selectedRows.remove();
             playCount -= $selectedRows.length;
         } else if (playCount > 0) {
-             $("#tablaJugadas > tr:last").remove(); // Corrected selector
+             $("#tablaJugadas > tr:last").remove(); 
              playCount--;
         }
         renumberMainRows();
         calculateMainTotal();
         highlightDuplicatesInMain();
         storeFormState(); 
-        if ($("#tablaJugadas .row-select-checkbox").length === 0) { // Corrected selector
+        if ($("#tablaJugadas .row-select-checkbox").length === 0) { 
             $("#selectAllCheckbox").prop('checked', false);
         }
     });
 
-    // Corrected selector for event delegation: #tablaJugadas is the tbody
     $("#tablaJugadas").on("click", ".removeMainBtn", function() {
         $(this).closest("tr").remove();
         playCount--;
@@ -574,22 +562,20 @@ $(document).ready(function() {
         calculateMainTotal();
         highlightDuplicatesInMain();
         storeFormState(); 
-        if ($("#tablaJugadas .row-select-checkbox").length === 0) { // Corrected selector
+        if ($("#tablaJugadas .row-select-checkbox").length === 0) { 
             $("#selectAllCheckbox").prop('checked', false);
-        } else if ($("#tablaJugadas .row-select-checkbox:checked").length === $("#tablaJugadas .row-select-checkbox").length) { // Corrected selector
+        } else if ($("#tablaJugadas .row-select-checkbox:checked").length === $("#tablaJugadas .row-select-checkbox").length) { 
             $("#selectAllCheckbox").prop('checked', true);
         } else {
              $("#selectAllCheckbox").prop('checked', false);
         }
     });
 
-    // Corrected selector for event delegation: #tablaJugadas is the tbody
     $("#tablaJugadas").on("input", ".betNumber, .straight, .box, .combo", function() {
         const $row = $(this).closest("tr");
         recalcMainRow($row);
         storeFormState();
     });
-    // Corrected selector for event delegation: #tablaJugadas is the tbody
      $("#tablaJugadas").on("blur", ".betNumber, .straight, .box, .combo", function() {
         highlightDuplicatesInMain(); 
     });
@@ -931,7 +917,6 @@ function calcCombos(str) {
 // --- Main Table Row Management ---
 function addMainRow(bet = null) {
     console.log("addMainRow llamada. playCount actual:", playCount, "Datos de jugada:", bet);
-    // Check if the tbody element itself exists
     if ($("#tablaJugadas").length === 0) { 
         console.error("CRITICAL: El elemento con ID #tablaJugadas (que debería ser el tbody) no se encuentra. Por favor, verifica tu archivo HTML (index.html). Las jugadas no se pueden agregar.");
         alert("Error crítico: Falta el elemento #tablaJugadas (tbody) en la tabla. Contacte al administrador.");
@@ -965,6 +950,7 @@ function addMainRow(bet = null) {
         gm_val = bet.gameMode || determineGameMode(bn_val, currentTracks);
     }
 
+    // CORRECTED: Ensure only one TD for total, and amount is wrapped in span.total-amount
     const rowHTML = `
       <tr data-playindex="${rowIndex}">
         <td><input type="checkbox" class="row-select-checkbox form-check-input"></td>
@@ -974,12 +960,11 @@ function addMainRow(bet = null) {
         <td><input type="number" step="0.01" class="form-control straight" value="${st_val}" /></td>
         <td><input type="text" class="form-control box" value="${bx_val}" /></td>
         <td><input type="number" step="0.01" class="form-control combo" value="${co_val}" /></td>
-        <td class="total total-cell" title="Copiar montos">0.00 <i class="bi bi-copy" style="pointer-events: none; margin-left: 5px;"></i></td>
+        <td class="total total-cell" title="Copiar montos"><span class="total-amount">0.00</span> <i class="bi bi-copy copy-amounts-btn" style="pointer-events: none; margin-left: 5px;"></i></td>
       </tr>
     `;
-    // CORRECTED: Append directly to #tablaJugadas (which is the tbody)
+    
     $("#tablaJugadas").append(rowHTML);
-    // CORRECTED: Select the new row as a direct child of #tablaJugadas
     const $newRow = $("#tablaJugadas > tr[data-playindex='" + rowIndex + "']");
 
     if ($newRow.length === 0) {
@@ -993,7 +978,7 @@ function addMainRow(bet = null) {
     }
     
     if ($("#selectAllCheckbox").prop('checked')) {
-        if ($("#tablaJugadas .row-select-checkbox:not(:checked)").length > 0) { // Corrected selector
+        if ($("#tablaJugadas .row-select-checkbox:not(:checked)").length > 0) { 
              $("#selectAllCheckbox").prop('checked', false);
         }
     }
@@ -1004,7 +989,7 @@ function addMainRow(bet = null) {
 
 function renumberMainRows() { 
     let i = 0;
-    $("#tablaJugadas > tr").each(function() { // Corrected selector
+    $("#tablaJugadas > tr").each(function() { 
         i++;
         $(this).attr("data-playindex", i); 
         $(this).find(".removeMainBtn").attr("data-row", i).text(i);
@@ -1023,11 +1008,12 @@ function recalcMainRow($row) {
     const coVal = $row.find(".combo").val().trim();
 
     const rowTotal = calculateRowTotal(bn, gm, stVal, bxVal, coVal);
-    $row.find(".total").contents().first()[0].nodeValue = rowTotal + " "; // Keep the text node for total value
+    // CONFIRMED: This correctly targets the span.total-amount within td.total-cell
+    $row.find(".total-cell .total-amount").text(parseFloat(rowTotal).toFixed(2));
 }
 
 function recalcAllMainRows() { 
-    $("#tablaJugadas > tr").each(function() { // Corrected selector
+    $("#tablaJugadas > tr").each(function() { 
         recalcMainRow($(this));
     });
     calculateMainTotal(); 
@@ -1037,11 +1023,10 @@ function recalcAllMainRows() {
 // --- Total Calculation & State Management ---
 function calculateMainTotal() { 
     let sum = 0;
-    $("#tablaJugadas > tr").each(function() { // Corrected selector
-        const totalTextNode = $(this).find(".total").contents().first()[0];
-        if (totalTextNode) {
-             sum += parseFloat(totalTextNode.nodeValue) || 0;
-        }
+    $("#tablaJugadas > tr").each(function() { 
+        // Ensure we are reading from the span.total-amount
+        const totalText = $(this).find(".total-cell .total-amount").text();
+        sum += parseFloat(totalText) || 0;
     });
 
     let effectiveDays = selectedDaysCount > 0 ? selectedDaysCount : 1;
@@ -1052,7 +1037,6 @@ function calculateMainTotal() {
         effectiveTracks = 1; 
     }
 
-
     const finalTotal = sum * effectiveTracks * effectiveDays;
     $("#totalJugadas").text(finalTotal.toFixed(2));
 }
@@ -1062,15 +1046,15 @@ function storeFormState() {
         dateVal: fpInstance ? fpInstance.input.value : "", 
         plays: []
     };
-    $("#tablaJugadas > tr").each(function() { // Corrected selector
-        const totalTextNode = $(this).find(".total").contents().first()[0];
+    $("#tablaJugadas > tr").each(function() { 
         st.plays.push({
             betNumber: $(this).find(".betNumber").val() || "",
             gameMode: $(this).find(".gameMode").text() || "-",
             straight: $(this).find(".straight").val() || "",
             box: $(this).find(".box").val() || "",
             combo: $(this).find(".combo").val() || "",
-            total: totalTextNode ? totalTextNode.nodeValue.trim() : "0.00"
+            // Ensure we store the value from span.total-amount
+            total: $(this).find(".total-cell .total-amount").text() || "0.00"
         });
     });
     localStorage.setItem("formState", JSON.stringify(st));
@@ -1095,7 +1079,7 @@ function loadFormState() {
     }
 
 
-    $("#tablaJugadas").empty(); // Corrected selector
+    $("#tablaJugadas").empty(); 
     playCount = 0; 
     if (data.plays && data.plays.length > 0) {
         data.plays.forEach((p) => {
@@ -1105,6 +1089,7 @@ function loadFormState() {
                 straightAmount: parseFloat(p.straight) || null,
                 boxAmount: p.box, 
                 comboAmount: parseFloat(p.combo) || null
+                // The total will be recalculated by recalcMainRow called within addMainRow
             });
         });
     }
@@ -1124,7 +1109,7 @@ function resetForm() {
     isUpdatingProgrammatically = true;
 
     $("#lotteryForm")[0].reset(); 
-    $("#tablaJugadas").empty(); // Corrected selector
+    $("#tablaJugadas").empty(); 
     playCount = 0;
     jugadasGlobalOCR = [];
     selectedFileGlobalOCR = null;
@@ -1134,11 +1119,11 @@ function resetForm() {
     $("#ocrJugadas").empty().html("<p>Sube una imagen para ver las jugadas detectadas aquí.</p>");
     $("#btnProcesarOCR").prop('disabled', true);
     $("#btnCargarJugadas").prop('disabled', true);
- hideOcrLoading();
+    hideOcrLoading();
 
     $("#selectAllCheckbox").prop('checked', false);
     window.copiedAmounts = {};
-    $("#pasteAmountsButton").prop('disabled', true).hide(); 
+    $("#pasteAmountsButton").prop('disabled', true);
  
     if (fpInstance) {
         fpInstance.setDate([new Date()], false); 
@@ -1161,7 +1146,7 @@ function resetForm() {
 
 function doGenerateTicket() { 
     console.log("doGenerateTicket called");
- const dateVal = fpInstance ? fpInstance.input.value : "";
+    const dateVal = fpInstance ? fpInstance.input.value : "";
     if (!dateVal) {
         alert("Please select at least one date.");
         return;
@@ -1176,7 +1161,7 @@ function doGenerateTicket() {
     $("#ticketTracks").text(chosenTracks.join(", "));
 
 
-    const rows = $("#tablaJugadas > tr"); // Corrected selector
+    const rows = $("#tablaJugadas > tr"); 
     if (rows.length === 0) {
         alert("No plays to generate a ticket for.");
         return;
@@ -1197,11 +1182,7 @@ function doGenerateTicket() {
         let stVal = $row.find(".straight").val().trim() || "0.00";
         let bxVal = $row.find(".box").val().trim(); 
         let coVal = $row.find(".combo").val().trim() || "0.00";
-        let totVal = "0.00";
-        const totalTextNode = $row.find(".total").contents().first()[0];
-        if (totalTextNode) {
-            totVal = totalTextNode.nodeValue.trim();
-        }
+        let totVal = $row.find(".total-cell .total-amount").text() || "0.00";
 
 
         if (bxVal === "" && (gm === "Pulito" || gm === "Single Action" || gm === "NY Horses")) {
@@ -1263,18 +1244,6 @@ function userChoseToday() {
     return false;
 }
 
-/*
-function disableTracksByTime() {
-    // ... (original, ensure it doesn't cause issues with new logic if uncommented)
-}
-function enableAllTracks() {
-    // ... (original, ensure it doesn't cause issues with new logic if uncommented)
-}
-function showCutoffTimes() {
-    // ... (original, ensure it doesn't cause issues with new logic if uncommented)
-}
-*/
-
 function autoSelectNYTrackAndVenezuela() { 
     console.log("autoSelectNYTrackAndVenezuela called");
     const anyChecked = $(".track-checkbox:checked").length > 0;
@@ -1299,13 +1268,13 @@ function autoSelectNYTrackAndVenezuela() {
 
 // --- Utility Functions ---
 function highlightDuplicatesInMain() { 
-    $("#tablaJugadas > tr .betNumber").removeClass("duplicado"); // Corrected selector
+    $("#tablaJugadas > tr .betNumber").removeClass("duplicado"); 
     const counts = {};
-    $("#tablaJugadas > tr .betNumber").each(function() { // Corrected selector
+    $("#tablaJugadas > tr .betNumber").each(function() { 
         const bn = $(this).val().trim();
         if (bn) counts[bn] = (counts[bn] || 0) + 1;
     });
-    $("#tablaJugadas > tr .betNumber").each(function() { // Corrected selector
+    $("#tablaJugadas > tr .betNumber").each(function() { 
         const bn = $(this).val().trim();
         if (counts[bn] > 1) $(this).addClass("duplicado");
     });
@@ -1381,7 +1350,7 @@ function padNumberForMode(num, mode) {
 }
 
 function permuteWizardBetNumbers() { 
- const rows = $("#wizardTableBody tr");
+    const rows = $("#wizardTableBody tr");
     if (rows.length === 0) { alert("No plays in the wizard table."); return; }
     let allDigits = []; let lengths = [];
     rows.each(function() { const bn = $(this).find("td").eq(1).text().trim(); lengths.push(bn.length); for (let c of bn) allDigits.push(c); });
@@ -1403,7 +1372,6 @@ function permuteWizardBetNumbers() {
 // Tutorial and Manual display functions
 const tutorialStepsEN = [ /* ... */ ]; const tutorialStepsES = [ /* ... */ ]; const tutorialStepsHT = [ /* ... */ ];
 function startTutorial(lang) { /* ... */ }
-// ... (manual button handlers)
 
 
 const lockedFields = { straight: false, box: false, combo: false }; 
