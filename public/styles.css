@@ -147,44 +147,61 @@ body {
     color: white;
     box-shadow: inset 0 -3px 0 rgba(0,0,0,.1);
   }
-  .accordion-button:focus {
-    box-shadow: 0 0 0 0.25rem rgba(0, 255, 255, 0.5); 
-  }
+ .accordion-button:focus {
+ box-shadow: 0 0 0 0.25rem rgba(0, 255, 255, 0.5);
+ }
   .accordion-body {
-    background-color: var(--container-bg); 
+ background-color: var(--container-bg);
     padding: 15px;
     display: flex;
-    flex-wrap: wrap; 
-    gap: 10px; 
+ flex-wrap: wrap;
+ gap: 10px;
     border-radius: 0 0 10px 10px;
   }
   
   /* Estilo de botones de Tracks (checkbox + label) */
   .track-button-container {
     display: inline-block; 
-    margin: 5px;
+ margin: 3px; /* Reduced margin */
+    perspective: 1000px; /* Needed for 3D effect */
   }
   .track-checkbox {
-    display: none; 
+    display: none;
   }
   .track-button {
-    display: inline-block;
-    padding: 8px 15px;
-    background-color: var(--input-bg); 
-    color: var(--input-text); 
-    border: 2px solid transparent;
-    border-radius: 20px;
+    display: inline-flex; /* Changed to flex for better centering */
+    width: 90px; /* Make buttons square */
+    height: 90px; /* Make buttons square */
+    padding: 8px;
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    border: 2px solid #666; /* Subtle border */
+    border-radius: 8px; /* Slightly rounded corners */
     cursor: pointer;
     transition: all 0.3s ease;
     text-align: center;
-    min-width: 150px; 
+    display: flex; /* Use flex to center content */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+ box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); /* Subtle shadow for 3D */
+ transform-style: preserve-3d; /* Needed for 3D transform */
   }
+
   .track-checkbox:checked + .track-button {
-    background-color: #007bff; 
-    border-color: #00FFFF; 
-    color: white;
-    box-shadow: 0 0 10px #007bff, 0 0 5px #00FFFF; 
+ background-color: #ffc107; /* Yellow background when checked */
+ border-color: #e0a800; /* Darker yellow border */
+ color: #212529; /* Dark text for contrast */
+ box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4);
   }
+
+  .track-button:active,
+  .track-checkbox:checked + .track-button {
+    transform: translateY(2px); /* Move down slightly on click/checked */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4); /* Smaller shadow on click/checked */
+  }
+
+
   .track-button:hover {
     background-color: #777; 
     border-color: #888; 
@@ -192,15 +209,15 @@ body {
   .track-checkbox:checked + .track-button:hover {
     background-color: #0056b3; 
   }
+
   .track-name {
     display: block; 
     font-weight: bold;
   }
   .cutoff-time {
-    display: block;
-    font-size: 0.8em;
+ font-size: 0.9em; /* Slightly larger font size */
     color: #ccc; 
-  }
+  }  
   .track-button.disabled { 
       background-color: #555;
       color: #999;
@@ -266,6 +283,11 @@ body {
       box-shadow: 0 0 10px orange !important;
   }
   
+  /* Estilo para jugadas invalidas */
+  #jugadasTable .invalid-play td {
+      background-color: rgba(128, 0, 128, 0.3) !important; /* Morado con transparencia */
+      border-color: #800080 !important; /* Morado solido */
+  }
   /* MODIFIED SECTION FOR TOTAL CELL */
   /* Estilo para las celdas de 'Total' (con clase "total-cell") en #jugadasTable */
   #jugadasTable td.total-cell {
@@ -311,7 +333,7 @@ body {
   
   /* Estilo para el botón 'Paste Wagers' (o 'Pegar Montos') */
   #pasteAmountsButton { 
-      margin-top: 15px; 
+      margin-top: 15px; /* Default margin */
   }
   
   
@@ -736,13 +758,13 @@ body {
   }
   
   body.light-mode .track-button {
-    background-color: #e9ecef; 
+ background-color: #e9ecef;
     color: var(--text-color); 
-    border: 2px solid transparent; 
+ border: 2px solid #ccc;
   }
   body.light-mode .track-checkbox:checked + .track-button {
-    background-color: #007bff; /* Primary blue when selected in light mode */
-    border-color: #0056b3; /* Darker blue border */
+ background-color: #ffc107; /* Yellow when selected in light mode */
+ border-color: #e0a800; /* Darker yellow border */
     color: white;
     box-shadow: 0 0 8px rgba(0, 123, 255, 0.5); /* Subtle blue glow */
   }
@@ -834,4 +856,80 @@ body {
   body.light-mode .flatpickr-day.disabled {
     color: #adb5bd; /* Lighter grey for disabled */
   }
+
+@media (max-width: 575.98px) { /* Small devices ( নিচে 576px ) */
+  .container {
+    padding: 15px; /* Reduce padding on smaller screens */
+  }
+
+  /* Ensure date picker container takes full width */
+  #lotteryForm .row.mb-3 .col-12,
+  #lotteryForm .row.mb-3 .col-12 > div { width: 100%; }
+
+  .accordion-body {
+    gap: 3px; /* Further reduce gap between track buttons */
+    justify-content: flex-start; /* Align track buttons to the start */
+  }
+
+  .track-button {
+    min-width: 100px; /* Adjust min-width for very small screens if needed */
+    padding: 8px 10px; /* Adjust padding */
+    font-size: 0.9em; /* Slightly smaller font */
+  }
+
+  .track-name,
+  .cutoff-time {
+    font-size: 0.9em; /* Adjust font size for text within buttons */
+  }
+
+  .d-flex.justify-content-between.align-items-center.flex-wrap {
+    flex-direction: column; /* Stack buttons vertically */
+    align-items: stretch; /* Stretch buttons to full width */
+  }
+
+  .button-group {
+    width: 100%; /* Make button group take full width */
+    margin-right: 0 !important; /* Remove right margin */
+    margin-bottom: 10px; /* Add bottom margin */
+  }
+
+  /* Adjust margin-top for the paste amounts button */
+  #pasteAmountsButton {
+    margin-top: 0 !important; /* Remove default margin-top */
+    margin-bottom: 10px; /* Add space below button when stacked */
+  }
+
+  .button-group .btn {
+    width: 100%; /* Make buttons within the group take full width */
+    margin-bottom: 5px; /* Add space between stacked buttons */
+    margin-right: 0 !important; /* Remove right margin */
+  }
+
+  .total-section {
+    width: 100%; /* Make total section take full width */
+    text-align: center; /* Center total text */
+    margin-top: 10px; /* Add space above total */
+  }
+
+  /* Adjust table cell padding and font size */
+  #jugadasTable th,
+  #jugadasTable td {
+    padding: 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  #jugadasTable .form-control {
+     padding: 0.3rem 0.5rem;
+     font-size: 0.8rem;
+  }
+
+   /* Adjust modal padding on mobile */
+  .modal-body {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 767.98px) { /* Small devices ( নিচে 768px ) */
+    /* Further adjustments for medium-small screens if needed */
+}
   

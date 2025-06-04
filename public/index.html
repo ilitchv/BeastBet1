@@ -58,7 +58,7 @@
     <form id="lotteryForm">
       <!-- Date Selection -->
       <div class="row mb-3">
-        <div class="col-md-4 col-sm-6">
+        <div class="col-12 col-sm-6 col-md-4">
           <label for="fecha" class="form-label">Bet Dates:</label>
           <input
             type="text"
@@ -192,8 +192,8 @@
       </div>
 
       <!-- Plays Table (Editable) -->
-      <div class="table-responsive mb-4">
-        <table class="table table-dark table-bordered glow-table" id="jugadasTable">
+      <div class="table-responsive mb-4" id="playsTableContainer">
+ <table class="table table-dark table-bordered glow-table" id="jugadasTable" data-mobile-layout="false">
           <thead>
             <tr>
  <th class="select-col-header"><input type="checkbox" id="selectAllCheckbox"></th>

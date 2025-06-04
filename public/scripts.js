@@ -326,6 +326,45 @@ function updateSelectedTracksAndTotal() {
     storeFormState();
 }
 
+function updateTrackCutoffDisplays() {
+    $(".track-button-container").each(function() {
+        const trackName = $(this).find(".track-checkbox").val();
+        const cutoffSpan = $(this).find(".cutoff-time");
+        if (cutoffSpan.length > 0) {
+            const cutoff = getTrackCutoff(trackName);
+            if (cutoff) {
+                cutoffSpan.text(`Cutoff: ${cutoff}`);
+            } else {
+                cutoffSpan.text(''); // Clear if no cutoff found
+            }
+        }
+    });
+}
+
+function disableExpiredTracks() {
+    const isTodaySelected = userChoseToday();
+    const now = dayjs();
+
+    $(".track-button-container").each(function() {
+        const $checkbox = $(this).find(".track-checkbox");
+        const $label = $(this).find(".track-button");
+        const trackName = $checkbox.val();
+        const cutoff = getTrackCutoff(trackName);
+
+        if (isTodaySelected && cutoff) {
+            const [hours, minutes] = cutoff.split(':').map(Number);
+            const cutoffTimeToday = dayjs().hour(hours).minute(minutes).second(0);
+            const isExpired = now.isAfter(cutoffTimeToday);
+            $checkbox.prop('disabled', isExpired);
+            $label.toggleClass('disabled', isExpired);
+        } else {
+            // If not today, ensure they are not disabled by time
+            $checkbox.prop('disabled', false);
+            $label.removeClass('disabled');
+        }
+    });
+}
+
 
 $(document).ready(function() {
     console.log("Document ready. jQuery version:", $.fn.jquery);
@@ -427,7 +466,8 @@ $(document).ready(function() {
             isUpdatingProgrammatically = false;
             $(".track-checkbox").on('change', trackCheckboxChangeHandler);
             
-            updateSelectedTracksAndTotal(); 
+            updateSelectedTracksAndTotal();
+            disableExpiredTracks(); // Re-evaluate disabled tracks on date change
             storeFormState();
         }
     });
@@ -442,7 +482,13 @@ $(document).ready(function() {
     
     updateSelectedTracksAndTotal(); 
 
+    // Initial calls for track functionality
+    updateTrackCutoffDisplays();
+    disableExpiredTracks();
     loadFormState(); 
+
+    // Set up periodic check for track cutoffs
+    setInterval(disableExpiredTracks, 60000); // Check every 60 seconds
 
     $("#agregarJugada").click(function() {
         const $newRow = addMainRow();
@@ -574,6 +620,7 @@ $(document).ready(function() {
     $("#tablaJugadas").on("input", ".betNumber, .straight, .box, .combo", function() {
         const $row = $(this).closest("tr");
         recalcMainRow($row);
+        $row.removeClass("invalid-play"); // Remove highlighting on input change
         storeFormState();
     });
      $("#tablaJugadas").on("blur", ".betNumber, .straight, .box, .combo", function() {
@@ -1121,13 +1168,15 @@ function resetForm() {
     $("#btnCargarJugadas").prop('disabled', true);
     hideOcrLoading();
 
+    // Remove invalid-play highlighting
+    $("#tablaJugadas > tr").removeClass("invalid-play");
+
     $("#selectAllCheckbox").prop('checked', false);
     window.copiedAmounts = {};
     $("#pasteAmountsButton").prop('disabled', true);
  
     if (fpInstance) {
         fpInstance.setDate([new Date()], false); 
-        selectedDaysCount = 1;
     } else {
         selectedDaysCount = 1;
     }
@@ -1141,7 +1190,49 @@ function resetForm() {
     updateSelectedTracksAndTotal(); 
     
     localStorage.removeItem("formState");
+
+    // Reset selectedDaysCount based on default date
+    selectedDaysCount = fpInstance.selectedDates.length > 0 ? fpInstance.selectedDates.length : 1;
+
     console.log("Form reset complete.");
+}
+
+function validateMainPlays() {
+    let formIsValid = true;
+    $("#tablaJugadas > tr").removeClass("invalid-play"); // Clear previous highlighting
+
+    $("#tablaJugadas > tr").each(function() {
+        const $row = $(this);
+        const bnInput = $row.find(".betNumber");
+        const gmText = $row.find(".gameMode").text();
+        const bn = bnInput.val().trim();
+
+        let rowIsValid = true;
+
+        // 1. Check if bet number is empty
+        if (!bn) {
+            rowIsValid = false;
+        }
+
+        // 2. Check for multiple numbers or invalid format in bet number
+        // Allows single number (2-4 digits) or Pale format (XX-XX)
+        const singleNumberRegex = /^\d{2,4}$/;
+        const paleRegex = /^\d{2}-\d{2}$/;
+        if (bn && !singleNumberRegex.test(bn) && !paleRegex.test(bn)) {
+            rowIsValid = false;
+        }
+
+        // 3. Check if game mode is "-"
+        if (gmText === "-") {
+            rowIsValid = false;
+        }
+
+        if (!rowIsValid) {
+            $row.addClass("invalid-play");
+            formIsValid = false;
+        }
+    });
+    return formIsValid;
 }
 
 function doGenerateTicket() { 
@@ -1167,11 +1258,12 @@ function doGenerateTicket() {
         return;
     }
     let formIsValid = true; 
-
+    
+    formIsValid = validateMainPlays(); // Call the validation function
 
     if (!formIsValid) {
-        // alert("Some plays have errors or exceed limits. Please fix them.");
-        // return;
+        alert("Please correct the highlighted errors in the plays before generating the ticket.");
+        return; // Stop ticket generation
     }
 
     $("#ticketJugadas").empty();
