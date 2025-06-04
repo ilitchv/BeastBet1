@@ -1,0 +1,1516 @@
+// Global variable for OCR modal instance
+let modalOcrInstance = null;
+let wizardModalInstance = null;
+let ticketModalInstance = null;
+
+// Global variable to store OCR interpreted bets
+let jugadasGlobalOCR = [];
+let selectedFileGlobalOCR = null;
+
+// Global variable for Flatpickr instance
+let fpInstance = null;
+
+// Play counters
+let playCount = 0;
+const MAX_PLAYS = 200; // Increased limit
+let wizardCount = 0;
+
+// Global variable to store copied amounts for pasting, now visible globally
+window.copiedAmounts = {};
+
+// Cutoff times (remains unchanged)
+const cutoffTimes = {
+    "USA": { 
+        "New York Mid Day": "14:20", "New York Evening": "22:00", "Georgia Mid Day": "12:20", "Georgia Evening": "18:40", "New Jersey Mid Day": "12:50", "New Jersey Evening": "22:00", "Florida Mid Day": "13:20", "Florida Evening": "21:30", "Connecticut Mid Day": "13:30", "Connecticut Evening": "22:00", "Georgia Night": "22:00", "Pensilvania AM": "12:45", "Pensilvania PM": "18:15", "Venezuela": "00:00", "Brooklyn Midday": "14:20", "Brooklyn Evening": "22:00", "Front Midday": "14:20", "Front Evening": "22:00", "New York Horses": "16:00"
+    },
+    "Santo Domingo": { 
+        "Real": "11:45", "Gana mas": "13:25", "Loteka": "18:30", "Nacional": "19:30", "Quiniela Pale": "19:30", "Primera Día": "10:50", "Suerte Día": "11:20", "Lotería Real": "11:50", "Suerte Tarde": "16:50", "Lotedom": "16:50", "Primera Noche": "18:50", "Panama": "16:00"
+    },
+    "Venezuela": { "Venezuela": "00:00" }
+};
+
+
+// --- OCR Modal Functions ---
+function abrirModalOCR() {
+    console.log("abrirModalOCR function called");
+    selectedFileGlobalOCR = null;
+    jugadasGlobalOCR = [];
+    $("#ocrFile").val("");
+    $("#ocrPreview").addClass("d-none").attr("src", "");
+    $("#ocrJugadas").empty().html("<p>Sube una imagen para ver las jugadas detectadas aquí.</p>");
+    
+    $("#btnProcesarOCR").prop('disabled', true);
+    $("#btnCargarJugadas").prop('disabled', true); 
+
+    hideOcrLoading(); 
+    $("#ocrDebugPanel").addClass("d-none");
+
+    if (modalOcrInstance) {
+        modalOcrInstance.show();
+    } else {
+        console.error("Modal OCR instance not available in abrirModalOCR");
+    }
+}
+window.abrirModalOCR = abrirModalOCR;
+
+
+function handleDragOverOCR(e) { e.preventDefault(); $("#ocrDropZone").addClass("dragover"); }
+function handleDragLeaveOCR(e) { e.preventDefault(); $("#ocrDropZone").removeClass("dragover"); }
+window.handleDragOverOCR = handleDragOverOCR;
+window.handleDragLeaveOCR = handleDragLeaveOCR;
+
+function handleDropOCR(e) {
+    e.preventDefault();
+    $("#ocrDropZone").removeClass("dragover");
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        selectedFileGlobalOCR = e.dataTransfer.files[0];
+        $("#ocrPreview").attr("src", URL.createObjectURL(selectedFileGlobalOCR)).removeClass("d-none");
+        $("#btnProcesarOCR").prop('disabled', false);
+        $("#ocrJugadas").html("<p>Imagen seleccionada. Haz clic en 'Procesar OCR'.</p>");
+    }
+}
+window.handleDropOCR = handleDropOCR;
+
+function handleFileChangeOCR(e) {
+    console.log("handleFileChangeOCR called");
+    if (e.target.files && e.target.files[0]) {
+        selectedFileGlobalOCR = e.target.files[0];
+        console.log("File selected:", selectedFileGlobalOCR);
+        $("#ocrPreview").attr("src", URL.createObjectURL(selectedFileGlobalOCR)).removeClass("d-none");
+        $("#btnProcesarOCR").prop('disabled', false);
+        $("#ocrJugadas").html("<p>Imagen seleccionada. Haz clic en 'Procesar OCR'.</p>");
+    } else {
+        selectedFileGlobalOCR = null;
+        $("#ocrPreview").addClass("d-none").attr("src", "");
+        $("#btnProcesarOCR").prop('disabled', true);
+        $("#ocrJugadas").html("<p>Sube una imagen para ver las jugadas detectadas aquí.</p>");
+    }
+}
+window.handleFileChangeOCR = handleFileChangeOCR;
+ 
+function showOcrLoading() { $("#ocrLoadingSection").removeClass("d-none"); $("#ocrProgressBar").css("width", "0%"); $("#ocrProgressText").text("Subiendo/Procesando..."); }
+function updateOcrProgress(percentage, text) { $("#ocrProgressBar").css("width", percentage + "%"); $("#ocrProgressText").text(text); }
+function hideOcrLoading() { $("#ocrLoadingSection").addClass("d-none"); }
+
+async function procesarOCR() {
+    console.log("procesarOCR function called");
+    console.log("Current selectedFileGlobalOCR:", selectedFileGlobalOCR);
+
+    if (!selectedFileGlobalOCR) {
+        alert("Por favor, selecciona un archivo de imagen primero.");
+        return;
+    }
+
+    showOcrLoading();
+    $("#btnProcesarOCR").prop('disabled', true);
+    $("#btnCargarJugadas").prop('disabled', true);
+
+    const reader = new FileReader();
+    reader.readAsDataURL(selectedFileGlobalOCR);
+    reader.onloadend = async () => {
+        const base64data = reader.result;
+        updateOcrProgress(30, "Imagen leída, enviando a IA...");
+        console.log("Sending request to /api/interpret-ticket");
+        try {
+            const response = await fetch('/api/interpret-ticket', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ photoDataUri: base64data })
+            });
+
+            updateOcrProgress(70, "Respuesta recibida, procesando...");
+
+            if (!response.ok) {
+                let errorMsg = `Error del servidor: ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorMsg += ` - ${errorData.message || 'Error desconocido del servidor.'}`;
+                    console.error("Server error details:", errorData);
+                } catch (e) {
+                    console.error("Could not parse error response JSON", e);
+                }
+                throw new Error(errorMsg);
+            }
+
+            const interpretedBets = await response.json();
+            console.log("Received interpretedBets:", interpretedBets);
+            jugadasGlobalOCR = interpretedBets; 
+
+            if (Array.isArray(jugadasGlobalOCR) && jugadasGlobalOCR.length > 0) {
+                let html = `<h5>Jugadas Detectadas (${jugadasGlobalOCR.length}):</h5>`;
+                jugadasGlobalOCR.forEach((j, idx) => {
+                    html += `
+                      <div class="ocr-detected-play">
+                        <table class="table table-sm table-bordered table-dark small-ocr-table">
+                          <thead><tr><th>#</th><th>Bet</th><th>Mode</th><th>Str</th><th>Box</th><th>Com</th></tr></thead>
+                          <tbody><tr>
+                            <td>${idx + 1}</td>
+                            <td>${j.betNumber || "-"}</td>
+                            <td>${j.gameMode || "-"}</td>
+                            <td>${j.straightAmount !== null ? j.straightAmount.toFixed(2) : "-"}</td>
+                            <td>${j.boxAmount !== null ? j.boxAmount.toFixed(2) : "-"}</td>
+                            <td>${j.comboAmount !== null ? j.comboAmount.toFixed(2) : "-"}</td>
+                          </tr></tbody>
+                        </table>
+                        <button class="btn btn-sm btn-info mt-1 mb-2" type="button" onclick="usarJugadaOCR(${idx}); return false;">
+                          Usar esta Jugada
+                        </button>
+                      </div><hr class="ocr-play-separator">`;
+                });
+                $("#ocrJugadas").html(html);
+                $("#btnCargarJugadas").prop('disabled', false); 
+            } else {
+                $("#ocrJugadas").html("<p>No se detectaron jugadas válidas en la imagen o la respuesta no es un array.</p>");
+                $("#btnCargarJugadas").prop('disabled', true);
+            }
+            updateOcrProgress(100, "Proceso completado.");
+            setTimeout(hideOcrLoading, 1000);
+
+        } catch (error) {
+            console.error("Error procesando la imagen:", error);
+            $("#ocrJugadas").html(`<p class="text-danger">Error procesando la imagen: ${error.message}</p>`);
+            hideOcrLoading();
+            $("#btnCargarJugadas").prop('disabled', true);
+        } finally {
+            $("#btnProcesarOCR").prop('disabled', !(selectedFileGlobalOCR)); 
+        }
+    };
+    reader.onerror = () => {
+        alert('Error leyendo el archivo de imagen.');
+        hideOcrLoading();
+        $("#btnProcesarOCR").prop('disabled', false);
+        $("#btnCargarJugadas").prop('disabled', true);
+    };
+}
+window.procesarOCR = procesarOCR;
+
+window.usarJugadaOCR = function(idx) {
+    console.log('=== usarJugadaOCR INICIO ===');
+    console.log('Index:', idx);
+    
+    const modalElement = document.getElementById('modalOcr');
+    const modalInstance = bootstrap.Modal.getInstance(modalElement);
+    
+    if (!jugadasGlobalOCR || !jugadasGlobalOCR[idx]) {
+        alert("No se encontró la jugada seleccionada.");
+        return false;
+    }
+    
+    const j = jugadasGlobalOCR[idx];
+    console.log('Jugada a agregar:', j);
+
+    if (playCount >= MAX_PLAYS) {
+        alert(`Límite de ${MAX_PLAYS} jugadas alcanzado.`);
+        return false;
+    }
+    
+    const newRow = addMainRow(j);
+    if (newRow) {
+        console.log("Fila agregada, actualizando tabla...");
+        
+        if (modalInstance) {
+            modalInstance.show();
+        }
+        
+        setTimeout(() => {
+            recalcAllMainRows();
+            calculateMainTotal();
+            highlightDuplicatesInMain();
+            storeFormState();
+            
+            console.log("Total filas en tabla:", $("#tablaJugadas > tr").length); 
+            
+            if (newRow[0] && typeof newRow[0].scrollIntoView === 'function') {
+                newRow[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }, 200);
+    } else {
+        console.error("Failed to add row from usarJugadaOCR");
+    }
+    
+    return false;
+};
+
+function handleCargarTodasLasJugadasClick() {
+    console.log("¡handleCargarTodasLasJugadasClick EJECUTADA!");
+    
+    if (window.event) {
+        window.event.preventDefault();
+        window.event.stopPropagation();
+    }
+    
+    if (!jugadasGlobalOCR || jugadasGlobalOCR.length === 0) {
+        console.log("No hay jugadas OCR para cargar.");
+        alert("No hay jugadas OCR para cargar.");
+        return false;
+    }
+    
+    console.log(`Intentando cargar ${jugadasGlobalOCR.length} jugadas del OCR...`);
+    
+    let jugadasCargadas = 0;
+    let jugadasOmitidas = 0;
+    
+    for (let index = 0; index < jugadasGlobalOCR.length; index++) {
+        const j = jugadasGlobalOCR[index];
+        
+        if (playCount >= MAX_PLAYS) {
+            jugadasOmitidas = jugadasGlobalOCR.length - index;
+            alert(`Se ha alcanzado el límite de ${MAX_PLAYS} jugadas. Se omitieron ${jugadasOmitidas} jugadas.`);
+            break; 
+        }
+        
+        console.log(`Añadiendo jugada OCR ${index + 1}:`, j);
+        
+        const newRow = addMainRow(j); 
+        if (newRow) {
+            jugadasCargadas++;
+            console.log(`Jugada ${index + 1} cargada exitosamente por handleCargarTodasLasJugadasClick`);
+        } else {
+            console.error(`Error al cargar jugada ${index + 1} desde handleCargarTodasLasJugadasClick`);
+        }
+    }
+    
+    console.log(`Proceso completado por handleCargarTodasLasJugadasClick. Jugadas cargadas: ${jugadasCargadas}`);
+    
+    if (jugadasCargadas > 0) {
+        recalcAllMainRows();
+        calculateMainTotal();
+        highlightDuplicatesInMain();
+        storeFormState();
+        alert(`Se cargaron ${jugadasCargadas} jugadas exitosamente.`);
+    }
+    
+    if (modalOcrInstance) {
+        console.log("Cerrando modal de OCR (desde handleCargarTodasLasJugadasClick).");
+        modalOcrInstance.hide();
+    } else {
+        console.error("modalOcrInstance no está definida al intentar cerrar (desde handleCargarTodasLasJugadasClick).");
+    }
+    
+    return false;
+}
+window.handleCargarTodasLasJugadasClick = handleCargarTodasLasJugadasClick;
+
+
+function toggleOcrDebug() {
+    $("#ocrDebugPanel").toggleClass("d-none");
+    alert("El panel de debug detallado del backend original no está implementado de la misma forma para la respuesta de Genkit. Revisa la consola del navegador para la respuesta de /api/interpret-ticket.");
+}
+window.toggleOcrDebug = toggleOcrDebug;
+
+// --- Main Form Logic ---
+let selectedTracksCount = 0;
+let selectedDaysCount = 1; 
+
+let isUpdatingProgrammatically = false;
+
+function trackCheckboxChangeHandler() {
+    if (isUpdatingProgrammatically) {
+        return;
+    }
+    updateSelectedTracksAndTotal();
+}
+
+function updateSelectedTracksAndTotal() {
+    let count = 0;
+    $(".track-checkbox:checked").each(function() {
+        if ($(this).val() !== "Venezuela" && !$(this).prop('disabled')) {
+            count++;
+        }
+    });
+    selectedTracksCount = count > 0 ? count : 0; 
+    if ($(".track-checkbox:checked").length > 0 && selectedTracksCount === 0 && $(".track-checkbox:checked[value='Venezuela']").length > 0) {
+        // Handled in calculateMainTotal
+    }
+    calculateMainTotal();
+    storeFormState();
+}
+
+function updateTrackCutoffDisplays() {
+    $(".track-button-container").each(function() {
+        const trackName = $(this).find(".track-checkbox").val();
+        const cutoffSpan = $(this).find(".cutoff-time");
+        if (cutoffSpan.length > 0) {
+            const cutoff = getTrackCutoff(trackName);
+            if (cutoff) {
+                cutoffSpan.text(`Cutoff: ${cutoff}`);
+            } else {
+                cutoffSpan.text(''); // Clear if no cutoff found
+            }
+        }
+    });
+}
+
+function disableExpiredTracks() {
+    const isTodaySelected = userChoseToday();
+    const now = dayjs();
+
+    $(".track-button-container").each(function() {
+        const $checkbox = $(this).find(".track-checkbox");
+        const $label = $(this).find(".track-button");
+        const trackName = $checkbox.val();
+        const cutoff = getTrackCutoff(trackName);
+
+        if (isTodaySelected && cutoff) {
+            const [hours, minutes] = cutoff.split(':').map(Number);
+            const cutoffTimeToday = dayjs().hour(hours).minute(minutes).second(0);
+            const isExpired = now.isAfter(cutoffTimeToday);
+            $checkbox.prop('disabled', isExpired);
+            $label.toggleClass('disabled', isExpired);
+        } else {
+            // If not today, ensure they are not disabled by time
+            $checkbox.prop('disabled', false);
+            $label.removeClass('disabled');
+        }
+    });
+}
+
+
+$(document).ready(function() {
+    console.log("Document ready. jQuery version:", $.fn.jquery);
+    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        console.log("Bootstrap is loaded. Version:", bootstrap.Modal.VERSION);
+        
+        const modalOcrElement = document.getElementById('modalOcr');
+        if (modalOcrElement) {
+            try {
+                modalOcrInstance = new bootstrap.Modal(modalOcrElement);
+                console.log("Modal #modalOcr inicializada correctamente.");
+            } catch (error) {
+                console.error("Error al inicializar modal #modalOcr:", error);
+            }
+        } else {
+            console.error("Modal #modalOcr not found in HTML!");
+        }
+
+        const wizardModalElement = document.getElementById('wizardModal');
+        if (wizardModalElement) {
+            try {
+                wizardModalInstance = new bootstrap.Modal(wizardModalElement);
+                console.log("Modal #wizardModal inicializada correctamente.");
+            } catch (error) {
+                console.error("Error al inicializar modal #wizardModal:", error);
+            }
+        } else {
+            console.error("Modal #wizardModal not found in HTML!");
+        }
+        
+        const ticketModalElement = document.getElementById('ticketModal');
+        if (ticketModalElement) {
+            try {
+                ticketModalInstance = new bootstrap.Modal(ticketModalElement);
+                console.log("Modal #ticketModal inicializada correctamente.");
+            } catch (error) {
+                console.error("Error al inicializar modal #ticketModal:", error);
+            }
+        } else {
+            console.error("Modal #ticketModal not found in HTML!");
+        }
+
+    } else {
+        console.error("Bootstrap or Bootstrap Modal not loaded!");
+    }
+    
+    setupThemeToggle();
+
+    $("#openDailyReportBtn").click(function() {
+        window.open('DailyReport.html', '_blank');
+    });
+
+    $('#modalOcr').on('shown.bs.modal', function () {
+        console.log("=== FORZANDO BINDING DEL BOTÓN OCR ===");
+        const btn = document.getElementById('btnCargarJugadas');
+        if (btn) {
+            btn.onclick = null;
+            $(btn).off('click');
+            
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log("¡¡¡ CLICK FORZADO CAPTURADO !!!");
+                handleCargarTodasLasJugadasClick();
+            }, true);
+            
+            console.log("Handler forzado instalado en btnCargarJugadas");
+        } else {
+            console.error("ERROR: Botón btnCargarJugadas no encontrado");
+        }
+    });
+
+    // REMOVED: Redundant button adding code
+    // if ($("#pasteAmountsButton").length === 0) {
+    // // Removed d-none class to make it always visible
+    // $("#formButtons").append('<button type="button" id="pasteAmountsButton" class="btn btn-dark ml-2"><i class="bi bi-clipboard-fill"></i> Paste Wagers</button>');
+    // }
+
+    dayjs.extend(window.dayjs_plugin_customParseFormat);
+    dayjs.extend(window.dayjs_plugin_arraySupport);
+
+    fpInstance = flatpickr("#fecha", {
+        mode: "multiple",
+        dateFormat: "m-d-Y",
+        minDate: "today",
+        defaultDate: [new Date()],
+        clickOpens: true,
+        allowInput: false, 
+        appendTo: document.body, 
+        onOpen: function(selectedDates, dateStr, instance) {
+            // instance.calendarContainer.style.zIndex = "1056"; 
+        },
+        onChange: function(selectedDates, dateStr, instance) {
+            selectedDaysCount = selectedDates.length > 0 ? selectedDates.length : 1;
+            
+            $(".track-checkbox").off('change', trackCheckboxChangeHandler);
+            isUpdatingProgrammatically = true;
+            
+            isUpdatingProgrammatically = false;
+            $(".track-checkbox").on('change', trackCheckboxChangeHandler);
+            
+            updateSelectedTracksAndTotal();
+            disableExpiredTracks(); // Re-evaluate disabled tracks on date change
+            storeFormState();
+        }
+    });
+    selectedDaysCount = fpInstance.selectedDates.length > 0 ? fpInstance.selectedDates.length : 1;
+
+
+    $(".track-checkbox").on('change', trackCheckboxChangeHandler);
+    
+    isUpdatingProgrammatically = true;
+    autoSelectNYTrackAndVenezuela();
+    isUpdatingProgrammatically = false;
+    
+    updateSelectedTracksAndTotal(); 
+
+    // Initial calls for track functionality
+    updateTrackCutoffDisplays();
+    disableExpiredTracks();
+    loadFormState(); 
+
+    // Set up periodic check for track cutoffs
+    setInterval(disableExpiredTracks, 60000); // Check every 60 seconds
+
+    $("#agregarJugada").click(function() {
+        const $newRow = addMainRow();
+        if ($newRow) {
+            $newRow.find(".betNumber").focus();
+        }
+    });
+
+    $("#selectAllCheckbox").on('change', function() {
+        $("#tablaJugadas .row-select-checkbox").prop('checked', $(this).prop('checked')); 
+    });
+
+    $("#tablaJugadas").on('change', '.row-select-checkbox', function() {
+        if (!$(this).prop('checked')) {
+            $("#selectAllCheckbox").prop('checked', false);
+        } else {
+            if ($("#tablaJugadas .row-select-checkbox:checked").length === $("#tablaJugadas .row-select-checkbox").length) { 
+                $("#selectAllCheckbox").prop('checked', true);
+            }
+        }
+    });
+    
+    $("#tablaJugadas").on("click", ".total-cell", function() { 
+        const $row = $(this).closest("tr");
+        const straight = $row.find(".straight").val();
+        const box = $row.find(".box").val();
+        const combo = $row.find(".combo").val();
+ 
+        window.copiedAmounts = {
+            straight: straight,
+            box: box,
+            combo: combo
+        };
+        $("#pasteAmountsButton").prop('disabled', false); 
+        console.log("Montos copiados:", window.copiedAmounts);     });
+
+    $("#pasteAmountsButton").on("click", function() {
+        if (Object.keys(window.copiedAmounts).length === 0) {
+            alert("No hay montos copiados para pegar.");
+            return;
+        }
+
+        const $selectedRows = $("#tablaJugadas .row-select-checkbox:checked").closest("tr"); 
+        if ($selectedRows.length === 0) {
+            alert("No hay filas seleccionadas para pegar los montos.");
+            return;
+        }
+
+        let modified = false;
+        $selectedRows.each(function() {
+            const $row = $(this);
+            let rowChanged = false;
+            if (window.copiedAmounts.straight !== "" && window.copiedAmounts.straight !== undefined && window.copiedAmounts.straight !== null) {
+                if ($row.find(".straight").val() !== window.copiedAmounts.straight) {
+                    $row.find(".straight").val(window.copiedAmounts.straight);
+                    rowChanged = true;
+                }
+            }
+            if (window.copiedAmounts.box !== "" && window.copiedAmounts.box !== undefined && window.copiedAmounts.box !== null) {
+                if ($row.find(".box").val() !== window.copiedAmounts.box) {
+                    $row.find(".box").val(window.copiedAmounts.box);
+                    rowChanged = true;
+                }
+            }
+            if (window.copiedAmounts.combo !== "" && window.copiedAmounts.combo !== undefined && window.copiedAmounts.combo !== null) {
+                if ($row.find(".combo").val() !== window.copiedAmounts.combo) {
+                    $row.find(".combo").val(window.copiedAmounts.combo);
+                    rowChanged = true;
+                }
+            }
+            if (rowChanged) {
+                recalcMainRow($row); 
+                modified = true;
+            }
+        });
+
+        if (modified) {
+            calculateMainTotal(); 
+            highlightDuplicatesInMain(); 
+            storeFormState(); 
+            console.log("Montos pegados y totales recalculados.");
+        }
+
+        window.copiedAmounts = {}; 
+        // $("#pasteAmountsButton").prop('disabled', true); // Assuming it should become disabled or hidden
+        $("#selectAllCheckbox").prop('checked', false); 
+        $("#tablaJugadas .row-select-checkbox").prop('checked', false); 
+    });
+
+
+    $("#eliminarJugada").click(function() {
+        if (playCount === 0) {
+            alert("No plays to remove.");
+            return;
+        }
+        const $selectedRows = $("#tablaJugadas .row-select-checkbox:checked").closest("tr"); 
+        if ($selectedRows.length > 0) {
+            $selectedRows.remove();
+            playCount -= $selectedRows.length;
+        } else if (playCount > 0) {
+             $("#tablaJugadas > tr:last").remove(); 
+             playCount--;
+        }
+        renumberMainRows();
+        calculateMainTotal();
+        highlightDuplicatesInMain();
+        storeFormState(); 
+        if ($("#tablaJugadas .row-select-checkbox").length === 0) { 
+            $("#selectAllCheckbox").prop('checked', false);
+        }
+    });
+
+    $("#tablaJugadas").on("click", ".removeMainBtn", function() {
+        $(this).closest("tr").remove();
+        playCount--;
+        renumberMainRows();
+        calculateMainTotal();
+        highlightDuplicatesInMain();
+        storeFormState(); 
+        if ($("#tablaJugadas .row-select-checkbox").length === 0) { 
+            $("#selectAllCheckbox").prop('checked', false);
+        } else if ($("#tablaJugadas .row-select-checkbox:checked").length === $("#tablaJugadas .row-select-checkbox").length) { 
+            $("#selectAllCheckbox").prop('checked', true);
+        } else {
+             $("#selectAllCheckbox").prop('checked', false);
+        }
+    });
+
+    $("#tablaJugadas").on("input", ".betNumber, .straight, .box, .combo", function() {
+        const $row = $(this).closest("tr");
+        recalcMainRow($row);
+        $row.removeClass("invalid-play"); // Remove highlighting on input change
+        storeFormState();
+    });
+     $("#tablaJugadas").on("blur", ".betNumber, .straight, .box, .combo", function() {
+        highlightDuplicatesInMain(); 
+    });
+
+
+    $("#resetForm").click(function() {
+        if (confirm("Are you sure you want to reset the form?")) {
+            resetForm();
+        }
+    });
+
+    $("#generarTicket").click(function() {
+        doGenerateTicket();
+    });
+
+    $("#confirmarTicket").click(function() {
+        const $confirmButton = $(this);
+        $confirmButton.prop("disabled", true); 
+        $("#editButton").addClass("d-none");
+
+        const uniqueTicket = generateUniqueTicketNumber();
+        $("#numeroTicket").text(uniqueTicket);
+        transactionDateTime = dayjs().format("MM/DD/YYYY hh:mm A");
+        $("#ticketTransaccion").text(transactionDateTime);
+        
+        html2canvas(document.getElementById("preTicket")).then(function(canvas) {
+            const link = document.createElement('a');
+            link.download = `ticket_${uniqueTicket}.png`;
+            link.href = canvas.toDataURL('image/png');
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link); 
+            
+            console.log("Ticket image generated and download triggered.");
+            
+            $("#shareTicket").removeClass("d-none"); 
+
+        }).catch(function(error) {
+            console.error("Error generating ticket image:", error);
+            alert("Error generating ticket image.");
+        });
+
+        $("#qrcode").empty();
+        if (typeof QRCode !== 'undefined') {
+             new QRCode(document.getElementById("qrcode"), {
+                text: uniqueTicket,
+                width: 128,
+                height: 128
+            });
+        } else {
+            console.error("QRCode library not loaded");
+        }
+        
+        $("#shareTicket").removeClass("d-none");
+    });
+    
+    $("#editButton").click(function(){
+        const ticketModal= bootstrap.Modal.getInstance(document.getElementById("ticketModal"));
+        if (ticketModal) ticketModal.hide();
+    });
+
+    $("#shareTicket").click(async function(){
+        if (navigator.share) {
+            try {
+                const canvas = await html2canvas(document.getElementById("preTicket"));
+                canvas.toBlob(async function(blob) {
+                    const file = new File([blob], 'ticket.png', {type: 'image/png'});
+                    await navigator.share({
+                        files: [file],
+                        title: 'Mi Ticket de Lotería',
+                        text: '¡Aquí tienes mi ticket generado!',
+                    });
+                });
+            } catch (error) { console.error('Error sharing:', error); alert('Could not share ticket.'); }
+        } else { alert('Web Share API is not supported in your browser.'); }
+    });
+
+
+    // Wizard Modal Logic 
+    $("#wizardButton").click(function() {
+        console.log("Wizard button clicked");
+        resetWizard();
+        if(wizardModalInstance) wizardModalInstance.show();
+        else console.error("Wizard modal not initialized");
+    });
+
+    $(".lockBtn").click(function() {
+        const field = $(this).data("field");
+        lockedFields[field] = !lockedFields[field];
+        $(this).html(lockedFields[field] ? `<i class="bi bi-lock-fill"></i>` : `<i class="bi bi-unlock"></i>`);
+    });
+
+    $("#wizardAddNext").click(function() {
+        const bn = $("#wizardBetNumber").val().trim();
+        const gm = determineGameMode(bn, getCurrentSelectedTracks());
+        if (gm === "-") {
+            alert(`Cannot determine game mode for "${bn}". Check tracks or length/format.`);
+            return;
+        }
+        let stVal = $("#wizardStraight").val().trim();
+        let bxVal = $("#wizardBox").val().trim();
+        let coVal = $("#wizardCombo").val().trim();
+
+        const rowT = calculateRowTotal(bn, gm, stVal, bxVal, coVal);
+        addWizardRow(bn, gm, stVal, bxVal, coVal, rowT);
+
+        if (!lockedFields.straight) $("#wizardStraight").val("");
+        if (!lockedFields.box) $("#wizardBox").val("");
+        if (!lockedFields.combo) $("#wizardCombo").val("");
+
+        $("#wizardBetNumber").val("").focus();
+        highlightDuplicatesInWizard();
+    });
+    
+    $("#wizardTableBody").on("click", ".removeWizardBtn", function() {
+        $(this).closest("tr").remove();
+        renumberWizard();
+        highlightDuplicatesInWizard();
+    });
+
+    $("#btnGenerateQuickPick").click(function() {
+        const count = parseInt($("#qpCount").val()) || 5; 
+        const gameMode = $("#qpGameMode").val() || "Pick 3"; 
+        const stVal = $("#wizardStraight").val().trim() || "";
+        const bxVal = $("#wizardBox").val().trim() || "";
+        const coVal = $("#wizardCombo").val().trim() || "";
+
+        if (count <= 0) {
+            alert("Please enter a valid number of plays (greater than 0).");
+            return;
+        }
+
+        for (let i = 0; i < count; i++) {
+            let betNumber;
+            if (["Palé", "Pale-Ven", "Pale-RD"].includes(gameMode)) {
+                const num1 = Math.floor(Math.random() * 100);
+                const num2 = Math.floor(Math.random() * 100);
+                betNumber = padNumberForMode(num1, "Pulito") + "-" + padNumberForMode(num2, "Pulito"); 
+            } else {
+                betNumber = generateRandomNumberForMode(gameMode); 
+                betNumber = padNumberForMode(betNumber, gameMode);
+            }
+
+            const rowTotal = calculateRowTotal(betNumber, gameMode, stVal, bxVal, coVal);
+            addWizardRow(betNumber, gameMode, stVal, bxVal, coVal, rowTotal);
+        }
+
+        renumberWizard();
+        highlightDuplicatesInWizard();
+    });
+
+    $("#btnGenerateRoundDown").click(function() {
+        const baseNumberInput = $("#roundDownBaseNumber");
+        const baseNumber = baseNumberInput.length > 0 ? baseNumberInput.val().trim() : $("#wizardBetNumber").val().trim();
+
+        const rangeMatch = baseNumber.match(/^(\d+)-(\d+)$/);
+
+        if (!rangeMatch) {
+            alert("Round Down requires a number range in the format XXX-XXX (e.g., 033-933). Please enter it in the 'Bet Number' field or the dedicated Round Down field if available.");
+            return;
+        }
+
+        const startStr = rangeMatch[1];
+        const endStr = rangeMatch[2];
+
+        if (startStr.length !== endStr.length || startStr.length === 0) {
+             alert("Invalid Round Down range format. Start and end numbers must have the same length and be non-empty.");
+             return;
+        }
+
+        let varyingDigitIndex = -1;
+        for (let i = 0; i < startStr.length; i++) {
+            if (startStr[i] === '0' && endStr[i] === '9') {
+                varyingDigitIndex = i;
+                break; 
+            }
+        }
+
+        if (varyingDigitIndex === -1) {
+            alert("Round Down requires exactly one digit position that varies from 0 to 9 in the range (e.g., 033-039 or 104-194).");
+            return;
+        }
+
+        const stVal = $("#wizardStraight").val().trim() || "";
+
+        for (let i = 0; i <= 9; i++) {
+            const generatedNumber = startStr.substring(0, varyingDigitIndex) + i + startStr.substring(varyingDigitIndex + 1);
+            const gm = determineGameMode(generatedNumber, getCurrentSelectedTracks());
+            const rowTotal = calculateRowTotal(generatedNumber, gm, stVal, "", ""); 
+            addWizardRow(generatedNumber, gm, stVal, "-", "-", rowTotal); 
+        }
+
+        renumberWizard();
+        highlightDuplicatesInWizard();
+    });
+    $("#btnPermute").click(function() { permuteWizardBetNumbers(); });
+
+    $("#wizardAddAllToMain").click(function() {
+        const wizardRows = $("#wizardTableBody tr");
+        if (wizardRows.length === 0) {
+            alert("No plays in the wizard table.");
+            return;
+        }
+        let addedCount = 0;
+        wizardRows.each(function() {
+            if (playCount >= MAX_PLAYS) {
+                alert(`Reached ${MAX_PLAYS} plays in the main form. Stopping import.`);
+                return false; 
+            }
+            const tds = $(this).find("td");
+            const bn = tds.eq(1).text();
+            const gm = tds.eq(2).text();
+            const stVal = (tds.eq(3).text() === "-" ? "" : tds.eq(3).text());
+            const bxVal = (tds.eq(4).text() === "-" ? "" : tds.eq(4).text());
+            const coVal = (tds.eq(5).text() === "-" ? "" : tds.eq(5).text());
+            
+            addMainRow({ betNumber: bn, gameMode: gm, straightAmount: parseFloat(stVal) || null, boxAmount: parseFloat(bxVal) || null, comboAmount: parseFloat(coVal) || null });
+            addedCount++;
+        });
+
+        if (addedCount > 0) {
+            recalcAllMainRows();
+            calculateMainTotal();
+            highlightDuplicatesInMain();
+            storeFormState();
+        }
+        $("#wizardTableBody").empty();
+        wizardCount = 0;
+    });
+
+    $("#wizardGenerateTicket").click(function() {
+        $("#wizardAddAllToMain").trigger("click");
+        if(wizardModalInstance) wizardModalInstance.hide();
+        doGenerateTicket();
+    });
+
+    $("#wizardEditMainForm").click(function() {
+        if(wizardModalInstance) wizardModalInstance.hide();
+    });
+    
+    // Tutorial and Manual buttons
+    $("#helpEnglish").click(() => startTutorial('en'));
+    $("#helpSpanish").click(() => startTutorial('es'));
+    $("#helpCreole").click(() => startTutorial('ht'));
+    $("#manualEnglishBtn").click(function() { /* ... */ });
+    $("#manualSpanishBtn").click(function() { /* ... */ });
+    $("#manualCreoleBtn").click(function() { /* ... */ });
+
+    console.log("Document fully loaded and initial scripts executed.");
+});
+
+
+// --- Helper Functions (determineGameMode, calculateRowTotal, etc.) ---
+function getCurrentSelectedTracks() {
+    return $(".track-checkbox:checked").map(function() { return $(this).val(); }).get();
+}
+
+function determineGameMode(betNumber, selectedTracks = []) {
+    if (!betNumber) return "-";
+
+    const tracks = selectedTracks.length > 0 ? selectedTracks : getCurrentSelectedTracks();
+
+    const isUSA = tracks.some(t => cutoffTimes.USA && cutoffTimes.USA[t]);
+    const isSD = tracks.some(t => cutoffTimes["Santo Domingo"] && cutoffTimes["Santo Domingo"][t]);
+    const includesVenezuela = tracks.includes("Venezuela");
+    const includesHorses = tracks.includes("New York Horses");
+
+    if (includesHorses) return "NY Horses";
+
+    const cleanBetNumber = String(betNumber).replace(/[^0-9x+-]/gi, ''); 
+    const paleRegex = /^(\d{2})([x+-])(\d{2})$/;
+
+    if (paleRegex.test(cleanBetNumber)) {
+        if (includesVenezuela && isUSA) return "Pale-Ven";
+        if (isSD && !isUSA) return "Pale-RD";
+        if (isUSA) return "Palé"; 
+        return "Palé"; 
+    }
+    
+    const length = cleanBetNumber.replace(/[^0-9]/g, '').length; 
+
+    if (length === 1 && isUSA && !includesVenezuela && !includesHorses) return "Single Action";
+    if (length === 2) {
+        if (includesVenezuela && isUSA) return "Venezuela"; 
+        if (isUSA && !isSD) return "Pulito";      
+        if (isSD && !isUSA) return "RD-Quiniela"; 
+        if (tracks.includes("Venezuela") && tracks.length === 1) return "Venezuela"; 
+        if (tracks.some(t => cutoffTimes.USA[t]) && !tracks.some(t => cutoffTimes["Santo Domingo"][t])) return "Pulito"; 
+        if (tracks.some(t => cutoffTimes["Santo Domingo"][t]) && !tracks.some(t => cutoffTimes.USA[t])) return "RD-Quiniela"; 
+        return "Pulito"; 
+    }
+    if (length === 3) return "Pick 3";
+    if (length === 4) return "Win 4";
+    
+    return "-";
+}
+
+function calculateRowTotal(betNumber, gameMode, stVal, bxVal, coVal) {
+    if (!betNumber || gameMode === "-") return "0.00";
+
+    const st = parseFloat(stVal) || 0;
+    const combo = parseFloat(coVal) || 0;
+    let numericBox = 0;
+
+    if (gameMode === "Pulito") {
+        if (typeof bxVal === 'string' && bxVal.includes(',')) {
+            const positions = bxVal.split(",").map(x => x.trim()).filter(Boolean).length;
+            return (st * positions).toFixed(2);
+        } else {
+            numericBox = parseFloat(bxVal) || 0; 
+        }
+    } else {
+        numericBox = parseFloat(bxVal) || 0;
+    }
+
+    if (["Venezuela", "Pale-RD", "Pale-Ven", "RD-Quiniela", "Palé"].includes(gameMode)) {
+        return st.toFixed(2); 
+    }
+    
+    if (gameMode === "Win 4" || gameMode === "Pick 3") {
+        const combosCount = calcCombos(String(betNumber).replace(/[^0-9]/g, ''));
+        return (st + numericBox + (combo * combosCount)).toFixed(2);
+    }
+    
+    return (st + numericBox + combo).toFixed(2);
+}
+
+
+function calcCombos(str) {
+    const freq = {};
+    for (let c of str) { freq[c] = (freq[c] || 0) + 1; }
+    const factorial = n => n <= 1 ? 1 : n * factorial(n - 1);
+    let denom = 1;
+    for (let k in freq) { denom *= factorial(freq[k]); }
+    return factorial(str.length) / denom;
+}
+
+// --- Main Table Row Management ---
+function addMainRow(bet = null) {
+    console.log("addMainRow llamada. playCount actual:", playCount, "Datos de jugada:", bet);
+    if ($("#tablaJugadas").length === 0) { 
+        console.error("CRITICAL: El elemento con ID #tablaJugadas (que debería ser el tbody) no se encuentra. Por favor, verifica tu archivo HTML (index.html). Las jugadas no se pueden agregar.");
+        alert("Error crítico: Falta el elemento #tablaJugadas (tbody) en la tabla. Contacte al administrador.");
+        return null;
+    }
+
+     if (playCount >= MAX_PLAYS) {
+        alert(`You have reached the limit of ${MAX_PLAYS} plays in the main form.`);
+        return null;
+    }
+    playCount++;
+    const rowIndex = playCount;
+
+    let bn_val = "";
+    let st_val = "";
+    let bx_val = ""; 
+    let co_val = "";
+    let gm_val = "-";
+    
+    if (bet) {
+        bn_val = bet.betNumber || "";
+        st_val = (bet.straightAmount !== null && bet.straightAmount !== undefined) ? String(bet.straightAmount) : "";
+        if (typeof bet.boxAmount === 'string' && bet.boxAmount.includes(',')) {
+            bx_val = bet.boxAmount;
+        } else {
+            bx_val = (bet.boxAmount !== null && bet.boxAmount !== undefined) ? String(bet.boxAmount) : "";
+        }
+        co_val = (bet.comboAmount !== null && bet.comboAmount !== undefined) ? String(bet.comboAmount) : "";
+        
+        const currentTracks = getCurrentSelectedTracks();
+        gm_val = bet.gameMode || determineGameMode(bn_val, currentTracks);
+    }
+
+    // CORRECTED: Ensure only one TD for total, and amount is wrapped in span.total-amount
+    const rowHTML = `
+      <tr data-playindex="${rowIndex}">
+        <td><input type="checkbox" class="row-select-checkbox form-check-input"></td>
+        <td><button type="button" class="btnRemovePlay removeMainBtn btn btn-sm btn-danger" data-row="${rowIndex}">${rowIndex}</button></td>
+        <td><input type="text" class="form-control betNumber" value="${bn_val}" /></td>
+        <td class="gameMode">${gm_val}</td>
+        <td><input type="number" step="0.01" class="form-control straight" value="${st_val}" /></td>
+        <td><input type="text" class="form-control box" value="${bx_val}" /></td>
+        <td><input type="number" step="0.01" class="form-control combo" value="${co_val}" /></td>
+        <td class="total total-cell" title="Copiar montos"><span class="total-amount">0.00</span> <i class="bi bi-copy copy-amounts-btn" style="pointer-events: none; margin-left: 5px;"></i></td>
+      </tr>
+    `;
+    
+    $("#tablaJugadas").append(rowHTML);
+    const $newRow = $("#tablaJugadas > tr[data-playindex='" + rowIndex + "']");
+
+    if ($newRow.length === 0) {
+        console.error("Error: La fila no se agregó correctamente al DOM por addMainRow. playCount actual:", playCount, "rowIndex intentado:", rowIndex);
+        playCount--; 
+        return null;
+    }
+
+    if (bet) {
+        recalcMainRow($newRow);
+    }
+    
+    if ($("#selectAllCheckbox").prop('checked')) {
+        if ($("#tablaJugadas .row-select-checkbox:not(:checked)").length > 0) { 
+             $("#selectAllCheckbox").prop('checked', false);
+        }
+    }
+    console.log(`Fila ${rowIndex} agregada exitosamente por addMainRow`);
+    return $newRow;
+}
+
+
+function renumberMainRows() { 
+    let i = 0;
+    $("#tablaJugadas > tr").each(function() { 
+        i++;
+        $(this).attr("data-playindex", i); 
+        $(this).find(".removeMainBtn").attr("data-row", i).text(i);
+    });
+    playCount = i;
+}
+
+function recalcMainRow($row) { 
+    const bn = $row.find(".betNumber").val().trim();
+    const currentTracks = getCurrentSelectedTracks();
+    const gm = determineGameMode(bn, currentTracks);
+    $row.find(".gameMode").text(gm);
+
+    const stVal = $row.find(".straight").val().trim();
+    const bxVal = $row.find(".box").val().trim();
+    const coVal = $row.find(".combo").val().trim();
+
+    const rowTotal = calculateRowTotal(bn, gm, stVal, bxVal, coVal);
+    // CONFIRMED: This correctly targets the span.total-amount within td.total-cell
+    $row.find(".total-cell .total-amount").text(parseFloat(rowTotal).toFixed(2));
+}
+
+function recalcAllMainRows() { 
+    $("#tablaJugadas > tr").each(function() { 
+        recalcMainRow($(this));
+    });
+    calculateMainTotal(); 
+}
+
+
+// --- Total Calculation & State Management ---
+function calculateMainTotal() { 
+    let sum = 0;
+    $("#tablaJugadas > tr").each(function() { 
+        // Ensure we are reading from the span.total-amount
+        const totalText = $(this).find(".total-cell .total-amount").text();
+        sum += parseFloat(totalText) || 0;
+    });
+
+    let effectiveDays = selectedDaysCount > 0 ? selectedDaysCount : 1;
+    let effectiveTracks = selectedTracksCount > 0 ? selectedTracksCount : 1;
+    
+    const $checkedTracks = $(".track-checkbox:checked");
+    if ($checkedTracks.length > 0 && effectiveTracks === 0 && $checkedTracks.filter("[value='Venezuela']").length > 0) {
+        effectiveTracks = 1; 
+    }
+
+    const finalTotal = sum * effectiveTracks * effectiveDays;
+    $("#totalJugadas").text(finalTotal.toFixed(2));
+}
+
+function storeFormState() { 
+    const st = {
+        dateVal: fpInstance ? fpInstance.input.value : "", 
+        plays: []
+    };
+    $("#tablaJugadas > tr").each(function() { 
+        st.plays.push({
+            betNumber: $(this).find(".betNumber").val() || "",
+            gameMode: $(this).find(".gameMode").text() || "-",
+            straight: $(this).find(".straight").val() || "",
+            box: $(this).find(".box").val() || "",
+            combo: $(this).find(".combo").val() || "",
+            // Ensure we store the value from span.total-amount
+            total: $(this).find(".total-cell .total-amount").text() || "0.00"
+        });
+    });
+    localStorage.setItem("formState", JSON.stringify(st));
+}
+
+function loadFormState() { 
+    console.log("loadFormState called");
+    const data = JSON.parse(localStorage.getItem("formState"));
+    if (!data) return;
+
+    if (fpInstance && data.dateVal) {
+        const datesToSet = data.dateVal.split(', ').map(dateStr => {
+            const parts = dateStr.split('-');
+            if (parts.length === 3) {
+                const year = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
+                return `${parts[0]}-${parts[1]}-${year}`;
+            }
+            return null;
+        }).filter(d => d !== null);
+        fpInstance.setDate(datesToSet, false); 
+        selectedDaysCount = datesToSet.length > 0 ? datesToSet.length : 1;
+    }
+
+
+    $("#tablaJugadas").empty(); 
+    playCount = 0; 
+    if (data.plays && data.plays.length > 0) {
+        data.plays.forEach((p) => {
+            addMainRow({ 
+                betNumber: p.betNumber, 
+                gameMode: p.gameMode, 
+                straightAmount: parseFloat(p.straight) || null,
+                boxAmount: p.box, 
+                comboAmount: parseFloat(p.combo) || null
+                // The total will be recalculated by recalcMainRow called within addMainRow
+            });
+        });
+    }
+    
+    recalcAllMainRows(); 
+    calculateMainTotal(); 
+    highlightDuplicatesInMain();
+    $("#selectAllCheckbox").prop('checked', false); 
+}
+
+
+// --- Form Actions ---
+function resetForm() { 
+    console.log("resetForm called");
+    
+    $(".track-checkbox").off('change', trackCheckboxChangeHandler);
+    isUpdatingProgrammatically = true;
+
+    $("#lotteryForm")[0].reset(); 
+    $("#tablaJugadas").empty(); 
+    playCount = 0;
+    jugadasGlobalOCR = [];
+    selectedFileGlobalOCR = null;
+
+    $("#ocrFile").val("");
+    $("#ocrPreview").addClass("d-none").attr("src", "");
+    $("#ocrJugadas").empty().html("<p>Sube una imagen para ver las jugadas detectadas aquí.</p>");
+    $("#btnProcesarOCR").prop('disabled', true);
+    $("#btnCargarJugadas").prop('disabled', true);
+    hideOcrLoading();
+
+    // Remove invalid-play highlighting
+    $("#tablaJugadas > tr").removeClass("invalid-play");
+
+    $("#selectAllCheckbox").prop('checked', false);
+    window.copiedAmounts = {};
+    $("#pasteAmountsButton").prop('disabled', true);
+ 
+    if (fpInstance) {
+        fpInstance.setDate([new Date()], false); 
+    } else {
+        selectedDaysCount = 1;
+    }
+    
+    $(".track-checkbox").prop('checked', false);
+    autoSelectNYTrackAndVenezuela(); 
+
+    isUpdatingProgrammatically = false;
+    $(".track-checkbox").on('change', trackCheckboxChangeHandler);
+
+    updateSelectedTracksAndTotal(); 
+    
+    localStorage.removeItem("formState");
+
+    // Reset selectedDaysCount based on default date
+    selectedDaysCount = fpInstance.selectedDates.length > 0 ? fpInstance.selectedDates.length : 1;
+
+    console.log("Form reset complete.");
+}
+
+function validateMainPlays() {
+    let formIsValid = true;
+    $("#tablaJugadas > tr").removeClass("invalid-play"); // Clear previous highlighting
+
+    $("#tablaJugadas > tr").each(function() {
+        const $row = $(this);
+        const bnInput = $row.find(".betNumber");
+        const gmText = $row.find(".gameMode").text();
+        const bn = bnInput.val().trim();
+
+        let rowIsValid = true;
+
+        // 1. Check if bet number is empty
+        if (!bn) {
+            rowIsValid = false;
+        }
+
+        // 2. Check for multiple numbers or invalid format in bet number
+        // Allows single number (2-4 digits) or Pale format (XX-XX)
+        const singleNumberRegex = /^\d{2,4}$/;
+        const paleRegex = /^\d{2}-\d{2}$/;
+        if (bn && !singleNumberRegex.test(bn) && !paleRegex.test(bn)) {
+            rowIsValid = false;
+        }
+
+        // 3. Check if game mode is "-"
+        if (gmText === "-") {
+            rowIsValid = false;
+        }
+
+        if (!rowIsValid) {
+            $row.addClass("invalid-play");
+            formIsValid = false;
+        }
+    });
+    return formIsValid;
+}
+
+function doGenerateTicket() { 
+    console.log("doGenerateTicket called");
+    const dateVal = fpInstance ? fpInstance.input.value : "";
+    if (!dateVal) {
+        alert("Please select at least one date.");
+        return;
+    }
+    $("#ticketFecha").text(dateVal);
+
+    const chosenTracks = getCurrentSelectedTracks();
+    if (chosenTracks.length === 0) {
+        alert("Please select at least one track.");
+        return;
+    }
+    $("#ticketTracks").text(chosenTracks.join(", "));
+
+
+    const rows = $("#tablaJugadas > tr"); 
+    if (rows.length === 0) {
+        alert("No plays to generate a ticket for.");
+        return;
+    }
+    let formIsValid = true; 
+    
+    formIsValid = validateMainPlays(); // Call the validation function
+
+    if (!formIsValid) {
+        alert("Please correct the highlighted errors in the plays before generating the ticket.");
+        return; // Stop ticket generation
+    }
+
+    $("#ticketJugadas").empty();
+    rows.each(function(idx) {
+        const $row = $(this);
+        const bn = $row.find(".betNumber").val().trim();
+        const gm = $row.find(".gameMode").text();
+        let stVal = $row.find(".straight").val().trim() || "0.00";
+        let bxVal = $row.find(".box").val().trim(); 
+        let coVal = $row.find(".combo").val().trim() || "0.00";
+        let totVal = $row.find(".total-cell .total-amount").text() || "0.00";
+
+
+        if (bxVal === "" && (gm === "Pulito" || gm === "Single Action" || gm === "NY Horses")) {
+            bxVal = "-"; 
+        }
+
+
+        const rowHTML = `
+        <tr>
+          <td>${idx + 1}</td>
+          <td>${bn}</td>
+          <td>${gm}</td>
+          <td>${parseFloat(stVal).toFixed(2)}</td>
+          <td>${bxVal}</td> 
+          <td>${parseFloat(coVal).toFixed(2)}</td>
+          <td>${parseFloat(totVal).toFixed(2)}</td>
+        </tr>
+      `;
+        $("#ticketJugadas").append(rowHTML);
+    });
+
+
+    $("#ticketTotal").text($("#totalJugadas").text());
+
+    if (ticketModalInstance) {
+        $("#editButton").removeClass("d-none");
+        $("#shareTicket").addClass("d-none");
+        $("#confirmarTicket").prop("disabled", false);
+        ticketModalInstance.show();
+    } else {
+        console.error("Ticket modal instance not available in doGenerateTicket");
+    }
+    storeFormState();
+}
+
+
+// --- Track Management ---
+function getTrackCutoff(trackName) { 
+    for (let region in cutoffTimes) {
+        if (cutoffTimes[region] && cutoffTimes[region][trackName]) {
+            return cutoffTimes[region][trackName];
+        }
+    }
+    return null;
+}
+function hasBrooklynOrFront(tracks) { 
+    const bfSet = new Set(["Brooklyn Midday", "Brooklyn Evening", "Front Midday", "Front Evening"]);
+    return tracks.some(t => bfSet.has(t));
+}
+function userChoseToday() { 
+    const val = fpInstance ? fpInstance.input.value : "";
+    if (!val) return false;
+    const arr = val.split(", ");
+    const today = dayjs().startOf("day");
+    for (let ds of arr) {
+        const parsedDate = dayjs(ds, "MM-DD-YYYY"); 
+        if (parsedDate.isValid() && parsedDate.isSame(today, "day")) return true;
+    }
+    return false;
+}
+
+function autoSelectNYTrackAndVenezuela() { 
+    console.log("autoSelectNYTrackAndVenezuela called");
+    const anyChecked = $(".track-checkbox:checked").length > 0;
+    if (anyChecked && !isResettingForm) return; 
+
+    isUpdatingProgrammatically = true;
+    $(".track-checkbox").off('change', trackCheckboxChangeHandler);
+
+    const now = dayjs();
+    const middayCutoff = dayjs().hour(14).minute(20); 
+
+    if (now.isBefore(middayCutoff)) {
+        $("#trackNYMidDay").prop("checked", true);
+    } else {
+        $("#trackNYEvening").prop("checked", true);
+    }
+    $("#trackVenezuela").prop("checked", true);
+    
+    isUpdatingProgrammatically = false;
+    $(".track-checkbox").on('change', trackCheckboxChangeHandler);
+}
+
+// --- Utility Functions ---
+function highlightDuplicatesInMain() { 
+    $("#tablaJugadas > tr .betNumber").removeClass("duplicado"); 
+    const counts = {};
+    $("#tablaJugadas > tr .betNumber").each(function() { 
+        const bn = $(this).val().trim();
+        if (bn) counts[bn] = (counts[bn] || 0) + 1;
+    });
+    $("#tablaJugadas > tr .betNumber").each(function() { 
+        const bn = $(this).val().trim();
+        if (counts[bn] > 1) $(this).addClass("duplicado");
+    });
+}
+function highlightDuplicatesInWizard() { 
+    $("#wizardTableBody tr td:nth-child(2)").removeClass("duplicado");
+    const counts = {};
+    $("#wizardTableBody tr").each(function() {
+        const bn = $(this).find("td").eq(1).text().trim();
+        if (bn) counts[bn] = (counts[bn] || 0) + 1;
+    });
+    $("#wizardTableBody tr").each(function() {
+        const bn = $(this).find("td").eq(1).text().trim();
+        if (counts[bn] > 1) $(this).find("td").eq(1).addClass("duplicado");
+    });
+}
+
+function generateUniqueTicketNumber() { return Math.floor(10000000 + Math.random() * 90000000).toString(); }
+
+let transactionDateTime = ''; 
+let isResettingForm = false; 
+
+// Wizard specific functions
+function resetWizard() { 
+    wizardCount = 0;
+    $("#wizardTableBody").empty();
+    lockedFields.straight = false; $("#lockStraight").html(`<i class="bi bi-unlock"></i>`);
+    lockedFields.box = false;      $("#lockBox").html(`<i class="bi bi-unlock"></i>`);
+    lockedFields.combo = false;    $("#lockCombo").html(`<i class="bi bi-unlock"></i>`);
+    $("#wizardBetNumber, #wizardStraight, #wizardBox, #wizardCombo").val("");
+    $("#qpGameMode").val("Pick 3"); $("#qpCount").val("5"); 
+}
+function addWizardRow(bn, gm, stVal, bxVal, coVal, total) { 
+    wizardCount++;
+    const i = wizardCount;
+    const rowHTML = `
+      <tr data-wizardIndex="${i}">
+        <td><button type="button" class="removeWizardBtn btnRemovePlay btn btn-sm btn-danger" data-row="${i}">${i}</button></td>
+        <td>${bn}</td><td>${gm}</td>
+        <td>${stVal || "-"}</td><td>${bxVal || "-"}</td><td>${coVal || "-"}</td>
+        <td>${(parseFloat(total) || 0).toFixed(2)}</td>
+      </tr>`;
+    $("#wizardTableBody").append(rowHTML);
+}
+function renumberWizard() { 
+    let i = 0;
+    $("#wizardTableBody tr").each(function() { i++; $(this).attr("data-wizardIndex", i).find(".removeWizardBtn").attr("data-row", i).text(i); });
+    wizardCount = i;
+}
+
+function generateRandomNumberForMode(mode) {
+    if (mode === "NY Horses") { const length = Math.floor(Math.random() * 4) + 1; return Math.floor(Math.random() * Math.pow(10, length)); }
+    if (mode === "Single Action") { return Math.floor(Math.random() * 10); } 
+    if (["Win 4"].includes(mode)) { return Math.floor(Math.random() * 10000); } 
+    if (["Venezuela", "Pulito", "RD-Quiniela"].includes(mode)) { return Math.floor(Math.random() * 100); } 
+    if (["Pick 3"].includes(mode)) { return Math.floor(Math.random() * 1000); }
+    return Math.floor(Math.random() * 1000); 
+}
+
+function padNumberForMode(num, mode) { 
+    let s = String(num);
+    if (["NY Horses", "Single Action"].includes(mode)) return s; 
+    if (["Win 4", "Pale-Ven", "Pale-RD", "Palé"].includes(mode)) { 
+        while (s.length < 4) s = "0" + s; return s; 
+    }
+    if (["Pick 3"].includes(mode)) { 
+        while (s.length < 3) s = "0" + s; return s; 
+    }
+    if (["Venezuela", "Pulito", "RD-Quiniela"].includes(mode)) { 
+        while (s.length < 2) s = "0" + s; return s; 
+    }
+    while (s.length < 3) s = "0" + s; return s; 
+}
+
+function permuteWizardBetNumbers() { 
+    const rows = $("#wizardTableBody tr");
+    if (rows.length === 0) { alert("No plays in the wizard table."); return; }
+    let allDigits = []; let lengths = [];
+    rows.each(function() { const bn = $(this).find("td").eq(1).text().trim(); lengths.push(bn.length); for (let c of bn) allDigits.push(c); });
+    if (allDigits.length === 0) { alert("No digits found to permute."); return; }
+    for (let i = allDigits.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [allDigits[i], allDigits[j]] = [allDigits[j], allDigits[i]];}
+    let idx = 0;
+    rows.each(function(i) {
+        const needed = lengths[i]; const subset = allDigits.slice(idx, idx + needed); idx += needed;
+        const newBN = subset.join("");
+        const currentTracks = getCurrentSelectedTracks();
+        const gm = determineGameMode(newBN, currentTracks);
+        const stTd = $(this).find("td").eq(3).text().trim(); const bxTd = $(this).find("td").eq(4).text().trim(); const coTd = $(this).find("td").eq(5).text().trim();
+        const newTotal = calculateRowTotal(newBN, gm, (stTd === "-" ? "0" : stTd), (bxTd === "-" ? "0" : bxTd), (coTd === "-" ? "0" : coTd));
+        $(this).find("td").eq(1).text(newBN); $(this).find("td").eq(2).text(gm); $(this).find("td").eq(6).text(parseFloat(newTotal).toFixed(2));
+    });
+    highlightDuplicatesInWizard();
+}
+
+// Tutorial and Manual display functions
+const tutorialStepsEN = [ /* ... */ ]; const tutorialStepsES = [ /* ... */ ]; const tutorialStepsHT = [ /* ... */ ];
+function startTutorial(lang) { /* ... */ }
+
+
+const lockedFields = { straight: false, box: false, combo: false }; 
+let fpDateInstance = null; 
+
+// Ensure all global functions that are called from HTML onclick are on window
+window.usarJugadaOCR = usarJugadaOCR;
+window.handleCargarTodasLasJugadasClick = handleCargarTodasLasJugadasClick;
+window.abrirModalOCR = abrirModalOCR;
+window.handleDragOverOCR = handleDragOverOCR;
+window.handleDragLeaveOCR = handleDragLeaveOCR;
+window.handleDropOCR = handleDropOCR;
+window.handleFileChangeOCR = handleFileChangeOCR;
+window.procesarOCR = procesarOCR;
+window.toggleOcrDebug = toggleOcrDebug;
+window.startTutorial = startTutorial;
+
+// --- Theme Toggle Logic ---
+function setupThemeToggle() {
+    const body = document.body;
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const moonIcon = themeToggleBtn ? themeToggleBtn.querySelector('.bi-moon') : null;
+    const sunIcon = themeToggleBtn ? themeToggleBtn.querySelector('.bi-sun') : null;
+
+    if (!themeToggleBtn || !moonIcon || !sunIcon) {
+        console.error("Theme toggle elements not found.");
+        return;
+    }
+
+    const savedTheme = localStorage.getItem('themeMode');
+    if (savedTheme === 'light') {
+        body.classList.add('light-mode');
+        moonIcon.style.display = 'none';
+        sunIcon.style.display = 'inline-block';
+    } else {
+        body.classList.remove('light-mode');
+        moonIcon.style.display = 'inline-block';
+        sunIcon.style.display = 'none';
+    }
+
+    themeToggleBtn.addEventListener('click', function() {
+        const isLightMode = body.classList.contains('light-mode');
+        body.classList.toggle('light-mode', !isLightMode);
+        localStorage.setItem('themeMode', isLightMode ? 'dark' : 'light');
+        moonIcon.style.display = isLightMode ? 'inline-block' : 'none';
+        sunIcon.style.display = isLightMode ? 'none' : 'inline-block';
+    });
+}
+
+console.log("End of scripts.js reached");

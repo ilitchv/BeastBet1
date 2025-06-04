@@ -364,7 +364,7 @@ h2 {
   z-index: 1 !important;
 }
 
-/* Mantener .button-group como estaba originalmente - NO como grid */
+/* NO ocultar .button-group - puede ser que contenga algunos botones */
 .button-group {
   display: flex !important;
   flex-wrap: wrap !important;

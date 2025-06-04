@@ -40,6 +40,29 @@ El enfoque actual ha sido mejorar la usabilidad y completar funcionalidades clav
     2.  En `public/scripts.js`, se ajustó la lógica en el manejador de click de `.total-cell` para eliminar la llamada `.show()` al botón de pegar, ya que siempre está visible. Se verificó la lógica del manejador de click de `#pasteAmountsButton` para asegurar que pegue los montos copiados (`window.copiedAmounts`) en los campos "straight", "box" y "combo" de las filas con checkboxes marcados (`.row-select-checkbox:checked`) y recalcule la fila y el total general.
   - **Resultado:** El botón "Paste Wagers" ahora aparece siempre visible debajo de la tabla con un color distintivo. La funcionalidad de copiar un monto de una fila y pegarlo en múltiples filas seleccionadas mediante checkboxes funciona correctamente y de forma intuitiva para el usuario.
 
+
+- **Funcionalidad de Pegar Montos (Visibilidad y Funcionalidad):**
+  - Objetivo: Asegurar que el botón "Paste Wagers" esté siempre visible y funcione correctamente.
+  - Contexto: El botón había perdido visibilidad en iteraciones anteriores.
+  - Archivos Modificados: `public/index.html`, `public/scripts.js`, `public/styles.css`.
+  - Cambios Realizados: Se eliminó la clase `d-none` en `index.html`, se modificó `resetForm` en `scripts.js` para no ocultarlo, y se eliminó una regla `display: none;` específica para `#pasteAmountsButton` en `styles.css`.
+  - Resultado: El botón "Paste Wagers" ahora está siempre visible y su funcionalidad de pegar montos copiados a filas seleccionadas opera correctamente.
+
+- **Mejora en la Selección de Tracks (Display de Hora de Cierre y Desactivación por Hora):**
+  - Objetivo: Restaurar la apariencia de botón para la selección de tracks, mostrando la hora de cierre y desactivando automáticamente los tracks cuya hora de cierre ha pasado.
+  - Contexto: Los tracks se presentaban como checkboxes básicos sin información de hora de cierre ni desactivación automática.
+  - Archivos Modificados: `public/scripts.js`, `public/styles.css`.
+  - Cambios Realizados: Se implementaron funciones en `scripts.js` (`updateTrackCutoffDisplays` y `disableExpiredTracks`) para leer las horas de cierre (`cutoffTimes`), popular los elementos `span.cutoff-time` en el HTML, comparar la hora actual con las horas de cierre (considerando la fecha seleccionada), y aplicar la clase `disabled` y el atributo `disabled` a los tracks expirados. Se configuró un intervalo para la actualización periódica.
+  - Resultado: La selección de tracks ahora utiliza el estilo de botón deseado, muestra las horas de cierre, y los tracks se desactivan automáticamente cuando la hora de cierre pasa para la fecha seleccionada.
+
+- **Mejora en la Selección de Tracks (Escalado y Apariencia en Mobile):**
+  - Objetivo: Lograr que los botones de selección de tracks se dimensionen correctamente y se ajusten a la pantalla de dispositivos móviles, mostrando la hora de cierre y con el estilo de botón cuadrado y efecto 3D de la app original, permitiendo que quepan más por fila.
+  - Contexto: Se identificó que la app actual no escalaba los botones de tracks de forma eficiente en mobile, mostrando solo 2-3 por fila y con problemas de layout general.
+  - Archivos Modificados: `public/styles.css`, `public/index.html`.
+  - Cambios Realizados: Se revirtieron cambios previos en la tabla, se ajustaron las media queries en `styles.css` al breakpoint de 768px, se implementó un nuevo enfoque de sizing para `.track-button-container` (basado en porcentaje) y `.track-button` (usando `padding-bottom` para mantener aspecto cuadrado) y se ajustaron márgenes/padding para mejorar el ajuste horizontal. Se modificaron los estilos de texto dentro de los botones (`.track-name`, `.cutoff-time`) para reducir el tamaño y manejar el overflow con ellipsis.
+  - Resultado Parcial: Se logró que más botones quepan por fila, se mantiene el aspecto cuadrado, y se mejoró el ajuste general del layout. **Problema Pendiente:** El texto dentro de los botones de track no es visible después de los últimos ajustes de tamaño y overflow. Se necesita depurar y corregir la visualización del texto.
+  - Próximo Paso: Investigar y resolver el problema de visibilidad del texto en los botones de track escalados en mobile.
+
 ## 7. AI Instructions / Memory Management
 <!-- Instructions for el modelo de lenguaje sobre cómo leer y actualizar este archivo para mantener el contexto. Esto actuaría como tu "custom instructions" dentro del archivo. -->
 Al inicio de cada sesión, DEBES leer completamente este archivo para reconstruir el contexto del proyecto.
