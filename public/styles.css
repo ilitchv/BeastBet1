@@ -1,533 +1,443 @@
-/* Estilos generales */
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #2c3e50 !important; /* Azul oscuro/grisáceo */
-    color: #ecf0f1 !important; /* Texto claro */
+    background-color: #f0f2f5; /* Light gray background */
+    color: #333;
+    transition: background-color 0.3s, color 0.3s;
 }
 
-.container {
-    max-width: 960px; /* Ajusta según necesidad */
+body.dark-theme {
+    background-color: #1a1a1a; /* Dark background */
+    color: #f0f0f0; /* Light text */
 }
 
-h1, h2, h3, h4, h5, h6 {
-    color: #ffffff; /* Naranja brillante para encabezados */
+body.dark-theme .card,
+body.dark-theme .modal-content {
+    background-color: #2c2c2c; /* Darker card background */
+    color: #f0f0f0;
+    border-color: #444;
 }
-.lead {
-    color: #bdc3c7; /* Gris claro para el subtitulo */
+body.dark-theme .table {
+    color: #f0f0f0; /* Ensure table text is light in dark mode */
+}
+body.dark-theme .table-striped > tbody > tr:nth-of-type(odd) > * {
+    --bs-table-accent-bg: rgba(255, 255, 255, 0.05); /* Lighter stripe for dark mode */
+}
+body.dark-theme .form-control,
+body.dark-theme .form-select {
+    background-color: #333;
+    color: #f0f0f0;
+    border-color: #555;
+}
+body.dark-theme .form-control::placeholder {
+    color: #aaa;
+}
+body.dark-theme .btn-outline-primary {
+    color: #69c3ff;
+    border-color: #69c3ff;
+}
+body.dark-theme .btn-outline-primary:hover {
+    background-color: #69c3ff;
+    color: #1a1a1a;
+}
+body.dark-theme .btn-outline-secondary {
+    color: #adb5bd;
+    border-color: #adb5bd;
+}
+body.dark-theme #fecha { /* Specific for Flatpickr dark theme */
+    background-color: #333 !important; /* Flatpickr might override, use !important */
+    color: #f0f0f0 !important;
+}
+body.dark-theme .flatpickr-calendar {
+    background: #2c2c2c;
+    border-color: #444;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+body.dark-theme .flatpickr-months .flatpickr-month {
+    color: #f0f0f0;
+}
+body.dark-theme .flatpickr-current-month .flatpickr-monthDropdown-months {
+    color: #f0f0f0;
+}
+body.dark-theme .flatpickr-weekday, body.dark-theme .flatpickr-weekdays {
+    color: #f0f0f0;
+}
+body.dark-theme .flatpickr-day {
+    color: #f0f0f0;
+}
+body.dark-theme .flatpickr-day.flatpickr-disabled, 
+body.dark-theme .flatpickr-day.flatpickr-disabled:hover {
+    color: #666;
+}
+body.dark-theme .flatpickr-day.selected, 
+body.dark-theme .flatpickr-day.startRange, 
+body.dark-theme .flatpickr-day.endRange, 
+body.dark-theme .flatpickr-day.selected.inRange, 
+body.dark-theme .flatpickr-day.startRange.inRange, 
+body.dark-theme .flatpickr-day.endRange.inRange, 
+body.dark-theme .flatpickr-day.selected:focus, 
+body.dark-theme .flatpickr-day.startRange:focus, 
+body.dark-theme .flatpickr-day.endRange:focus, 
+body.dark-theme .flatpickr-day.selected:hover, 
+body.dark-theme .flatpickr-day.startRange:hover, 
+body.dark-theme .flatpickr-day.endRange:hover, 
+body.dark-theme .flatpickr-day.selected.prevMonthDay, 
+body.dark-theme .flatpickr-day.startRange.prevMonthDay, 
+body.dark-theme .flatpickr-day.endRange.prevMonthDay, 
+body.dark-theme .flatpickr-day.selected.nextMonthDay, 
+body.dark-theme .flatpickr-day.startRange.nextMonthDay, 
+body.dark-theme .flatpickr-day.endRange.nextMonthDay {
+    background: #0d6efd;
+    border-color: #0d6efd;
+    color: #fff;
+}
+body.dark-theme .flatpickr-day.inRange,
+body.dark-theme .flatpickr-day.prevMonthDay.inRange,
+body.dark-theme .flatpickr-day.nextMonthDay.inRange {
+    background: #3d8bfd; /* Lighter blue for in-range days */
+    border-color: #3d8bfd;
+    box-shadow: -5px 0 0 #3d8bfd, 5px 0 0 #3d8bfd;
+    color: #fff;
 }
 
-/* Estilos para los botones de track */
-.tracks-container {
-    border: 1px solid #444; /* Borde sutil */
-    padding: 15px;
-    border-radius: 8px;
-    background-color: #343a40; /* Fondo oscuro para el contenedor de tracks */
-    margin-bottom: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+.container-fluid {
+    max-width: 1400px; /* Max width for larger screens */
 }
 
-.track-category h5 {
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #4f5962;
-    color: #e0e0e0;
+.card {
+    border: none; /* Remove default card borders for a cleaner look */
+}
+
+.card-header {
     font-weight: bold;
 }
-.track-category h5 i {
-    margin-right: 8px;
-    color: #f39c12; /* Iconos en naranja */
+
+.bet-table th, .bet-table td {
+    vertical-align: middle;
+    text-align: center;
+    padding: 0.4rem 0.2rem; /* Reduced padding */
+    font-size: 0.85rem; /* Smaller font size */
 }
 
+.bet-table .form-control, .bet-table .form-select {
+    font-size: 0.85rem; /* Smaller font size for inputs in table */
+    padding: 0.25rem 0.5rem; /* Reduced padding for inputs */
+    height: auto; /* Adjust height automatically */
+    min-width: 60px; /* Min width for amount inputs */
+}
+
+.col-select { width: 5%; }
+.col-number { width: 5%; }
+.col-bet { width: 20%; }
+.col-mode { width: 20%; }
+.col-amount { width: 12%; }
+.col-total { width: 14%; }
+.col-action { width: 12%; }
+
+
+.bet-table .form-control.bet-number-input {
+    min-width: 80px;
+}
+.bet-table .form-select.game-mode-select {
+    min-width: 100px;
+}
+
+.button-group .btn {
+    margin-right: 5px; /* Spacing between buttons */
+}
+.button-group .btn:last-child {
+    margin-right: 0;
+}
+
+.total-section h5 {
+    font-weight: bold;
+}
+
+.total-section p {
+    font-size: 0.9rem;
+}
+
+.ticket-preview {
+    font-family: 'Courier New', Courier, monospace;
+    line-height: 1.4;
+    font-size: 1rem; /* Default font size for ticket */
+}
+
+.ticket-preview-modal {
+    font-family: 'Courier New', Courier, monospace;
+    line-height: 1.4;
+    font-size: 1rem; 
+    color: #000; /* Ensure text is black on white background for modal preview */
+}
+
+
+.ticket-header, .ticket-footer {
+    margin-bottom: 5px;
+}
+.ticket-plays-preview {
+    min-height: 100px; /* Minimum height for plays area */
+}
+
+.ticket-plays-preview .play-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem; /* Smaller font for play items */
+    margin-bottom: 2px;
+}
+.ticket-plays-preview .play-item span {
+    display: inline-block;
+}
+.ticket-plays-preview .play-item .bet-number {
+    width: 30%;
+}
+.ticket-plays-preview .play-item .game-mode {
+    width: 30%;
+    text-align: center;
+}
+.ticket-plays-preview .play-item .amount {
+    width: 30%;
+    text-align: right;
+}
+
+
+#qrcode {
+    padding: 5px;
+    background-color: white;
+    border: 1px solid #ccc;
+    display: inline-block; /* To center it using text-align on parent */
+}
+#modalQrcode {
+    padding: 5px;
+    background-color: white;
+    border: 1px solid #ccc;
+    display: inline-block; /* To center it using text-align on parent */
+}
+
+
+.sticky-top {
+    top: 20px; /* Adjust sticky top position */
+}
+
+/* Track Button Styles */
+.tracks-section {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    background-color: #fff; /* Ensure white background for tracks section */
+}
+body.dark-theme .tracks-section {
+    border-color: #444;
+    background-color: #2c2c2c;
+}
 
 .track-buttons-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); /* Responsive grid */
-    gap: 10px; /* Espacio entre botones */
+    display: flex;
+    flex-direction: column; /* Categories stacked vertically */
+    gap: 15px; /* Space between categories */
 }
 
+.track-category {
+    /* Styles for the category container if needed, e.g., border */
+}
+
+.track-category-title {
+    font-size: 0.95rem;
+    font-weight: bold;
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid;
+}
+
+.track-category-title.usa-title { border-color: #007bff; color: #007bff; }
+.track-category-title.sd-title { border-color: #28a745; color: #28a745; }
+
+body.dark-theme .track-category-title.usa-title { border-color: #69c3ff; color: #69c3ff; }
+body.dark-theme .track-category-title.sd-title { border-color: #73dd8c; color: #73dd8c; }
+
+
 .track-button-container {
-    /* Contenedor para el input y el label para que el label pueda ser estilizado como un botón completo */
+    display: inline-block; /* Allows containers to flow */
+    margin: 2px; /* Tiny margin around each button container */
+    width: calc(25% - 4px); /* 4 buttons per row, accounting for margin */
 }
 
 .track-button {
-    width: 100%;
-    height: 85px; /* Altura incrementada */
-    padding: 8px;
-    font-size: 0.8rem; /* Tamaño de fuente reducido para más texto */
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Centra verticalmente */
-    align-items: center; /* Centra horizontalmente */
+    align-items: center;
+    justify-content: center;
+    width: 100%; /* Full width of its container */
+    height: 70px; /* Fixed height for square-like appearance */
+    padding: 5px;
+    font-size: 0.75rem; /* Smaller font for track names */
+    line-height: 1.2;
+    white-space: normal; /* Allow text to wrap */
     text-align: center;
-    border-radius: 6px;
+    border-radius: 0.375rem;
     transition: all 0.2s ease-in-out;
-    line-height: 1.2; /* Ajuste para texto multi-línea */
-    white-space: normal; /* Permite que el texto se divida en múltiples líneas */
-    word-break: break-word; /* Rompe palabras largas si es necesario */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-    border-width: 1px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Subtle shadow */
+}
+
+.track-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .track-button .track-name {
     font-weight: bold;
     display: block;
-    margin-bottom: 4px; /* Espacio entre nombre y hora */
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Ellipsis for long track names */
 }
 
 .track-button .cutoff-time {
-    font-size: 0.7rem; /* Hora más pequeña */
+    font-size: 0.65rem; /* Even smaller for cutoff time */
     display: block;
-    color: #adb5bd; /* Color más sutil para la hora */
+    width: 100%;
 }
 
-.btn-check:checked + .track-button {
-    background-color: #f39c12; /* Naranja para seleccionado */
-    color: #2c3e50; /* Texto oscuro para contraste */
-    border-color: #e08e0b;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+/* Customizing btn-check behavior for track buttons */
+.btn-check:checked+.track-button {
+    /* Standard Bootstrap checked styles are usually fine */
+    /* e.g., background-color, border-color, color */
+    transform: translateY(1px); /* Pressed effect */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
-.btn-check:checked + .track-button .cutoff-time {
-    color: #523602; /* Hora más oscura cuando seleccionado */
-}
-
-
-.btn-check:disabled + .track-button {
-    background-color: #495057;
-    color: #6c757d;
-    border-color: #495057;
-    cursor: not-allowed;
+.btn-check:disabled+.track-button {
+    background-color: #6c757d; /* Bootstrap's default disabled grey */
+    border-color: #6c757d;
+    color: #fff;
     opacity: 0.65;
+    pointer-events: none;
     box-shadow: none;
 }
-.btn-check:disabled + .track-button .cutoff-time {
-    color: #606366;
-}
-
-
-.btn-outline-primary.track-button {
-    border-color: #0d6efd;
-    color: #0d6efd;
-}
-.btn-outline-primary.track-button:hover {
-    background-color: #0d6efd;
-    color: white;
-}
-.btn-check:checked + .btn-outline-primary.track-button { /* Para USA Tracks */
-    background-color: #0d6efd;
-    color: white;
-    border-color: #0a58ca;
-}
-.btn-check:checked + .btn-outline-primary.track-button .cutoff-time {
-    color: #cce0ff;
-}
-
-
-.btn-outline-success.track-button { /* Para SD Tracks */
-    border-color: #198754;
-    color: #198754;
-}
-.btn-outline-success.track-button:hover {
-    background-color: #198754;
-    color: white;
-}
-.btn-check:checked + .btn-outline-success.track-button {
-    background-color: #198754;
-    color: white;
-    border-color: #146c43;
-}
-.btn-check:checked + .btn-outline-success.track-button .cutoff-time {
-    color: #d1e7dd;
-}
-
-
-/* Input de fecha */
-#fecha {
+body.dark-theme .btn-check:disabled+.track-button {
     background-color: #495057;
-    color: #fff;
-    border: 1px solid #555;
-}
-.flatpickr-calendar.dark { /* Asegura que el tema oscuro se aplique bien */
-    background: #343a40;
-    border: 1px solid #555;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-}
-.flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange {
-    background: #f39c12;
-    border-color: #f39c12;
-    color: #2c3e50;
-}
-.flatpickr-day:hover {
-    background: #e08e0b;
-    color: #2c3e50;
+    border-color: #495057;
 }
 
 
-/* Estilos para la tabla de jugadas */
-.table-responsive {
-    max-height: 400px; /* O la altura que prefieras */
-    border: 1px solid #444;
-    border-radius: 6px;
-}
-.table th, .table td {
-    vertical-align: middle;
-    padding: 0.5rem; /* Reducir padding para más compacidad */
-}
-.table thead th {
-    background-color: #3e4a58; /* Un poco más claro que el body para diferenciar */
-    color: #f0f0f0;
-    font-weight: bold;
-    border-bottom: 2px solid #555;
+/* Responsive adjustments for track buttons */
+@media (max-width: 992px) { /* Medium devices (tablets) */
+    .track-button-container {
+        width: calc(33.333% - 4px); /* 3 buttons per row */
+    }
 }
 
-/* Clases para tamaños de columna específicos */
-.col-select { width: 3%; }
-.col-play-number { width: 20%; }
-.col-game-mode { width: 17%; }
-.col-wager { width: 10%; text-align: right; }
-.col-notes { width: 20%; }
-.col-total { width: 10%; text-align: right; }
-
-#tablaJugadas input[type="text"],
-#tablaJugadas input[type="number"],
-#tablaJugadas select {
-    background-color: #495057;
-    color: #fff;
-    border: 1px solid #555;
-    font-size: 0.9rem; /* Reducir tamaño de fuente en inputs de la tabla */
-    padding: 0.25rem 0.5rem; /* Reducir padding en inputs */
-}
-#tablaJugadas input:focus, #tablaJugadas select:focus {
-    background-color: #525c66;
-    border-color: #f39c12;
-    box-shadow: none;
-}
-#tablaJugadas .form-control.is-invalid { /* Estilo para inputs inválidos */
-    border-color: #dc3545;
-}
-#tablaJugadas .invalid-feedback {
-    font-size: 0.75rem;
-}
-
-/* Estilo para filas duplicadas */
-.duplicate-row {
-    background-color: rgba(255, 0, 0, 0.3) !important; /* Fondo rojo semi-transparente */
-    /* outline: 2px solid red; */
-}
-.duplicate-warning {
-    color: #ffc107; /* Amarillo para el texto de advertencia */
-    font-weight: bold;
-    font-size: 0.8em;
-}
-
-/* Estilo para los botones de acción de la fila */
-.row-action-button {
-    padding: 0.2rem 0.4rem;
-    font-size: 0.8rem;
-}
-.row-action-button i {
-    font-size: 0.9rem; /* Iconos un poco más pequeños */
-}
-
-/* Estilo para el botón de "Paste Wagers" (si se usa el mismo estilo) */
-/* #pasteAmountsButton.btn-dark {
-    background-color: #212529;
-    border-color: #212529;
-}
-#pasteAmountsButton.btn-dark:hover {
-    background-color: #1c1f23;
-    border-color: #1a1e21;
-} */
-
-
-.total-section {
-    background-color: #212529;
-    border: 1px solid #444;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
-.total-section h2 {
-    color: #f39c12; /* Total General en naranja */
-    font-weight: bold;
-}
-
-
-/* Modal Styles */
-.modal-content.bg-dark {
-    border: 1px solid #555;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-}
-.modal-header {
-    border-bottom: 1px solid #4f5962;
-}
-.modal-footer {
-    border-top: 1px solid #4f5962;
-}
-.modal-title i {
-    margin-right: 8px;
-    color: #f39c12;
-}
-
-/* OCR Modal Specifics */
-.ocr-drop-zone {
-    border: 2px dashed #6c757d;
-    padding: 20px;
-    text-align: center;
-    background-color: #343a40;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-.ocr-drop-zone:hover, .ocr-drop-zone.dragover {
-    background-color: #495057;
-    border-color: #adb5bd;
-}
-#ocrJugadas .list-group-item {
-    background-color: #343a40;
-    border-color: #4f5962;
-    margin-bottom: 5px;
-}
-#ocrJugadas .list-group-item strong {
-    color: #f39c12;
-}
-
-/* Ticket Preview Modal */
-.ticket-preview {
-    font-family: 'Courier New', Courier, monospace; /* Estilo de ticket de máquina */
-    color: #000 !important; /* Texto negro sobre fondo claro para el ticket */
-    border: 1px dashed #ccc;
-    min-height: 300px; /* Altura mínima para el ticket */
-    box-shadow: 0 0 10px rgba(0,0,0,0.1) inset;
-}
-.ticket-preview h4 {
-    color: #333;
-    border-bottom: 1px solid #888;
-    padding-bottom: 5px;
-    margin-bottom: 10px;
-}
-.ticket-preview p {
-    margin-bottom: 3px;
-    font-size: 0.9rem;
-}
-.ticket-preview .bet-item {
-    margin-bottom: 8px;
-    padding-bottom: 8px;
-    border-bottom: 1px dashed #eee;
-}
-.ticket-preview .bet-item:last-child {
-    border-bottom: none;
-}
-
-
-/* Wizard Modal Styles */
-.wizard-preview-area {
-    min-height: 200px;
-    max-height: 300px;
-    overflow-y: auto;
-    background-color: #212529 !important; /* Fondo más oscuro para la previsualización */
-    border-color: #495057 !important;
-    font-size: 0.85rem;
-}
-.wizard-preview-area .bet-preview-item {
-    padding: 4px;
-    border-bottom: 1px solid #343a40;
-}
-.wizard-preview-area .bet-preview-item:last-child {
-    border-bottom: none;
-}
-.lock-btn i.bi-lock-fill { color: #f39c12; } /* Color naranja para el candado cerrado */
-
-
-/* Action Buttons Grid Styles */
-.action-buttons-container {
-  border: 1px solid #444;
-  padding: 15px;
-  border-radius: 8px;
-  background-color: #343a40;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.action-button-row {
-  display: flex;
-  justify-content: space-around; 
-  align-items: stretch; 
-  margin-bottom: 10px; 
-  gap: 10px; 
-}
-
-.action-button-row:last-child {
-  margin-bottom: 0;
-}
-
-.styled-action-button {
-  flex-grow: 1; 
-  flex-basis: 0; 
-  min-width: 120px; 
-  height: 75px; 
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 8px;
-  font-size: 0.85rem; 
-  line-height: 1.2;
-  white-space: normal; 
-  border-radius: 6px; 
-  transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3); 
-}
-
-.styled-action-button i {
-  font-size: 1.2rem; 
-  margin-bottom: 5px; 
-}
-
-.styled-action-button:hover {
-  transform: translateY(-2px); 
-  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-}
-
-.styled-action-button:active {
-  transform: translateY(1px); 
-  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
-}
-
-/* Custom purple color for OCR button */
-.btn-purple {
-  background-color: #6f42c1;
-  border-color: #6f42c1;
-  color: #fff;
-}
-.btn-purple:hover {
-  background-color: #5a32a3;
-  border-color: #532f96;
-  color: #fff;
-}
-
-/* Footer */
-footer {
-    margin-top: 40px;
-    padding-top: 20px;
-    border-top: 1px solid #444;
-    font-size: 0.9rem;
-}
-footer p {
-    margin-bottom: 0.3rem;
-}
-#currentYear {
-    /* JavaScript se encargará de esto */
-}
-#showTutorial {
-    margin-top: 10px;
-}
-
-/* Tutorial Modal Content */
-#tutorialContent h2, #tutorialContent h3, #tutorialContent h4 {
-    color: #f39c12; /* Naranja para encabezados del tutorial */
-    margin-top: 20px;
-    margin-bottom: 10px;
-}
-#tutorialContent ul {
-    padding-left: 20px;
-}
-#tutorialContent li {
-    margin-bottom: 8px;
-}
-#tutorialContent code {
-    background-color: #495057;
-    padding: 2px 5px;
-    border-radius: 4px;
-    font-family: 'Courier New', Courier, monospace;
-}
-#tutorialContent .img-tutorial {
-    max-width: 100%;
-    height: auto;
-    border-radius: 5px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #555;
-}
-#tutorialContent .alert {
-    background-color: #343a40;
-    border-color: #4f5962;
-}
-#tutorialContent .alert-heading {
-    color: #f39c12;
-}
-
-
-/* Media Queries para mejorar la responsividad */
-@media (max-width: 768px) {
-    .track-buttons-grid {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Botones de track más pequeños en móviles */
+@media (max-width: 768px) { /* Small devices (landscape phones) */
+    .track-button-container {
+        width: calc(50% - 4px); /* 2 buttons per row */
     }
     .track-button {
-        height: 75px; /* Altura ligeramente reducida para móviles */
-        font-size: 0.75rem;
-    }
-    .track-button .track-name {
-        font-size: 0.8rem; /* Ajuste de nombre de track en móviles */
-    }
-    .track-button .cutoff-time {
-        font-size: 0.65rem; /* Ajuste de hora de corte en móviles */
-    }
-
-    /* Hacer que los botones de acción principales sean más flexibles en móviles */
-    .action-button-row {
-        flex-direction: column; /* Apilar botones verticalmente en pantallas muy pequeñas si es necesario */
-        gap: 8px;
-    }
-    .styled-action-button {
-        width: 100%; /* Ocupar todo el ancho disponible en la columna */
-        min-width: unset; /* Quitar ancho mínimo en móviles */
-        height: 60px; /* Altura reducida para botones de acción en móviles */
-        font-size: 0.8rem;
-    }
-    .styled-action-button i {
-        font-size: 1rem;
-        margin-bottom: 3px;
-    }
-
-    .col-play-number, .col-game-mode, .col-wager, .col-notes, .col-total {
-        font-size: 0.8rem; /* Reducir tamaño de fuente de la tabla en móviles */
-    }
-    #tablaJugadas input, #tablaJugadas select {
-        font-size: 0.8rem;
-    }
-
-    .container {
-        padding-left: 10px;
-        padding-right: 10px;
-    }
-    h1 { font-size: 1.8rem; }
-    .total-section h2 { font-size: 1.5rem; }
-}
-
-@media (max-width: 480px) {
-    .track-buttons-grid {
-        grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); /* Aún más pequeños */
-    }
-     .track-button {
-        height: 70px;
-        padding: 5px;
-    }
-    .track-button .track-name {
+        height: 60px;
         font-size: 0.7rem;
     }
-     .styled-action-button {
-        height: 55px;
+    .track-button .cutoff-time {
+        font-size: 0.6rem;
+    }
+}
+
+@media (max-width: 576px) { /* Extra small devices (portrait phones) */
+    .track-buttons-grid {
+        gap: 5px;
+    }
+    .track-button-container {
+        width: calc(50% - 4px); /* Still 2, but might need more space or smaller */
+    }
+    .track-button {
+        height: 55px; /* Slightly smaller height */
+        font-size: 0.65rem;
+    }
+     .col-bet, .col-mode { width: auto; } /* Allow table columns to be more flexible */
+     .bet-table th, .bet-table td {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.1rem;
+    }
+    .bet-table .form-control, .bet-table .form-select {
         font-size: 0.75rem;
     }
 }
 
-
-/* Helper class para texto de error de validación */
-.validation-error {
-    color: #ffdddd; /* Texto de error más claro para mejor contraste en fondo oscuro */
-    font-size: 0.8em;
-    display: block; /* Asegura que ocupe su propia línea */
-    margin-top: 2px;
+/* Wizard Modal Styles */
+.wizard-lock-btn.locked {
+    background-color: #28a745; /* Green for locked */
+    color: white;
+}
+.wizard-lock-btn.locked .bi-unlock::before {
+    content: "\f47a"; /* Bootstrap icon for 'lock-fill' */
 }
 
-/* Clase para ocultar elementos (usada por JavaScript) */
-.d-none {
-    display: none !important;
+#wizardPreviewArea .preview-item {
+    padding: 5px;
+    border-bottom: 1px dashed #ccc;
+}
+#wizardPreviewArea .preview-item:last-child {
+    border-bottom: none;
+}
+
+body.dark-theme #wizardPreviewArea {
+    background-color: #333;
+    border-color: #555;
+}
+body.dark-theme #wizardPreviewArea .preview-item {
+    border-bottom-color: #555;
+}
+
+/* Tutorial section */
+.tutorial-section {
+    background-color: #e9ecef; /* Light grey for tutorial box */
+    border-color: #ced4da;
+}
+body.dark-theme .tutorial-section {
+    background-color: #343a40; /* Darker grey for tutorial box in dark mode */
+    border-color: #495057;
+}
+.tutorial-section h4 {
+    color: #007bff; /* Primary color for tutorial title */
+}
+body.dark-theme .tutorial-section h4 {
+    color: #69c3ff; /* Lighter blue for dark mode */
+}
+
+/* For input-group styling to ensure button is same height as input */
+.input-group .form-control {
+    height: calc(1.5em + .75rem + 2px); /* Default Bootstrap input height */
+}
+.input-group .btn {
+    height: calc(1.5em + .75rem + 2px); /* Match input height */
+}
+
+/* Ensure pasteAmountsButton and its container are visible by default unless JS hides it */
+/* No specific style needed here if it's part of the main button flow and not d-none */
+
+/* General helper for highlighting duplicate rows */
+.duplicate-row {
+    background-color: #fff3cd !important; /* Light yellow, Bootstrap's warning background */
+    /* border: 2px solid #ffeeba !important; /* Warning border color */
+}
+.duplicate-row td:first-child::before {
+    content: "⚠️ "; /* Add a warning icon */
+    color: #856404; /* Warning text color */
+    font-weight: bold;
+}
+
+body.dark-theme .duplicate-row {
+    background-color: #3e3822 !important; /* Darker yellow for dark mode */
+    /* border: 2px solid #5a4b1e !important; */
+}
+body.dark-theme .duplicate-row td:first-child::before {
+    color: #f8e7a0;
+}
+
+/* Ensure icons in buttons have consistent vertical alignment */
+.btn i.bi {
+    vertical-align: middle;
+    margin-right: 0.25em; /* Small space between icon and text */
+}
+
+#pasteAmountsButton { /* This button was previously explicitly styled d-none and with btn-dark */
+    /* Ensure it's displayed if not handled by JS */
+    /* display: inline-block !important; */ /* Use with caution, if JS visibility is intended */
 }
