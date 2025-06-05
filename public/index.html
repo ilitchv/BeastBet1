@@ -1,384 +1,434 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Essential for responsiveness -->
-  <title>Beast Reader (BETA) East New York</title>
-
-  <!-- Bootstrap CSS -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  />
-
-  <!-- Flatpickr CSS (tema material_blue) -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css"
-    rel="stylesheet"
-  />
-
-  <!-- Bootstrap Icons -->
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
-  />
-
-  <!-- Google Fonts -->
-  <link
-    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&display=swap"
-    rel="stylesheet"
-  />
-
-  <!-- Intro.js (CSS para el tutorial) -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/intro.js/minified/introjs.min.css"
-  />
-  
-  <!-- Custom CSS -->
-  <link href="styles.css" rel="stylesheet" />
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beast Reader - LottoLook</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/dark.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-  <!-- Tutorial Buttons -->
-  <div id="tutorialButtonsContainer" style="position: absolute; top: 10px; right: 10px; z-index:99999;">
-    <button id="helpEnglish" class="btn btn-secondary btn-sm">E</button>
-    <button id="helpSpanish" class="btn btn-secondary btn-sm">S</button>
-    <button id="helpCreole" class="btn btn-secondary btn-sm">C</button>
-  </div>
+<body class="bg-dark text-light">
+    <div class="container mt-4 mb-5">
+        <header class="text-center mb-4">
+            <img src="beastreader-logo.png" alt="Beast Reader Logo" style="width: 100px; height: auto; border-radius: 10px; margin-bottom:10px;">
+            <h1>Beast Reader (BETA)</h1>
+            <p class="lead">East New York - Memory Bank</p>
+        </header>
 
-  <div class="container my-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2 class="text-center flex-grow-1 me-3">Beast Reader (Cricket) East New York</h2>
-      <!-- Theme Toggle Button -->
-      <button id="themeToggleBtn" class="btn btn-secondary btn-sm"><i class="bi bi-moon"></i> <i class="bi bi-sun" style="display: none;"></i></button>
+        <!-- Contenedor de Fecha y Selección de Tracks -->
+        <div class="row align-items-end mb-3">
+            <div class="col-md-4 mb-3 mb-md-0">
+                <label for="fecha" class="form-label">Fecha del Sorteo:</label>
+                <input type="text" class="form-control bg-secondary text-light" id="fecha" placeholder="Seleccione fecha(s)">
+            </div>
+            <div class="col-md-8">
+                <p class="mb-1" id="selectedDaysCount">Días seleccionados: 0</p>
+                <p class="mb-1" id="tracksSelectedCount">Tracks seleccionados: 0</p>
+            </div>
+        </div>
+
+        <!-- Track Selection Buttons -->
+        <div class="tracks-container mb-4">
+            <div class="track-category">
+                <h5><i class="bi bi-flag-fill"></i> USA Tracks</h5>
+                <div class="track-buttons-grid">
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="NYMidDay" autocomplete="off" data-track-name="NY Mid Day" data-region="USA">
+                        <label class="btn btn-outline-primary track-button" for="NYMidDay"><span class="track-name">NY Mid Day</span> <span class="cutoff-time">(12:20PM)</span></label>
+                    </div>
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="NYEvening" autocomplete="off" data-track-name="NY Evening" data-region="USA">
+                        <label class="btn btn-outline-primary track-button" for="NYEvening"><span class="track-name">NY Evening</span> <span class="cutoff-time">(07:20PM)</span></label>
+                    </div>
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="NJMidDay" autocomplete="off" data-track-name="NJ Mid Day" data-region="USA">
+                        <label class="btn btn-outline-primary track-button" for="NJMidDay"><span class="track-name">NJ Mid Day</span> <span class="cutoff-time">(12:57PM)</span></label>
+                    </div>
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="NJEvening" autocomplete="off" data-track-name="NJ Evening" data-region="USA">
+                        <label class="btn btn-outline-primary track-button" for="NJEvening"><span class="track-name">NJ Evening</span> <span class="cutoff-time">(07:55PM)</span></label>
+                    </div>
+                     <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="FLMidDay" autocomplete="off" data-track-name="FL Mid Day" data-region="USA">
+                        <label class="btn btn-outline-primary track-button" for="FLMidDay"><span class="track-name">FL Mid Day</span> <span class="cutoff-time">(01:28PM)</span></label>
+                    </div>
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="FLEvening" autocomplete="off" data-track-name="FL Evening" data-region="USA">
+                        <label class="btn btn-outline-primary track-button" for="FLEvening"><span class="track-name">FL Evening</span> <span class="cutoff-time">(09:43PM)</span></label>
+                    </div>
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="CTMidDay" autocomplete="off" data-track-name="CT Mid Day" data-region="USA">
+                        <label class="btn btn-outline-primary track-button" for="CTMidDay"><span class="track-name">CT Mid Day</span> <span class="cutoff-time">(01:28PM)</span></label>
+                    </div>
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="CTEvening" autocomplete="off" data-track-name="CT Evening" data-region="USA">
+                        <label class="btn btn-outline-primary track-button" for="CTEvening"><span class="track-name">CT Evening</span> <span class="cutoff-time">(10:00PM)</span></label>
+                    </div>
+                     <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="GeorgiaMidDay" autocomplete="off" data-track-name="Georgia Mid Day" data-region="USA">
+                        <label class="btn btn-outline-primary track-button" for="GeorgiaMidDay"><span class="track-name">Georgia Mid Day</span> <span class="cutoff-time">(12:29PM)</span></label>
+                    </div>
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="GeorgiaEvening" autocomplete="off" data-track-name="Georgia Evening" data-region="USA">
+                        <label class="btn btn-outline-primary track-button" for="GeorgiaEvening"><span class="track-name">Georgia Evening</span> <span class="cutoff-time">(06:59PM)</span></label>
+                    </div>
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="GeorgiaNight" autocomplete="off" data-track-name="Georgia Night" data-region="USA">
+                        <label class="btn btn-outline-primary track-button" for="GeorgiaNight"><span class="track-name">Georgia Night</span> <span class="cutoff-time">(11:34PM)</span></label>
+                    </div>
+
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="PensilvaniaAM" autocomplete="off" data-track-name="Pensilvania AM" data-region="USA">
+                        <label class="btn btn-outline-primary track-button" for="PensilvaniaAM"><span class="track-name">Pensilvania AM</span> <span class="cutoff-time">(01:30PM)</span></label>
+                    </div>
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="PensilvaniaPM" autocomplete="off" data-track-name="Pensilvania PM" data-region="USA">
+                        <label class="btn btn-outline-primary track-button" for="PensilvaniaPM"><span class="track-name">Pensilvania PM</span> <span class="cutoff-time">(06:55PM)</span></label>
+                    </div>
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="Venezuela" autocomplete="off" data-track-name="Venezuela" data-region="USA">
+                        <label class="btn btn-outline-primary track-button" for="Venezuela"><span class="track-name">Venezuela</span> <span class="cutoff-time">(No Cutoff)</span></label>
+                    </div>
+                    <!-- Placeholder for more USA tracks -->
+                </div>
+            </div>
+
+            <div class="track-category">
+                <h5><i class="bi bi-sun-fill"></i> Santo Domingo Tracks</h5>
+                <div class="track-buttons-grid">
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="Real" autocomplete="off" data-track-name="Real" data-region="SD">
+                        <label class="btn btn-outline-success track-button" for="Real"><span class="track-name">Real</span> <span class="cutoff-time">(12:55PM)</span></label>
+                    </div>
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="Ganamas" autocomplete="off" data-track-name="Gana más" data-region="SD">
+                        <label class="btn btn-outline-success track-button" for="Ganamas"><span class="track-name">Gana más</span> <span class="cutoff-time">(02:55PM)</span></label>
+                    </div>
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="Loteka" autocomplete="off" data-track-name="Loteka" data-region="SD">
+                        <label class="btn btn-outline-success track-button" for="Loteka"><span class="track-name">Loteka</span> <span class="cutoff-time">(07:55PM)</span></label>
+                    </div>
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="Nacional" autocomplete="off" data-track-name="Nacional" data-region="SD">
+                        <label class="btn btn-outline-success track-button" for="Nacional"><span class="track-name">Nacional</span> <span class="cutoff-time">(08:50PM)</span></label>
+                    </div>
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="Leidsa" autocomplete="off" data-track-name="Leidsa Quiniela Pale" data-region="SD"> <!-- Assume this is Leidsa QP -->
+                        <label class="btn btn-outline-success track-button" for="Leidsa"><span class="track-name">Leidsa QP</span> <span class="cutoff-time">(08:50PM)</span></label>
+                    </div>
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="PrimeraDia" autocomplete="off" data-track-name="Primera Día" data-region="SD">
+                        <label class="btn btn-outline-success track-button" for="PrimeraDia"><span class="track-name">Primera Día</span> <span class="cutoff-time">(11:55AM)</span></label>
+                    </div>
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="SuerteDia" autocomplete="off" data-track-name="Suerte Día" data-region="SD">
+                        <label class="btn btn-outline-success track-button" for="SuerteDia"><span class="track-name">Suerte Día</span> <span class="cutoff-time">(12:25PM)</span></label>
+                    </div>
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="Lotedom" autocomplete="off" data-track-name="Lotedom" data-region="SD">
+                        <label class="btn btn-outline-success track-button" for="Lotedom"><span class="track-name">Lotedom</span> <span class="cutoff-time">(01:55PM)</span></label>
+                    </div>
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="PrimeraNoche" autocomplete="off" data-track-name="Primera Noche" data-region="SD">
+                        <label class="btn btn-outline-success track-button" for="PrimeraNoche"><span class="track-name">Primera Noche</span> <span class="cutoff-time">(07:55PM)</span></label>
+                    </div>
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="AnguilaManana" autocomplete="off" data-track-name="Anguila Mañana" data-region="SD">
+                        <label class="btn btn-outline-success track-button" for="AnguilaManana"><span class="track-name">Anguila Mañana</span> <span class="cutoff-time">(09:00AM)</span></label>
+                    </div>
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="AnguilaMediodia" autocomplete="off" data-track-name="Anguila Mediodía" data-region="SD">
+                        <label class="btn btn-outline-success track-button" for="AnguilaMediodia"><span class="track-name">Anguila Mediodía</span> <span class="cutoff-time">(01:00PM)</span></label>
+                    </div>
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="AnguilaTarde" autocomplete="off" data-track-name="Anguila Tarde" data-region="SD">
+                        <label class="btn btn-outline-success track-button" for="AnguilaTarde"><span class="track-name">Anguila Tarde</span> <span class="cutoff-time">(05:00PM)</span></label>
+                    </div>
+                     <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="AnguilaNoche" autocomplete="off" data-track-name="Anguila Noche" data-region="SD">
+                        <label class="btn btn-outline-success track-button" for="AnguilaNoche"><span class="track-name">Anguila Noche</span> <span class="cutoff-time">(09:00PM)</span></label>
+                    </div>
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="KingLotteryTarde" autocomplete="off" data-track-name="King Lottery Tarde" data-region="SD">
+                        <label class="btn btn-outline-success track-button" for="KingLotteryTarde"><span class="track-name">King Tarde</span> <span class="cutoff-time">(12:30PM)</span></label>
+                    </div>
+                    <div class="track-button-container">
+                        <input type="checkbox" class="btn-check track-checkbox" id="KingLotteryNoche" autocomplete="off" data-track-name="King Lottery Noche" data-region="SD">
+                        <label class="btn btn-outline-success track-button" for="KingLotteryNoche"><span class="track-name">King Noche</span> <span class="cutoff-time">(07:30PM)</span></label>
+                    </div>
+                    <!-- Placeholder for more SD tracks -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Jugadas -->
+        <div class="table-responsive mb-3">
+            <table class="table table-dark table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th scope="col" class="col-select"><input type="checkbox" id="selectAllRows" title="Select/Deselect all rows"></th>
+                        <th scope="col" class="col-play-number"># Play</th>
+                        <th scope="col" class="col-game-mode">Game Mode</th>
+                        <th scope="col" class="col-wager">Straight</th>
+                        <th scope="col" class="col-wager">Box</th>
+                        <th scope="col" class="col-wager">Combo</th>
+                        <th scope="col" class="col-notes">Notes</th>
+                        <th scope="col" class="col-total text-end">Total</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaJugadas">
+                    <!-- Las filas de jugadas se agregarán aquí -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Action Buttons Grid -->
+        <div class="action-buttons-container mb-4">
+          <!-- First Row of Action Buttons -->
+          <div class="action-button-row">
+            <button type="button" class="btn btn-primary styled-action-button" id="agregarJugada">
+              <i class="bi bi-plus-circle"></i> Add Play
+            </button>
+            <button type="button" class="btn btn-info styled-action-button" id="wizardButton" data-bs-toggle="modal" data-bs-target="#wizardModal">
+              <i class="bi bi-magic"></i> Wizard
+            </button>
+            <button type="button" class="btn btn-danger styled-action-button" id="eliminarJugada">
+              <i class="bi bi-dash-circle"></i> Remove Last
+            </button>
+            <button type="button" class="btn btn-warning styled-action-button" id="resetForm">
+              <i class="bi bi-arrow-clockwise"></i> Reset Form
+            </button>
+          </div>
+          <!-- Second Row of Action Buttons -->
+          <div class="action-button-row">
+            <button type="button" class="btn btn-success styled-action-button" id="generarTicket">
+              <i class="bi bi-ticket-detailed-fill"></i> Generate Ticket
+            </button>
+            <button type="button" class="btn btn-purple styled-action-button" id="btnOcrModal" onclick="abrirModalOCR()">
+              <i class="bi bi-camera"></i> OCR Capture
+            </button>
+            <button type="button" class="btn btn-secondary styled-action-button" id="pasteAmountsButton">
+              <i class="bi bi-clipboard-plus"></i> Paste Wagers
+            </button>
+            <button type="button" class="btn btn-dark styled-action-button" onclick="window.open('dailyReport.html','_blank')">
+              <i class="bi bi-file-earmark-text"></i> Daily Report
+            </button>
+          </div>
+        </div>
+
+        <!-- Total Section -->
+        <div class="total-section text-center p-3 mb-4 rounded">
+            <h2>Total General: <span id="totalGeneral">$0.00</span></h2>
+        </div>
+
+    </div><!-- /.container -->
+
+    <!-- Modal OCR -->
+    <div class="modal fade" id="modalOcr" tabindex="-1" aria-labelledby="modalOcrLabel" aria-hidden="true" data-bs-theme="dark">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content bg-dark text-light">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalOcrLabel"><i class="bi bi-camera-fill"></i> Capturar Ticket por OCR</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Sube una imagen de tu ticket de lotería. La IA intentará leer las jugadas.</p>
+                    <div id="ocrDropZone" class="ocr-drop-zone mb-3">
+                        <p>Arrastra y suelta una imagen aquí, o haz clic para seleccionar.</p>
+                        <input type="file" id="ocrFile" accept="image/*" class="form-control" style="display: none;">
+                        <img id="ocrPreview" src="#" alt="Vista previa de la imagen" class="img-fluid rounded mt-2" style="display:none; max-height: 300px;"/>
+                    </div>
+                    <button type="button" class="btn btn-primary w-100 mb-3" id="btnProcesarOCR" onclick="procesarOCR()" disabled><i class="bi bi-cpu"></i> Procesar con IA</button>
+                    
+                    <div id="ocrLoading" style="display:none;" class="text-center mb-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>Procesando, por favor espera...</p>
+                    </div>
+
+                    <div id="ocrError" class="alert alert-danger" style="display:none;"></div>
+                    
+                    <h5><i class="bi bi-card-list"></i> Jugadas Detectadas:</h5>
+                    <div id="ocrDebugInfo" class="mb-2" style="font-size: 0.8em; display:none;">
+                        Raw AI Output: <pre id="rawOcrOutput" class="bg-secondary p-2 rounded"></pre>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary mb-2" onclick="toggleOcrDebug()">Mostrar/Ocultar Debug</button>
+                    
+                    <div id="ocrJugadas" class="list-group">
+                        <!-- Jugadas interpretadas se mostrarán aquí -->
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-circle"></i> Cerrar</button>
+                    <button type="button" class="btn btn-info" id="btnCargarJugadas" onclick="handleCargarTodasLasJugadasClick()" disabled>
+                        <i class="bi bi-arrow-down-square-fill"></i> Cargar Jugadas al Form
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Main Form -->
-    <form id="lotteryForm">
-      <!-- Date Selection -->
-      <div class="row mb-3">
-        <div class="col-12 col-sm-6 col-md-4">
-          <label for="fecha" class="form-label">Bet Dates:</label>
-          <input
-            type="text"
-            id="fecha"
-            class="form-control glow-input"
-            placeholder="Select date(s)"
-            required
-          />
-        </div>
-      </div>
-
-      <!-- Tracks Selection -->
-      <div class="mb-4">
-        <label class="form-label">Select Tracks:</label>
-        <div class="accordion" id="tracksAccordion">
-          <!-- USA TRACKS -->
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="headingUSA">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUSA" aria-expanded="false" aria-controls="collapseUSA">USA</button>
-            </h2>
-            <div id="collapseUSA" class="accordion-collapse collapse" aria-labelledby="headingUSA" data-bs-parent="#tracksAccordion">
-              <div class="accordion-body">
-                <!-- Track buttons will be generated by scripts.js or hardcoded -->
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="New York Mid Day" id="trackNYMidDay" /><label class="track-button" for="trackNYMidDay"><span class="track-name">New York Mid Day</span> <span class="cutoff-time" data-track="New York Mid Day"></span></label>
+    <!-- Wizard Modal -->
+    <div class="modal fade" id="wizardModal" tabindex="-1" aria-labelledby="wizardModalLabel" aria-hidden="true" data-bs-theme="dark">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content bg-dark text-light">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="wizardModalLabel"><i class="bi bi-magic"></i> Asistente de Jugadas Múltiples</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="New York Evening" id="trackNYEvening" /><label class="track-button" for="trackNYEvening"><span class="track-name">New York Evening</span> <span class="cutoff-time" data-track="New York Evening"></span></label>
+                <div class="modal-body">
+                    <div class="row">
+                        <!-- Columna de Entrada de Números -->
+                        <div class="col-md-4 border-end border-secondary">
+                            <h6><i class="bi bi-input-cursor-text"></i> Ingresar Números (uno por línea)</h6>
+                            <textarea id="wizardNumbersInput" class="form-control bg-secondary text-light mb-2" rows="10" placeholder="Ej: 123\n4567\n89-01"></textarea>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="wizardPermute">
+                                <label class="form-check-label" for="wizardPermute">
+                                    <i class="bi bi-shuffle"></i> Permutar dígitos (ej: 123 -> 132, 213, etc.)
+                                </label>
+                            </div>
+                             <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="wizardQuickPick">
+                                <label class="form-check-label" for="wizardQuickPick">
+                                    <i class="bi bi-dice-3"></i> Quick Pick (ignora números ingresados)
+                                </label>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col">
+                                    <label for="wizardNumQuickPicks" class="form-label"># de Quick Picks:</label>
+                                    <input type="number" id="wizardNumQuickPicks" class="form-control bg-secondary text-light" value="5" min="1">
+                                </div>
+                                <div class="col">
+                                    <label for="wizardDigitsQuickPick" class="form-label">Dígitos:</label>
+                                    <select id="wizardDigitsQuickPick" class="form-select bg-secondary text-light">
+                                        <option value="3">3 (Pick 3)</option>
+                                        <option value="4">4 (Win 4)</option>
+                                        <option value="2">2 (Pulito)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Columna de Montos -->
+                        <div class="col-md-4 border-end border-secondary">
+                            <h6><i class="bi bi-currency-dollar"></i> Montos por Jugada</h6>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text">Straight $</span>
+                                <input type="number" id="wizardStraightAmount" class="form-control bg-secondary text-light" placeholder="Ej: 1.00" step="0.01">
+                                <button class="btn btn-outline-secondary lock-btn" type="button" id="lockStraight" data-target="wizardStraightAmount"><i class="bi bi-unlock"></i></button>
+                            </div>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text">Box $</span>
+                                <input type="number" id="wizardBoxAmount" class="form-control bg-secondary text-light" placeholder="Ej: 0.50" step="0.01">
+                                 <button class="btn btn-outline-secondary lock-btn" type="button" id="lockBox" data-target="wizardBoxAmount"><i class="bi bi-unlock"></i></button>
+                            </div>
+                            <div class="input-group mb-3">
+                                <span class="input-group-text">Combo $</span>
+                                <input type="number" id="wizardComboAmount" class="form-control bg-secondary text-light" placeholder="Ej: 0.25" step="0.01">
+                                 <button class="btn btn-outline-secondary lock-btn" type="button" id="lockCombo" data-target="wizardComboAmount"><i class="bi bi-unlock"></i></button>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="wizardRoundDown">
+                                <label class="form-check-label" for="wizardRoundDown">
+                                    <i class="bi bi-arrow-down-circle"></i> Redondear "Box" y "Combo" a .00 o .50 (ej: .25 -> .00, .75 -> .50)
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Columna de Previsualización y Control -->
+                        <div class="col-md-4">
+                            <h6><i class="bi bi-eye-fill"></i> Previsualización (<span id="wizardPreviewCount">0</span> jugadas)</h6>
+                            <div id="wizardPreviewArea" class="wizard-preview-area mb-2 p-2 border rounded bg-secondary">
+                                <!-- Jugadas generadas se mostrarán aquí -->
+                            </div>
+                            <p class="small text-warning" id="wizardLimitWarning" style="display:none;">Límite de jugadas del formulario principal alcanzado. No se agregarán más jugadas.</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Georgia Mid Day" id="trackGeorgiaMidDay" /><label class="track-button" for="trackGeorgiaMidDay"><span class="track-name">Georgia Mid Day</span> <span class="cutoff-time" data-track="Georgia Mid Day"></span></label>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-circle"></i> Cancelar</button>
+                    <button type="button" class="btn btn-warning" id="wizardPreviewPlays"><i class="bi bi-arrow-repeat"></i> Previsualizar Jugadas</button>
+                    <button type="button" class="btn btn-primary" id="wizardAddPlaysToForm"><i class="bi bi-plus-square-dotted"></i> Agregar Jugadas al Formulario</button>
                 </div>
-                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Georgia Evening" id="trackGeorgiaEvening" /><label class="track-button" for="trackGeorgiaEvening"><span class="track-name">Georgia Evening</span> <span class="cutoff-time" data-track="Georgia Evening"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="New Jersey Mid Day" id="trackNJMidDay" /><label class="track-button" for="trackNJMidDay"><span class="track-name">New Jersey Mid Day</span> <span class="cutoff-time" data-track="New Jersey Mid Day"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="New Jersey Evening" id="trackNJEvening" /><label class="track-button" for="trackNJEvening"><span class="track-name">New Jersey Evening</span> <span class="cutoff-time" data-track="New Jersey Evening"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Florida Mid Day" id="trackFloridaMidDay" /><label class="track-button" for="trackFloridaMidDay"><span class="track-name">Florida Mid Day</span> <span class="cutoff-time" data-track="Florida Mid Day"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Florida Evening" id="trackFloridaEvening" /><label class="track-button" for="trackFloridaEvening"><span class="track-name">Florida Evening</span> <span class="cutoff-time" data-track="Florida Evening"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Connecticut Mid Day" id="trackConnecticutMidDay" /><label class="track-button" for="trackConnecticutMidDay"><span class="track-name">Connecticut Mid Day</span> <span class="cutoff-time" data-track="Connecticut Mid Day"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Connecticut Evening" id="trackConnecticutEvening" /><label class="track-button" for="trackConnecticutEvening"><span class="track-name">Connecticut Evening</span> <span class="cutoff-time" data-track="Connecticut Evening"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Georgia Night" id="trackGeorgiaNight" /><label class="track-button" for="trackGeorgiaNight"><span class="track-name">Georgia Night</span> <span class="cutoff-time" data-track="Georgia Night"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Pensilvania AM" id="trackPennsylvaniaAM" /><label class="track-button" for="trackPennsylvaniaAM"><span class="track-name">Pensilvania AM</span> <span class="cutoff-time" data-track="Pensilvania AM"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Pensilvania PM" id="trackPennsylvaniaPM" /><label class="track-button" for="trackPennsylvaniaPM"><span class="track-name">Pensilvania PM</span> <span class="cutoff-time" data-track="Pensilvania PM"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Venezuela" id="trackVenezuela" /><label class="track-button" for="trackVenezuela"><span class="track-name">Venezuela</span> <span class="cutoff-time" data-track="Venezuela"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Brooklyn Midday" id="trackBrooklynMidday" /><label class="track-button" for="trackBrooklynMidday"><span class="track-name">Brooklyn Midday</span> <span class="cutoff-time" data-track="Brooklyn Midday"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Brooklyn Evening" id="trackBrooklynEvening" /><label class="track-button" for="trackBrooklynEvening"><span class="track-name">Brooklyn Evening</span> <span class="cutoff-time" data-track="Brooklyn Evening"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Front Midday" id="trackFrontMidday" /><label class="track-button" for="trackFrontMidday"><span class="track-name">Front Midday</span> <span class="cutoff-time" data-track="Front Midday"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Front Evening" id="trackFrontEvening" /><label class="track-button" for="trackFrontEvening"><span class="track-name">Front Evening</span> <span class="cutoff-time" data-track="Front Evening"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="New York Horses" id="trackNYHorses" /><label class="track-button" for="trackNYHorses"><span class="track-name">New York Horses</span> <span class="cutoff-time" data-track="New York Horses"></span></label>
-                </div>
-              </div>
             </div>
-          </div>
-          <!-- Santo Domingo TRACKS -->
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="headingSD">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSD" aria-expanded="false" aria-controls="collapseSD">Santo Domingo</button>
-            </h2>
-            <div id="collapseSD" class="accordion-collapse collapse" aria-labelledby="headingSD" data-bs-parent="#tracksAccordion">
-              <div class="accordion-body">
-                 <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Real" id="trackReal" /><label class="track-button" for="trackReal"><span class="track-name">Real</span> <span class="cutoff-time" data-track="Real"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Gana mas" id="trackGanamas" /><label class="track-button" for="trackGanamas"><span class="track-name">Gana más</span> <span class="cutoff-time" data-track="Gana mas"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Loteka" id="trackLoteka" /><label class="track-button" for="trackLoteka"><span class="track-name">Loteka</span> <span class="cutoff-time" data-track="Loteka"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Nacional" id="trackNacional" /><label class="track-button" for="trackNacional"><span class="track-name">Nacional</span> <span class="cutoff-time" data-track="Nacional"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Quiniela Pale" id="trackQuinielaPale" /><label class="track-button" for="trackQuinielaPale"><span class="track-name">Quiniela Pale</span> <span class="cutoff-time" data-track="Quiniela Pale"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Primera Día" id="trackPrimeraDia" /><label class="track-button" for="trackPrimeraDia"><span class="track-name">Primera Día</span> <span class="cutoff-time" data-track="Primera Día"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Suerte Día" id="trackSuerteDia" /><label class="track-button" for="trackSuerteDia"><span class="track-name">Suerte Día</span> <span class="cutoff-time" data-track="Suerte Día"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Lotería Real" id="trackLoteriaReal" /><label class="track-button" for="trackLoteriaReal"><span class="track-name">Lotería Real</span> <span class="cutoff-time" data-track="Lotería Real"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Suerte Tarde" id="trackSuerteTarde" /><label class="track-button" for="trackSuerteTarde"><span class="track-name">Suerte Tarde</span> <span class="cutoff-time" data-track="Suerte Tarde"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Lotedom" id="trackLotedom" /><label class="track-button" for="trackLotedom"><span class="track-name">Lotedom</span> <span class="cutoff-time" data-track="Lotedom"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Primera Noche" id="trackPrimeraNoche" /><label class="track-button" for="trackPrimeraNoche"><span class="track-name">Primera Noche</span> <span class="cutoff-time" data-track="Primera Noche"></span></label>
-                </div>
-                <div class="track-button-container">
-                  <input class="track-checkbox" type="checkbox" value="Panama" id="trackPanama" /><label class="track-button" for="trackPanama"><span class="track-name">Panamá</span> <span class="cutoff-time" data-track="Panama"></span></label>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
-      </div>
-
-      <!-- Plays Table (Editable) -->
-      <div class="table-responsive mb-4" id="playsTableContainer">
- <table class="table table-dark table-bordered glow-table" id="jugadasTable" data-mobile-layout="false">
-          <thead>
-            <tr>
- <th class="select-col-header"><input type="checkbox" id="selectAllCheckbox"></th>
-              <th style="width: 40px;">#</th>
-              <th>Bet Number</th>
-              <th>Game Mode</th>
-              <th>Straight ($)</th>
-              <th>Box ($)</th>
-              <th>Combo ($)</th>
-              <th>Total</th>
-
-          </thead>
-          <tbody id="tablaJugadas">
-            <!-- Rows added dynamically -->
-          </tbody>
-        </table>
-      </div>
- <!-- Total Plays Section - Moved inside the table container -->
- <div class="total-section mb-4" style="font-size:1.25rem;"> <!-- Ensure margin bottom for spacing -->
- Total Plays: $<span id="totalJugadas">0.00</span>
- </div>
-
-      <!-- Buttons: Add, Wizard, Remove Last, Reset -->
-      <div class="action-buttons-container-mobile mb-4"> <!-- New container for action buttons -->
-        <button type="button" class="btn btn-dark me-2" id="pasteAmountsButton"><i class="bi bi-clipboard-fill"></i> Paste Amounts</button> <!-- Added Paste Button -->
-        <div class="button-group mb-2 mb-md-0"> <!-- Margin bottom on small screens - Adjust styling with CSS -->
-          <button type="button" class="btn btn-primary me-1" id="agregarJugada"><i class="bi bi-plus-circle"></i> Add</button>
- <button type="button" class="btn btn-info me-1" id="wizardButton"><i class="bi bi-magic"></i> Wizard</button>
- <button type="button" class="btn btn-secondary me-1" id="openDailyReportBtn"><i class="bi bi-file-text"></i> Abrir Reporte Diario</button>
-          <button type="button" class="btn btn-danger me-1" id="eliminarJugada"><i class="bi bi-dash-circle"></i> Remove Last</button>
-          <button type="button" class="btn btn-warning" id="resetForm"><i class="bi bi-arrow-clockwise"></i> Reset</button>
-        </div>
-
-        <!-- Include Generate Ticket & OCR Buttons inside the new container -->
-        <button type="button" class="btn btn-success btn-lg" id="generarTicket"><i class="bi bi-ticket-detailed-fill"></i> Generate Ticket</button>
-
-         <button type="button" class="btn btn-warning btn-lg" id="btnOcrModalTrigger" onclick="abrirModalOCR()">
-            <i class="bi bi-camera"></i> Capturar Boleto (OCR)
-        </button>
-      </div>
-
-      <!-- Total Plays Section - Moved outside the action-buttons-container-mobile -->
-      <div class="total-section mb-4" style="font-size:1.25rem;"> <!-- Ensure margin bottom for spacing -->
-        Total Plays: $<span id="totalJugadas">0.00</span>
-      </div>
-
-      <!-- MODAL OCR (Bootstrap) -->
-      <div class="modal fade" id="modalOcr" tabindex="-1" aria-labelledby="modalOcrLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="modalOcrLabel">OCR - Subir Imagen</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <div id="ocrDropZone" class="drop-zone" ondragover="handleDragOverOCR(event)" ondragleave="handleDragLeaveOCR(event)" ondrop="handleDropOCR(event)">Arrastra aquí la imagen...</div>
-              <p class="mt-2">O selecciona un archivo:</p>
-              <input type="file" id="ocrFile" class="form-control mb-3" accept="image/*" capture="camera" onchange="handleFileChangeOCR(event)"/>
-              <img id="ocrPreview" class="preview d-none img-fluid rounded mb-3" alt="Preview OCR" style="max-height: 200px; border: 1px solid #ddd;"/>
-              <div class="mt-3 d-none" id="ocrLoadingSection">
-                <div class="d-flex align-items-center">
-                    <div class="modern-spinner me-2" id="ocrSpinner"></div>
-                    <span>Procesando...</span>
-                </div>
-                <div class="progress-ocr-container mt-2">
-                  <div id="ocrProgressBar" class="progress-ocr-bar"></div>
-                </div>
-                <p id="ocrProgressText" class="mt-1 text-muted small"></p>
-              </div>
-              <div id="ocrJugadas" class="mt-3">
-                <!-- Jugadas detectadas (betNumber + monto) -->
-              </div>
-              <div class="border p-2 mt-3">
-                <button type="button" class="btn btn-sm btn-secondary" onclick="toggleOcrDebug()">Mostrar/Ocultar Debug</button>
-                <div id="ocrDebugPanel" class="d-none mt-2">
-                  <p>Información de depuración detallada no disponible. Revisa la consola del navegador.</p>
-                </div>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-primary" onclick="procesarOCR()" id="btnProcesarOCR" disabled>Procesar OCR</button>
-              <button type="button" class="btn btn-info" id="btnCargarJugadas" onclick="handleCargarTodasLasJugadasClick()" disabled>Cargar Jugadas al Form</button>
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </form>
-  </div>
-
-  <!-- BOTÓN para abrir dailyReport.html (si lo deseas en otra pestaña) -->
-  <!-- <button class="btn btn-secondary" onclick="window.open('dailyReport.html','_blank')">Abrir Reporte Diario</button> -->
-
-  <!-- Ticket Preview Window -->
-  <div class="modal fade" id="ticketModal" tabindex="-1" aria-labelledby="ticketModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="ticketModalLabel">Ticket Preview</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div id="preTicket" class="p-3">
-            <h4 class="text-center mb-3">East New York Cricket</h4>
-            <p><strong>Bet Dates:</strong> <span id="ticketFecha"></span></p>
-            <p><strong>Selected Tracks:</strong> <span id="ticketTracks"></span></p>
-            <div class="table-responsive">
-              <table class="table table-dark table-bordered">
-                <thead><tr><th>#</th><th>Bet No.</th><th>Game Mode</th><th>Str ($)</th><th>Box ($)</th><th>Com ($)</th><th>Total ($)</th></tr></thead>
-                <tbody id="ticketJugadas"></tbody>
-              </table>
-            </div>
-            <div class="total-section">Total Plays: $<span id="ticketTotal">0.00</span></div>
-            <div class="ticket-number my-3">Ticket Number: <span id="numeroTicket"></span></div>
-            <div class="transaction-date my-3">Transaction Date & Time: <span id="ticketTransaccion"></span></div>
-            <div class="barcode text-center"><div id="qrcode"></div></div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="editButton">Edit</button>
-          <button type="button" class="btn btn-primary" id="confirmarTicket">Confirm & Print</button>
-          <button type="button" class="btn btn-info d-none" id="shareTicket">Share Ticket</button>
-          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-        </div>
-      </div>
     </div>
-  </div>
-
-  <!-- WIZARD WINDOW (Quick Entry) -->
-  <div class="modal fade" id="wizardModal" tabindex="-1" aria-labelledby="wizardModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-fullscreen-sm-down modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="wizardModalLabel">Quick Entry Window</h5>
-          <button type="button" class="btn btn-danger" data-bs-dismiss="modal" aria-label="Close">Close Window</button>
+    
+    <!-- Ticket Preview Modal -->
+    <div class="modal fade" id="ticketModal" tabindex="-1" aria-labelledby="ticketModalLabel" aria-hidden="true" data-bs-theme="dark">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-dark text-light">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ticketModalLabel"><i class="bi bi-receipt-cutoff"></i> Vista Previa del Ticket</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="ticketContent" class="ticket-preview bg-light text-dark p-3 rounded">
+                        <!-- Contenido del ticket generado aquí -->
+                    </div>
+                    <div class="mt-3 text-center">
+                        <div id="qrcodeTicket" class="mx-auto" style="width: 128px; height: 128px;"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-circle"></i> Cerrar</button>
+                    <button type="button" class="btn btn-primary" id="downloadTicket"><i class="bi bi-download"></i> Descargar Ticket (JPG)</button>
+                    <button type="button" class="btn btn-info" id="copyTicketLink"><i class="bi bi-link-45deg"></i> Copiar Link (Próximamente)</button>
+                     <button type="button" class="btn btn-success" id="saveToSheetDB"><i class="bi bi-cloud-arrow-up-fill"></i> Guardar en Drive (SheetDB)</button>
+                </div>
+            </div>
         </div>
-        <div class="modal-body">
-          <div class="row mb-3"><div class="col-12 col-lg-6 d-flex align-items-end"><div class="me-2"><label for="wizardBetNumber" class="form-label">Bet Number</label><input type="text" class="form-control" id="wizardBetNumber" placeholder="2–4 digits or Pale (22-50)" style="width: 180px;"/></div><div><button type="button" class="btn btn-primary mt-auto" id="wizardAddNext"><i class="bi bi-check2-circle"></i> Add & Next</button></div></div></div>
-          <div class="row mb-3"><div class="col-12 col-lg-6 d-flex align-items-end"><div><label for="wizardStraight" class="form-label">Straight</label><div class="d-flex align-items-center"><input type="number" step="1" class="form-control" id="wizardStraight" placeholder="e.g. 5" style="width: 180px;"/><button type="button" class="btn btn-outline-secondary ms-1 lockBtn" data-field="straight" id="lockStraight"><i class="bi bi-unlock"></i></button></div></div></div><div class="col-12 col-lg-6 d-flex justify-content-lg-end align-items-end mt-2 mt-lg-0"><button type="button" class="btn btn-warning" id="wizardAddAllToMain"><i class="bi bi-hdd-fill"></i> Add Main</button></div></div>
-          <div class="row mb-3"><div class="col-12 col-lg-6 d-flex align-items-end"><div><label for="wizardBox" class="form-label">Box</label><div class="d-flex align-items-center"><input type="text" class="form-control" id="wizardBox" placeholder="e.g. 1,2" style="width: 180px;"/><button type="button" class="btn btn-outline-secondary ms-1 lockBtn" data-field="box" id="lockBox"><i class="bi bi-unlock"></i></button></div></div></div><div class="col-12 col-lg-6 d-flex justify-content-lg-end align-items-end mt-2 mt-lg-0"><button type="button" class="btn btn-success" id="wizardGenerateTicket"><i class="bi bi-ticket-detailed"></i> Generate</button></div></div>
-          <div class="row mb-3"><div class="col-12 col-lg-6 d-flex align-items-end"><div><label for="wizardCombo" class="form-label">Combo</label><div class="d-flex align-items-center"><input type="number" step="0.1" class="form-control" id="wizardCombo" placeholder="e.g. 3.00" style="width: 180px;"/><button type="button" class="btn btn-outline-secondary ms-1 lockBtn" data-field="combo" id="lockCombo"><i class="bi bi-unlock"></i></button></div></div></div><div class="col-12 col-lg-6 d-flex justify-content-lg-end align-items-end mt-2 mt-lg-0"><button type="button" class="btn btn-secondary" id="wizardEditMainForm"><i class="bi bi-pencil-square"></i> Edit Main</button></div></div>
-          <div class="table-responsive mb-3"><table class="table table-dark table-bordered" id="wizardTable"><thead><tr><th style="width:40px;">#</th><th>Bet No.</th><th>Game Mode</th><th>Str ($)</th><th>Box ($)</th><th>Com ($)</th><th>Total ($)</th></tr></thead><tbody id="wizardTableBody"></tbody></table></div>
-          <div class="border p-2 mb-3"><h6 class="mb-2">Quick Pick</h6><div class="row mb-2"><div class="col-6"><label for="qpGameMode" class="form-label">Game Mode</label><select class="form-select" id="qpGameMode"><option value="Pick 3">Pick 3</option><option value="Win 4">Win 4</option><option value="Venezuela">Venezuela</option><option value="Pale-Ven">Pale-Ven</option><option value="Pulito">Pulito</option><option value="RD-Quiniela">RD-Quiniela</option><option value="Pale-RD">Pale-RD</option><option value="Single Action">Single Action</option></select></div><div class="col-6"><label for="qpCount" class="form-label">How many?</label><input type="number" class="form-control" id="qpCount" placeholder="1–25" min="1" max="25" value="5"/></div></div><div class="d-flex gap-2"><button type="button" class="btn btn-info" id="btnGenerateQuickPick">Quick Pick</button><button type="button" class="btn btn-info" id="btnPermute">Permute</button></div></div>
-          <div class="border p-2 mb-3"><h6 class="mb-2">Round Down</h6><div class="row mb-2"><div class="col-6"><label for="rdFirstNumber" class="form-label">First No.</label><input type="text" class="form-control" id="rdFirstNumber" placeholder="e.g. 120"/></div><div class="col-6"><label for="rdLastNumber" class="form-label">Last No.</label><input type="text" class="form-control" id="rdLastNumber" placeholder="e.g. 129"/></div></div><button type="button" class="btn btn-info" id="btnGenerateRoundDown">Round Down</button></div>
-        </div>
-      </div>
     </div>
-  </div>
-
-  <!-- MANUAL -->
-  <div class="container mb-5">
-    <div class="accordion" id="manualAccordion">
-      <div class="accordion-item">
-        <h2 class="accordion-header" id="headingManual"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseManual" aria-expanded="false" aria-controls="collapseManual">Manual / Instructions</button></h2>
-        <div id="collapseManual" class="accordion-collapse collapse" aria-labelledby="headingManual" data-bs-parent="#manualAccordion">
-          <div class="accordion-body">
-            <div class="d-flex gap-2 mb-3"><button class="btn btn-secondary btn-sm" id="manualEnglishBtn">English</button><button class="btn btn-secondary btn-sm" id="manualSpanishBtn">Español</button><button class="btn btn-secondary btn-sm" id="manualCreoleBtn">Kreyòl</button></div>
-            <div id="manualEnglishText"><h4>Lottery App Manual (English)</h4><p><strong>Date Selection:</strong> The date input lets you pick one or multiple betting dates. Today is automatically assigned.</p></div>
-            <div id="manualSpanishText" class="d-none"><h4>Manual Completo de la App de Lotería (Español)</h4><p><strong>Selección de Fechas:</strong> Puede elegir una o varias fechas. “Hoy” se asigna por defecto.</p></div>
-            <div id="manualCreoleText" class="d-none"><h4>Manyèl Aplikasyon Lòtri (Kreyòl)</h4><p><strong>Chwazi Dat:</strong> Ou ka pran youn oswa plizyè dat, “jodia” default.</p></div>
-          </div>
+    
+    <!-- Tutorial Modal -->
+    <div class="modal fade" id="tutorialModal" tabindex="-1" aria-labelledby="tutorialModalLabel" aria-hidden="true" data-bs-theme="dark">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content bg-dark text-light">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="tutorialModalLabel"><i class="bi bi-info-circle-fill"></i> Manual de Usuario - Beast Reader</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="tutorialContent">
+                    <!-- Contenido del tutorial se cargará aquí -->
+                </div>
+                <div class="modal-footer">
+                     <div class="dropdown me-auto">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-translate"></i> Idioma
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="languageDropdown">
+                            <li><a class="dropdown-item" href="#" onclick="loadTutorial('en')">English</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="loadTutorial('es')">Español</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="loadTutorial('ht')">Kreyòl Ayisyen</a></li>
+                        </ul>
+                    </div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-circle"></i> Cerrar</button>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
 
-  <!-- SCRIPTS - Load jQuery first, then Popper, then Bootstrap, then your custom script -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-  <!-- Note: Flatpickr CSS is already in head. No separate JS theme for material_blue needed. -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/customParseFormat.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/arraySupport.js"></script>
-  <script>
-    dayjs.extend(dayjs_plugin_customParseFormat);
-    dayjs.extend(dayjs_plugin_arraySupport);
-  </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://unpkg.com/intro.js/minified/intro.min.js"></script>
 
-  <!-- YOUR CUSTOM SCRIPT -->
-  <script src="scripts.js"></script>
+    <footer class="text-center mt-5 mb-3">
+        <p>&copy; <span id="currentYear"></span> LottoLook - Beast Reader. Todos los derechos reservados.</p>
+        <p><small>Una herramienta para agilizar tus jugadas. Juega con responsabilidad.</small></p>
+        <button id="showTutorial" class="btn btn-sm btn-outline-info"><i class="bi bi-question-circle"></i> Ver Manual de Usuario</button>
+    </footer>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.7/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/es.js"></script> <!-- Spanish localization for Flatpickr -->
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/customParseFormat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/utc.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/timezone.js"></script>
+    <script src="scripts/qrcode.min.js"></script> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="scripts.js"></script>
 </body>
 </html>
