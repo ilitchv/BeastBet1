@@ -276,7 +276,7 @@ function handleCargarTodasLasJugadasClick() {
         recalcAllMainRows();
         calculateMainTotal();
         highlightDuplicatesInMain();
-        storeFormState();
+        storeFormState(); // Guardado automático tras cargar jugadas OCR
         alert(`Se cargaron ${jugadasCargadas} jugadas exitosamente.`);
     }
     
@@ -323,7 +323,11 @@ function updateSelectedTracksAndTotal() {
         // Handled in calculateMainTotal
     }
     calculateMainTotal();
-    storeFormState();
+    
+    // CORRECCIÓN 6: Guardar automáticamente cuando cambien los tracks
+    if (!isUpdatingProgrammatically) {
+        storeFormState();
+    }
 }
 
 function updateTrackCutoffDisplays() {
@@ -468,7 +472,7 @@ $(document).ready(function() {
             
             updateSelectedTracksAndTotal();
             disableExpiredTracks(); // Re-evaluate disabled tracks on date change
-            storeFormState();
+            storeFormState(); // Guardado automático cuando cambien las fechas
         }
     });
     selectedDaysCount = fpInstance.selectedDates.length > 0 ? fpInstance.selectedDates.length : 1;
@@ -485,6 +489,8 @@ $(document).ready(function() {
     // Initial calls for track functionality
     updateTrackCutoffDisplays();
     disableExpiredTracks();
+    
+    // CORRECCIÓN 6: Cargar estado guardado automáticamente al inicializar
     loadFormState(); 
 
     // Set up periodic check for track cutoffs
@@ -494,6 +500,7 @@ $(document).ready(function() {
         const $newRow = addMainRow();
         if ($newRow) {
             $newRow.find(".betNumber").focus();
+            storeFormState(); // Guardado automático al agregar fila
         }
     });
 
@@ -595,7 +602,7 @@ $(document).ready(function() {
         renumberMainRows();
         calculateMainTotal();
         highlightDuplicatesInMain();
-        storeFormState(); 
+        storeFormState(); // Guardado automático
         if ($("#tablaJugadas .row-select-checkbox").length === 0) { 
             $("#selectAllCheckbox").prop('checked', false);
         }
@@ -607,7 +614,7 @@ $(document).ready(function() {
         renumberMainRows();
         calculateMainTotal();
         highlightDuplicatesInMain();
-        storeFormState(); 
+        storeFormState(); // Guardado automático
         if ($("#tablaJugadas .row-select-checkbox").length === 0) { 
             $("#selectAllCheckbox").prop('checked', false);
         } else if ($("#tablaJugadas .row-select-checkbox:checked").length === $("#tablaJugadas .row-select-checkbox").length) { 
@@ -621,10 +628,16 @@ $(document).ready(function() {
         const $row = $(this).closest("tr");
         recalcMainRow($row);
         $row.removeClass("invalid-play"); // Remove highlighting on input change
-        storeFormState();
+        
+        // CORRECCIÓN 6: Guardar automáticamente en localStorage con cada cambio
+        setTimeout(() => {
+            storeFormState();
+        }, 300); // Pequeño delay para evitar guardar demasiado frecuentemente
     });
      $("#tablaJugadas").on("blur", ".betNumber, .straight, .box, .combo", function() {
         highlightDuplicatesInMain(); 
+        // Guardar también al salir del campo
+        storeFormState();
     });
 
 
@@ -648,24 +661,7 @@ $(document).ready(function() {
         transactionDateTime = dayjs().format("MM/DD/YYYY hh:mm A");
         $("#ticketTransaccion").text(transactionDateTime);
         
-        html2canvas(document.getElementById("preTicket")).then(function(canvas) {
-            const link = document.createElement('a');
-            link.download = `ticket_${uniqueTicket}.png`;
-            link.href = canvas.toDataURL('image/png');
-            
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link); 
-            
-            console.log("Ticket image generated and download triggered.");
-            
-            $("#shareTicket").removeClass("d-none"); 
-
-        }).catch(function(error) {
-            console.error("Error generating ticket image:", error);
-            alert("Error generating ticket image.");
-        });
-
+        // Generar QR primero y esperar a que se renderice
         $("#qrcode").empty();
         if (typeof QRCode !== 'undefined') {
              new QRCode(document.getElementById("qrcode"), {
@@ -677,7 +673,74 @@ $(document).ready(function() {
             console.error("QRCode library not loaded");
         }
         
-        $("#shareTicket").removeClass("d-none");
+        // Esperar un momento para que el QR se renderice completamente
+        setTimeout(() => {
+            // Determinar escala basada en el número de jugadas para mejor rendimiento
+            const jugadasCount = $("#ticketJugadas tr").length;
+            let scale = 4; // Escala por defecto
+            let quality = 1.0;
+            
+            if (jugadasCount > 150) {
+                scale = 2; // Reducir escala para muchas jugadas
+                quality = 0.9;
+            } else if (jugadasCount > 100) {
+                scale = 3;
+                quality = 0.95;
+            }
+            
+            console.log(`Generando ticket con ${jugadasCount} jugadas, escala: ${scale}, calidad: ${quality}`);
+            
+            // CORRECCIÓN 1: Mejorar resolución del ticket impreso - configuración adaptativa
+            html2canvas(document.getElementById("preTicket"), {
+                scale: scale, // Escala adaptativa
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                logging: false,
+                width: document.getElementById("preTicket").scrollWidth,
+                height: document.getElementById("preTicket").scrollHeight,
+                scrollX: 0,
+                scrollY: 0,
+                foreignObjectRendering: false, // Mejor compatibilidad
+                imageTimeout: 30000, // Timeout más largo para elementos complejos
+                ignoreElements: function(element) {
+                    // Ignorar elementos que puedan causar problemas
+                    return element.classList && element.classList.contains('ignore-screenshot');
+                },
+                onclone: function(clonedDoc) {
+                    // Asegurar que el QR code se vea en el clon
+                    const qrInClone = clonedDoc.getElementById("qrcode");
+                    if (qrInClone) {
+                        qrInClone.style.visibility = 'visible';
+                        qrInClone.style.opacity = '1';
+                        qrInClone.style.display = 'block';
+                    }
+                    
+                    // Asegurar que todos los elementos sean visibles
+                    const preTicketClone = clonedDoc.getElementById("preTicket");
+                    if (preTicketClone) {
+                        preTicketClone.style.transform = 'none';
+                        preTicketClone.style.width = 'auto';
+                        preTicketClone.style.height = 'auto';
+                    }
+                }
+            }).then(function(canvas) {
+                const link = document.createElement('a');
+                link.download = `ticket_${uniqueTicket}.png`;
+                link.href = canvas.toDataURL('image/png', quality);
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link); 
+                
+                console.log("Ticket image generated and download triggered.");
+                $("#shareTicket").removeClass("d-none");
+
+            }).catch(function(error) {
+                console.error("Error generating ticket image:", error);
+                alert("Error generating ticket image.");
+            });
+        }, 500); // Esperar 500ms para que el QR se renderice
     });
     
     $("#editButton").click(function(){
@@ -686,9 +749,43 @@ $(document).ready(function() {
     });
 
     $("#shareTicket").click(async function(){
+        // Prevenir múltiples clicks
+        if ($(this).prop('disabled')) return;
+        $(this).prop('disabled', true);
+        
         if (navigator.share) {
             try {
-                const canvas = await html2canvas(document.getElementById("preTicket"));
+                // Determinar escala basada en el número de jugadas
+                const jugadasCount = $("#ticketJugadas tr").length;
+                let scale = 4;
+                let quality = 1.0;
+                
+                if (jugadasCount > 150) {
+                    scale = 2;
+                    quality = 0.9;
+                } else if (jugadasCount > 100) {
+                    scale = 3;
+                    quality = 0.95;
+                }
+                
+                // También aplicar mejoras de resolución para compartir
+                const canvas = await html2canvas(document.getElementById("preTicket"), {
+                    scale: scale,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    foreignObjectRendering: false,
+                    imageTimeout: 30000,
+                    onclone: function(clonedDoc) {
+                        const qrInClone = clonedDoc.getElementById("qrcode");
+                        if (qrInClone) {
+                            qrInClone.style.visibility = 'visible';
+                            qrInClone.style.opacity = '1';
+                            qrInClone.style.display = 'block';
+                        }
+                    }
+                });
                 canvas.toBlob(async function(blob) {
                     const file = new File([blob], 'ticket.png', {type: 'image/png'});
                     await navigator.share({
@@ -696,9 +793,18 @@ $(document).ready(function() {
                         title: 'Mi Ticket de Lotería',
                         text: '¡Aquí tienes mi ticket generado!',
                     });
-                });
-            } catch (error) { console.error('Error sharing:', error); alert('Could not share ticket.'); }
-        } else { alert('Web Share API is not supported in your browser.'); }
+                    // Re-habilitar el botón después de compartir
+                    $("#shareTicket").prop('disabled', false);
+                }, 'image/png', quality);
+            } catch (error) { 
+                console.error('Error sharing:', error); 
+                alert('Could not share ticket.');
+                $("#shareTicket").prop('disabled', false);
+            }
+        } else { 
+            alert('Web Share API is not supported in your browser.');
+            $("#shareTicket").prop('disabled', false);
+        }
     });
 
 
@@ -848,7 +954,7 @@ $(document).ready(function() {
             recalcAllMainRows();
             calculateMainTotal();
             highlightDuplicatesInMain();
-            storeFormState();
+            storeFormState(); // Guardado automático tras agregar desde wizard
         }
         $("#wizardTableBody").empty();
         wizardCount = 0;
@@ -1030,6 +1136,15 @@ function addMainRow(bet = null) {
         }
     }
     console.log(`Fila ${rowIndex} agregada exitosamente por addMainRow`);
+    
+    // CORRECCIÓN 6: Guardado automático al agregar fila
+    if (bet) {
+        // Solo guardar automáticamente si se agregó con datos (desde OCR o wizard)
+        setTimeout(() => {
+            storeFormState();
+        }, 100);
+    }
+    
     return $newRow;
 }
 
@@ -1091,6 +1206,7 @@ function calculateMainTotal() {
 function storeFormState() { 
     const st = {
         dateVal: fpInstance ? fpInstance.input.value : "", 
+        selectedTracks: $(".track-checkbox:checked").map(function() { return $(this).val(); }).get(),
         plays: []
     };
     $("#tablaJugadas > tr").each(function() { 
@@ -1104,47 +1220,73 @@ function storeFormState() {
             total: $(this).find(".total-cell .total-amount").text() || "0.00"
         });
     });
-    localStorage.setItem("formState", JSON.stringify(st));
+    
+    // CORRECCIÓN 6: Guardar con una clave más específica para persistencia
+    try {
+        localStorage.setItem("beastReaderFormState", JSON.stringify(st));
+        console.log("Form state saved to localStorage");
+    } catch (error) {
+        console.error("Error saving to localStorage:", error);
+    }
 }
 
 function loadFormState() { 
     console.log("loadFormState called");
-    const data = JSON.parse(localStorage.getItem("formState"));
-    if (!data) return;
+    try {
+        const data = JSON.parse(localStorage.getItem("beastReaderFormState"));
+        if (!data) {
+            console.log("No saved form state found");
+            return;
+        }
 
-    if (fpInstance && data.dateVal) {
-        const datesToSet = data.dateVal.split(', ').map(dateStr => {
-            const parts = dateStr.split('-');
-            if (parts.length === 3) {
-                const year = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
-                return `${parts[0]}-${parts[1]}-${year}`;
-            }
-            return null;
-        }).filter(d => d !== null);
-        fpInstance.setDate(datesToSet, false); 
-        selectedDaysCount = datesToSet.length > 0 ? datesToSet.length : 1;
-    }
+        // Restaurar fechas
+        if (fpInstance && data.dateVal) {
+            const datesToSet = data.dateVal.split(', ').map(dateStr => {
+                const parts = dateStr.split('-');
+                if (parts.length === 3) {
+                    const year = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
+                    return `${parts[0]}-${parts[1]}-${year}`;
+                }
+                return null;
+            }).filter(d => d !== null);
+            fpInstance.setDate(datesToSet, false); 
+            selectedDaysCount = datesToSet.length > 0 ? datesToSet.length : 1;
+        }
 
-
-    $("#tablaJugadas").empty(); 
-    playCount = 0; 
-    if (data.plays && data.plays.length > 0) {
-        data.plays.forEach((p) => {
-            addMainRow({ 
-                betNumber: p.betNumber, 
-                gameMode: p.gameMode, 
-                straightAmount: parseFloat(p.straight) || null,
-                boxAmount: p.box, 
-                comboAmount: parseFloat(p.combo) || null
-                // The total will be recalculated by recalcMainRow called within addMainRow
+        // Restaurar tracks seleccionados
+        if (data.selectedTracks && data.selectedTracks.length > 0) {
+            isUpdatingProgrammatically = true;
+            $(".track-checkbox").prop('checked', false);
+            data.selectedTracks.forEach(trackName => {
+                $(`.track-checkbox[value="${trackName}"]`).prop('checked', true);
             });
-        });
+            isUpdatingProgrammatically = false;
+        }
+
+        // Restaurar jugadas
+        $("#tablaJugadas").empty(); 
+        playCount = 0; 
+        if (data.plays && data.plays.length > 0) {
+            data.plays.forEach((p) => {
+                addMainRow({ 
+                    betNumber: p.betNumber, 
+                    gameMode: p.gameMode, 
+                    straightAmount: parseFloat(p.straight) || null,
+                    boxAmount: p.box, 
+                    comboAmount: parseFloat(p.combo) || null
+                });
+            });
+        }
+        
+        recalcAllMainRows(); 
+        calculateMainTotal(); 
+        highlightDuplicatesInMain();
+        $("#selectAllCheckbox").prop('checked', false);
+        
+        console.log(`Restored ${data.plays ? data.plays.length : 0} plays from localStorage`);
+    } catch (error) {
+        console.error("Error loading form state:", error);
     }
-    
-    recalcAllMainRows(); 
-    calculateMainTotal(); 
-    highlightDuplicatesInMain();
-    $("#selectAllCheckbox").prop('checked', false); 
 }
 
 
@@ -1189,7 +1331,8 @@ function resetForm() {
 
     updateSelectedTracksAndTotal(); 
     
-    localStorage.removeItem("formState");
+    // CORRECCIÓN 6: Limpiar localStorage con la nueva clave
+    localStorage.removeItem("beastReaderFormState");
 
     // Reset selectedDaysCount based on default date
     selectedDaysCount = fpInstance.selectedDates.length > 0 ? fpInstance.selectedDates.length : 1;
@@ -1206,6 +1349,22 @@ function validateMainPlays() {
         const bnInput = $row.find(".betNumber");
         const gmText = $row.find(".gameMode").text();
         const bn = bnInput.val().trim();
+        
+        // CORRECCIÓN 5: Verificar montos de apuesta
+        const straightVal = parseFloat($row.find(".straight").val()) || 0;
+        const boxVal = $row.find(".box").val().trim();
+        const comboVal = parseFloat($row.find(".combo").val()) || 0;
+        
+        // Para box, verificar si es numérico o string (para Pulito con posiciones)
+        let boxAmount = 0;
+        if (boxVal) {
+            if (boxVal.includes(',')) {
+                // Es un string con posiciones (Pulito)
+                boxAmount = boxVal.split(',').length > 0 ? 1 : 0; // Si tiene posiciones, cuenta como válido
+            } else {
+                boxAmount = parseFloat(boxVal) || 0;
+            }
+        }
 
         let rowIsValid = true;
 
@@ -1226,6 +1385,11 @@ function validateMainPlays() {
         if (gmText === "-") {
             rowIsValid = false;
         }
+        
+        // 4. NUEVA VALIDACIÓN: Verificar que tenga al menos un monto de apuesta
+        if (straightVal === 0 && boxAmount === 0 && comboVal === 0) {
+            rowIsValid = false;
+        }
 
         if (!rowIsValid) {
             $row.addClass("invalid-play");
@@ -1233,6 +1397,11 @@ function validateMainPlays() {
         }
     });
     return formIsValid;
+}
+
+// CORRECCIÓN 3: Función para filtrar tracks excluyendo Venezuela
+function getDisplayTracks(tracks) {
+    return tracks.filter(track => track !== "Venezuela");
 }
 
 function doGenerateTicket() { 
@@ -1249,7 +1418,10 @@ function doGenerateTicket() {
         alert("Please select at least one track.");
         return;
     }
-    $("#ticketTracks").text(chosenTracks.join(", "));
+    
+    // CORRECCIÓN 3: Filtrar Venezuela de los tracks mostrados en el ticket
+    const displayTracks = getDisplayTracks(chosenTracks);
+    $("#ticketTracks").text(displayTracks.join(", "));
 
 
     const rows = $("#tablaJugadas > tr"); 
@@ -1262,9 +1434,12 @@ function doGenerateTicket() {
     formIsValid = validateMainPlays(); // Call the validation function
 
     if (!formIsValid) {
-        alert("Please correct the highlighted errors in the plays before generating the ticket.");
+        alert("Please correct the highlighted errors in the plays before generating the ticket. Make sure each play has at least one wager amount (Straight, Box, or Combo).");
         return; // Stop ticket generation
     }
+
+    // CORRECCIÓN 2: Asegurar que el total se actualice antes de mostrar el ticket
+    calculateMainTotal();
 
     $("#ticketJugadas").empty();
     rows.each(function(idx) {
@@ -1296,8 +1471,20 @@ function doGenerateTicket() {
         $("#ticketJugadas").append(rowHTML);
     });
 
-
-    $("#ticketTotal").text($("#totalJugadas").text());
+    // CORRECCIÓN 4: Asegurar que el total del ticket se actualice correctamente
+    const currentTotal = $("#totalJugadas").text();
+    console.log("Total actual del formulario:", currentTotal);
+    $("#ticketTotal").text(currentTotal);
+    
+    // Verificar que el elemento existe y se actualizó
+    setTimeout(() => {
+        const ticketTotalElement = $("#ticketTotal");
+        if (ticketTotalElement.length === 0) {
+            console.error("ERROR: Elemento #ticketTotal no encontrado en el DOM");
+        } else {
+            console.log("Total del ticket actualizado a:", ticketTotalElement.text());
+        }
+    }, 100);
 
     if (ticketModalInstance) {
         $("#editButton").removeClass("d-none");

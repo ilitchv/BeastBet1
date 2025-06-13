@@ -364,25 +364,148 @@ h2 {
   z-index: 1 !important;
 }
 
-/* NO ocultar .button-group - puede ser que contenga algunos botones */
-.button-group {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 10px !important;
+/* ACTION BUTTONS - Estructura idéntica a track buttons */
+.action-button-container {
+  display: inline-block;
+  width: 150px;
+  height: 150px;
+  margin: 0.5rem;
+  vertical-align: top;
+  position: relative;
 }
 
-/* Asegurar que todos los botones de la .button-group sean visibles */
-.button-group #generarTicket,
-.button-group #agregarJugada,
-.button-group #wizardButton,
-.button-group #eliminarJugada,
-.button-group #resetForm,
-.button-group #pasteAmountsButton,
-.button-group #openDailyReportBtn,
-.button-group #btnOcrModalTrigger {
+.action-button {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  cursor: pointer;
+  user-select: none;
+  text-align: center;
+  color: #ffffff;
+  box-shadow: 0 5px #111;
+  border: 1px solid #444;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s;
+  overflow: hidden;
+  padding: 0.5rem;
+  text-decoration: none;
+}
+
+.action-button::before {
+  content: "";
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 0; height: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.4s, height 0.4s;
+  pointer-events: none;
+}
+
+.action-button:active::before {
+  width: 250px;
+  height: 250px;
+}
+
+.action-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px #111;
+}
+
+.action-button:active {
+  transform: translateY(2px);
+  box-shadow: 0 3px #111;
+}
+
+.action-button-name {
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 0.3rem;
+  line-height: 1.2;
+}
+
+.action-button i {
+  font-size: 1.5rem;
+  margin-bottom: 0.3rem;
+}
+
+/* Colores específicos para cada action button */
+#generarTicket.action-button {
+  background: linear-gradient(var(--color-neon-verde), #2fb11a);
+  color: #000;
+  animation: pulse 2s infinite;
+}
+
+#agregarJugada.action-button {
+  background: linear-gradient(var(--color-neon-cian), #00a3a3);
+  color: #000;
+}
+
+#wizardButton.action-button {
+  background: linear-gradient(#00bfff, #0099cc);
+  color: #000;
+}
+
+#eliminarJugada.action-button {
+  background: linear-gradient(#ff0044, #cc0033);
+  color: #fff;
+}
+
+#resetForm.action-button {
+  background: linear-gradient(#800080, #660066);
+  color: #fff;
+}
+
+#pasteAmountsButton.action-button {
+  background: linear-gradient(#3a3a3a, #2a2a2a);
+  color: var(--color-neon-cian);
+  border: 1px solid var(--color-neon-cian);
+}
+
+#openDailyReportBtn.action-button {
+  background: linear-gradient(#6c757d, #545b62);
+  color: #fff;
+}
+
+#btnOcrModalTrigger.action-button {
+  background: linear-gradient(#ffcb00, #e0a300);
+  color: #000;
+}
+
+/* LIMPIAR CSS obsoleto de action buttons */
+/* Eliminar todas las reglas anteriores que causan conflicto */
+.action-buttons-container-mobile {
+  display: none !important;
+}
+
+.button-group {
+  display: none !important;
+}
+
+/* Ocultar cualquier estilo de los contenedores antiguos */
+.action-buttons-container-mobile .btn,
+.button-group .btn {
+  display: none !important;
+}
+
+/* FORZAR que TODOS los 8 botones aparezcan y sean del mismo tamaño */
+#generarTicket,
+#agregarJugada,
+#wizardButton,
+#eliminarJugada,
+#resetForm,
+#pasteAmountsButton,
+#openDailyReportBtn,
+#btnOcrModalTrigger {
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
+  position: relative !important;
 }
 
 /* Total solo después de la tabla */
@@ -733,6 +856,140 @@ body .total-section:not(:first-of-type) {
   max-height: 70vh;
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
+}
+
+/* TICKET MODAL - Formato optimizado para impresión con fondo blanco */
+#ticketModal .modal-content {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #cccccc !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+}
+
+#ticketModal .modal-header {
+  background-color: #f8f9fa !important;
+  color: #000000 !important;
+  border-bottom: 2px solid #dee2e6 !important;
+}
+
+#ticketModal .modal-footer {
+  background-color: #f8f9fa !important;
+  border-top: 2px solid #dee2e6 !important;
+}
+
+#ticketModal .modal-title {
+  color: #000000 !important;
+  font-weight: 600 !important;
+}
+
+#ticketModal .btn-close {
+  filter: none !important;
+}
+
+/* Contenido del ticket - Fondo blanco para impresión */
+#preTicket {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  padding: 30px !important;
+  font-family: 'Courier New', monospace !important;
+  line-height: 1.4 !important;
+  border: 2px solid #000000 !important;
+  margin: 10px !important;
+}
+
+#preTicket h4 {
+  color: #000000 !important;
+  font-weight: bold !important;
+  font-size: 1.5rem !important;
+  margin-bottom: 20px !important;
+  text-shadow: none !important;
+}
+
+#preTicket p,
+#preTicket .ticket-number,
+#preTicket .transaction-date {
+  color: #000000 !important;
+  font-size: 1rem !important;
+  margin-bottom: 10px !important;
+}
+
+#preTicket strong {
+  color: #000000 !important;
+  font-weight: bold !important;
+}
+
+/* Tabla del ticket - Optimizada para impresión */
+#preTicket .table {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  margin: 20px 0 !important;
+}
+
+#preTicket .table th {
+  background-color: #f8f9fa !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  font-weight: bold !important;
+  text-align: center !important;
+  padding: 8px !important;
+}
+
+#preTicket .table td {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  text-align: center !important;
+  padding: 6px !important;
+}
+
+#preTicket .table thead th {
+  background-color: #e9ecef !important;
+  border-bottom: 2px solid #000000 !important;
+}
+
+/* Total section en el ticket */
+#preTicket .total-section {
+  background-color: #f8f9fa !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  text-shadow: none !important;
+  font-weight: bold !important;
+  font-size: 1.3rem !important;
+  margin: 20px 0 !important;
+  padding: 15px !important;
+}
+
+/* QR Code y elementos finales */
+#preTicket .barcode {
+  margin: 20px 0 !important;
+  text-align: center !important;
+}
+
+#qrcode {
+  display: inline-block !important;
+  border: 1px solid #000000 !important;
+  padding: 10px !important;
+  background-color: #ffffff !important;
+}
+
+/* Optimización para impresión */
+@media print {
+  #ticketModal .modal-content {
+    box-shadow: none !important;
+    border: none !important;
+  }
+  
+  #preTicket {
+    border: 2px solid #000000 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+  
+  #ticketModal .modal-header,
+  #ticketModal .modal-footer {
+    display: none !important;
+  }
 }
 
 /* Drop zone */
@@ -1428,43 +1685,63 @@ body.light-mode .flatpickr-day.disabled {
     text-align: center; 
     color: #cccccc; 
   }
-  
-  /* Action buttons en móvil - mantener grid de 4 columnas */
-  .action-buttons-container-mobile {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
-    padding: 10px;
-  }
-  
-  .action-buttons-container-mobile .btn {
-    min-height: 70px;
-    font-size: 0.7rem;
-    padding: 5px;
+
+  /* ACTION BUTTONS en móvil - MISMA LÓGICA QUE TRACKS */
+  .action-button-container {
+    height: auto !important; 
+    perspective: none !important; 
+    display: contents !important;
+    width: auto !important;
+    margin: 0 !important;
   }
 
-  /* Asegurar que todos los botones se muestren con su texto */
-  .action-buttons-container-mobile .btn span {
-    display: block;
-    text-align: center;
-    word-break: break-word;
-    line-height: 1.1;
-  }
-
-  /* Texto más pequeño para que quepa mejor */
-  .action-buttons-container-mobile #openDailyReportBtn {
-    font-size: 0.7rem;
-  }
-
-  /* Ajuste especial para móviles muy pequeños */
-  @media (max-width: 380px) {
-    .action-buttons-container-mobile {
-      grid-template-columns: repeat(3, 1fr);
-    }
+  .action-button {
+    width: 100% !important; 
+    height: auto !important;
+    aspect-ratio: 1 / 1 !important; 
+    min-height: auto !important;
+    padding: 3px !important; 
     
-    .action-buttons-container-mobile #generarTicket,
-    .action-buttons-container-mobile #btnOcrModalTrigger {
-      grid-column: span 3;
-    }
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    
+    border-radius: 8px !important; 
+    box-shadow: 0 3px #111 !important;
+    border: 1px solid #444 !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease !important; 
+    overflow: hidden !important;
+    text-align: center !important;
+    font-size: 0.6rem !important;
+  }
+
+  .action-button:hover {
+    transform: translateY(-1px) !important; 
+    box-shadow: 0 4px #111 !important;
+  }
+  
+  .action-button:active {
+    transform: translateY(1px) !important; 
+    box-shadow: 0 2px #111 !important;
+  }
+
+  .action-button-name {
+    font-size: clamp(0.5rem, 1.6vw, 0.65rem) !important; 
+    font-weight: 700 !important;
+    margin-bottom: 1px !important; 
+    line-height: 1.1 !important; 
+    word-break: break-word !important; 
+    text-align: center !important; 
+    overflow: hidden !important; 
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important; 
+    -webkit-box-orient: vertical !important;
+  }
+  
+  .action-button i {
+    font-size: 1rem !important;
+    margin-bottom: 1px !important;
   }
 
   /* Ajustes de tabla para móvil */

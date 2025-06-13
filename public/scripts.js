@@ -276,7 +276,7 @@ function handleCargarTodasLasJugadasClick() {
         recalcAllMainRows();
         calculateMainTotal();
         highlightDuplicatesInMain();
-        storeFormState();
+        storeFormState(); // Guardado automático tras cargar jugadas OCR
         alert(`Se cargaron ${jugadasCargadas} jugadas exitosamente.`);
     }
     
@@ -323,7 +323,11 @@ function updateSelectedTracksAndTotal() {
         // Handled in calculateMainTotal
     }
     calculateMainTotal();
-    storeFormState();
+    
+    // CORRECCIÓN 6: Guardar automáticamente cuando cambien los tracks
+    if (!isUpdatingProgrammatically) {
+        storeFormState();
+    }
 }
 
 function updateTrackCutoffDisplays() {
@@ -468,7 +472,7 @@ $(document).ready(function() {
             
             updateSelectedTracksAndTotal();
             disableExpiredTracks(); // Re-evaluate disabled tracks on date change
-            storeFormState();
+            storeFormState(); // Guardado automático cuando cambien las fechas
         }
     });
     selectedDaysCount = fpInstance.selectedDates.length > 0 ? fpInstance.selectedDates.length : 1;
@@ -485,6 +489,8 @@ $(document).ready(function() {
     // Initial calls for track functionality
     updateTrackCutoffDisplays();
     disableExpiredTracks();
+    
+    // CORRECCIÓN 6: Cargar estado guardado automáticamente al inicializar
     loadFormState(); 
 
     // Set up periodic check for track cutoffs
@@ -494,6 +500,7 @@ $(document).ready(function() {
         const $newRow = addMainRow();
         if ($newRow) {
             $newRow.find(".betNumber").focus();
+            storeFormState(); // Guardado automático al agregar fila
         }
     });
 
@@ -595,7 +602,7 @@ $(document).ready(function() {
         renumberMainRows();
         calculateMainTotal();
         highlightDuplicatesInMain();
-        storeFormState(); 
+        storeFormState(); // Guardado automático
         if ($("#tablaJugadas .row-select-checkbox").length === 0) { 
             $("#selectAllCheckbox").prop('checked', false);
         }
@@ -607,7 +614,7 @@ $(document).ready(function() {
         renumberMainRows();
         calculateMainTotal();
         highlightDuplicatesInMain();
-        storeFormState(); 
+        storeFormState(); // Guardado automático
         if ($("#tablaJugadas .row-select-checkbox").length === 0) { 
             $("#selectAllCheckbox").prop('checked', false);
         } else if ($("#tablaJugadas .row-select-checkbox:checked").length === $("#tablaJugadas .row-select-checkbox").length) { 
@@ -621,10 +628,16 @@ $(document).ready(function() {
         const $row = $(this).closest("tr");
         recalcMainRow($row);
         $row.removeClass("invalid-play"); // Remove highlighting on input change
-        storeFormState();
+        
+        // CORRECCIÓN 6: Guardar automáticamente en localStorage con cada cambio
+        setTimeout(() => {
+            storeFormState();
+        }, 300); // Pequeño delay para evitar guardar demasiado frecuentemente
     });
      $("#tablaJugadas").on("blur", ".betNumber, .straight, .box, .combo", function() {
         highlightDuplicatesInMain(); 
+        // Guardar también al salir del campo
+        storeFormState();
     });
 
 
@@ -648,36 +661,235 @@ $(document).ready(function() {
         transactionDateTime = dayjs().format("MM/DD/YYYY hh:mm A");
         $("#ticketTransaccion").text(transactionDateTime);
         
-        html2canvas(document.getElementById("preTicket")).then(function(canvas) {
-            const link = document.createElement('a');
-            link.download = `ticket_${uniqueTicket}.png`;
-            link.href = canvas.toDataURL('image/png');
-            
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link); 
-            
-            console.log("Ticket image generated and download triggered.");
-            
-            $("#shareTicket").removeClass("d-none"); 
-
-        }).catch(function(error) {
-            console.error("Error generating ticket image:", error);
-            alert("Error generating ticket image.");
-        });
-
+        // CORRECCIÓN QR + RESOLUCIÓN: Generar QR y esperar renderizado completo
         $("#qrcode").empty();
+        
+        let qrCodeGenerated = false;
         if (typeof QRCode !== 'undefined') {
-             new QRCode(document.getElementById("qrcode"), {
-                text: uniqueTicket,
-                width: 128,
-                height: 128
-            });
+            try {
+                new QRCode(document.getElementById("qrcode"), {
+                    text: uniqueTicket,
+                    width: 128,
+                    height: 128,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+                qrCodeGenerated = true;
+                console.log("QR Code generated successfully");
+            } catch (error) {
+                console.error("Error generating QR Code:", error);
+            }
         } else {
             console.error("QRCode library not loaded");
         }
         
-        $("#shareTicket").removeClass("d-none");
+        // Esperar tiempo para renderizado completo del QR
+        setTimeout(() => {
+            const jugadasCount = $("#ticketJugadas tr").length;
+            console.log(`Generando ticket para DESCARGA con ${jugadasCount} jugadas`);
+            
+            // SOLUCIÓN MEJORADA: Pre-ajustar altura con valores más agresivos
+            const preTicket = document.getElementById("preTicket");
+            const originalPadding = preTicket.style.paddingBottom;
+            const originalBarcodeMargin = preTicket.querySelector('.barcode')?.style.marginBottom || '';
+            const originalBarcodeHeight = preTicket.querySelector('.barcode')?.style.minHeight || '';
+            
+            // Ejecutar herramienta de depuración antes de la captura
+            debugQRCapture();
+            
+            // APLICAR VALORES MÁS AGRESIVOS para garantizar espacio suficiente
+            preTicket.style.paddingBottom = "100px"; // Aumentado de 60px
+            const barcodeArea = preTicket.querySelector('.barcode');
+            if (barcodeArea) {
+                barcodeArea.style.marginBottom = "60px"; // Aumentado de 40px
+                barcodeArea.style.minHeight = "200px"; // Altura mínima para el área del QR
+                barcodeArea.style.paddingBottom = "40px"; // Padding adicional
+            }
+            
+            // Forzar el QR a tener más espacio
+            const qrElement = document.getElementById("qrcode");
+            if (qrElement) {
+                qrElement.style.marginBottom = "30px";
+                qrElement.style.paddingBottom = "20px";
+            }
+            
+            // Forzar recálculo del layout
+            void preTicket.offsetHeight;
+            
+            console.log("Pre-ajustes aplicados. Nueva altura:", preTicket.scrollHeight);
+            
+            // CONFIGURACIÓN ESTABLE PARA DESCARGA (después de pre-ajustes)
+            html2canvas(document.getElementById("preTicket"), {
+                scale: 4, // Escala alta pero estable
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                logging: false,
+                width: document.getElementById("preTicket").scrollWidth,
+                height: document.getElementById("preTicket").scrollHeight + 50, // Añadir buffer adicional
+                scrollX: 0,
+                scrollY: 0,
+                windowHeight: document.getElementById("preTicket").scrollHeight + 100, // Ventana más alta
+                foreignObjectRendering: false, // Más compatible
+                imageTimeout: 30000, // Timeout moderado
+                onclone: function(clonedDoc) {
+                    console.log("Procesando clon para descarga...");
+                    
+                    // Asegurar que el clon mantenga los ajustes
+                    const preTicketClone = clonedDoc.getElementById("preTicket");
+                    if (preTicketClone) {
+                        preTicketClone.style.paddingBottom = '100px';
+                        preTicketClone.style.minHeight = 'auto';
+                        preTicketClone.style.overflow = 'visible';
+                    }
+                    
+                    const barcodeClone = clonedDoc.querySelector('.barcode');
+                    if (barcodeClone) {
+                        barcodeClone.style.marginBottom = '60px';
+                        barcodeClone.style.minHeight = '200px';
+                        barcodeClone.style.paddingBottom = '40px';
+                        barcodeClone.style.overflow = 'visible';
+                    }
+                    
+                    // CORRECCIÓN QR: Limpiar completamente el área del QR y regenerar
+                    const qrInClone = clonedDoc.getElementById("qrcode");
+                    if (qrInClone) {
+                        // Limpiar cualquier superposición o fondo
+                        qrInClone.style.visibility = 'visible';
+                        qrInClone.style.opacity = '1';
+                        qrInClone.style.display = 'block';
+                        qrInClone.style.width = '128px';
+                        qrInClone.style.height = '128px';
+                        qrInClone.style.backgroundColor = 'transparent'; // Fondo transparente
+                        qrInClone.style.position = 'relative';
+                        qrInClone.style.zIndex = '1000';
+                        qrInClone.style.overflow = 'visible';
+                        qrInClone.style.border = 'none';
+                        qrInClone.style.padding = '10px';
+                        qrInClone.style.margin = '10px auto 30px auto';
+                        
+                        // Buscar y limpiar elementos QR
+                        const qrCanvas = qrInClone.querySelector('canvas');
+                        const qrImg = qrInClone.querySelector('img');
+                        const qrTable = qrInClone.querySelector('table');
+                        
+                        // Limpiar cualquier elemento hijo que pueda estar superpuesto
+                        const allChildren = qrInClone.querySelectorAll('*');
+                        allChildren.forEach(child => {
+                            child.style.backgroundColor = 'transparent';
+                            child.style.position = 'static';
+                            child.style.zIndex = 'auto';
+                            child.style.border = 'none';
+                            child.style.outline = 'none';
+                            child.style.boxShadow = 'none';
+                        });
+                        
+                        if (qrCanvas) {
+                            qrCanvas.style.visibility = 'visible';
+                            qrCanvas.style.opacity = '1';
+                            qrCanvas.style.display = 'block';
+                            qrCanvas.style.backgroundColor = 'transparent';
+                            qrCanvas.style.position = 'static';
+                            qrCanvas.style.zIndex = '1001';
+                            qrCanvas.style.width = '128px'; // Mantener dimensión exacta
+                            qrCanvas.style.height = '128px'; // Mantener dimensión exacta
+                            qrCanvas.style.maxWidth = '128px';
+                            qrCanvas.style.maxHeight = '128px';
+                            console.log("QR Canvas limpiado y configurado");
+                        }
+                        
+                        if (qrImg) {
+                            qrImg.style.visibility = 'visible';
+                            qrImg.style.opacity = '1';
+                            qrImg.style.display = 'block';
+                            qrImg.style.backgroundColor = 'transparent';
+                            qrImg.style.position = 'static';
+                            qrImg.style.zIndex = '1001';
+                            qrImg.style.width = '128px'; // Mantener dimensión exacta
+                            qrImg.style.height = '128px'; // Mantener dimensión exacta
+                            qrImg.style.maxWidth = '128px';
+                            qrImg.style.maxHeight = '128px';
+                            console.log("QR Image limpiado y configurado");
+                        }
+                        
+                        if (qrTable) {
+                            qrTable.style.visibility = 'visible';
+                            qrTable.style.opacity = '1';
+                            qrTable.style.display = 'block';
+                            qrTable.style.backgroundColor = 'transparent';
+                            qrTable.style.position = 'static';
+                            qrTable.style.zIndex = '1001';
+                            qrTable.style.borderCollapse = 'collapse';
+                            qrTable.style.width = '128px'; // Mantener dimensión exacta
+                            qrTable.style.height = '128px'; // Mantener dimensión exacta
+                            qrTable.style.maxWidth = '128px';
+                            qrTable.style.maxHeight = '128px';
+                            
+                            // Limpiar celdas de la tabla QR
+                            const qrCells = qrTable.querySelectorAll('td');
+                            qrCells.forEach(cell => {
+                                cell.style.backgroundColor = 'transparent';
+                                cell.style.border = 'none';
+                                cell.style.padding = '0';
+                                cell.style.margin = '0';
+                            });
+                            
+                            console.log("QR Table limpiado y configurado");
+                        }
+                        
+                        console.log("QR completamente limpiado y procesado");
+                    } else {
+                        console.error("QR Code element no encontrado en clon para descarga");
+                    }
+                }
+            }).then(function(canvas) {
+                // RESTAURAR valores originales INMEDIATAMENTE después de capturar
+                preTicket.style.paddingBottom = originalPadding;
+                if (barcodeArea) {
+                    barcodeArea.style.marginBottom = originalBarcodeMargin;
+                    barcodeArea.style.minHeight = originalBarcodeHeight;
+                    barcodeArea.style.paddingBottom = '';
+                }
+                if (qrElement) {
+                    qrElement.style.marginBottom = '';
+                    qrElement.style.paddingBottom = '';
+                }
+                console.log("Valores originales restaurados");
+                
+                if (canvas && canvas.width > 0 && canvas.height > 0) {
+                    console.log(`Canvas DESCARGA generado correctamente: ${canvas.width}x${canvas.height}`);
+                    
+                    const link = document.createElement('a');
+                    link.download = `ticket_${uniqueTicket}.png`;
+                    link.href = canvas.toDataURL('image/png', 1.0);
+                    
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link); 
+                    
+                    console.log("Ticket descargado exitosamente");
+                    $("#shareTicket").removeClass("d-none");
+                } else {
+                    throw new Error("Canvas de descarga generado incorrectamente");
+                }
+
+            }).catch(function(error) {
+                // RESTAURAR valores originales en caso de error
+                preTicket.style.paddingBottom = originalPadding;
+                if (barcodeArea) {
+                    barcodeArea.style.marginBottom = originalBarcodeMargin;
+                    barcodeArea.style.minHeight = originalBarcodeHeight;
+                    barcodeArea.style.paddingBottom = '';
+                }
+                if (qrElement) {
+                    qrElement.style.marginBottom = '';
+                    qrElement.style.paddingBottom = '';
+                }
+                console.error("Error generando imagen de descarga:", error);
+                alert("Error generating ticket for download: " + error.message);
+            });
+        }, 1500); // Aumentado a 1.5 segundos para asegurar renderizado completo del QR
     });
     
     $("#editButton").click(function(){
@@ -686,19 +898,155 @@ $(document).ready(function() {
     });
 
     $("#shareTicket").click(async function(){
+        // Prevenir múltiples clicks
+        if ($(this).prop('disabled')) return;
+        $(this).prop('disabled', true);
+        
         if (navigator.share) {
             try {
-                const canvas = await html2canvas(document.getElementById("preTicket"));
-                canvas.toBlob(async function(blob) {
-                    const file = new File([blob], 'ticket.png', {type: 'image/png'});
-                    await navigator.share({
-                        files: [file],
-                        title: 'Mi Ticket de Lotería',
-                        text: '¡Aquí tienes mi ticket generado!',
-                    });
+                console.log("Iniciando proceso de compartir...");
+                
+                // APLICAR MISMA SOLUCIÓN MEJORADA para compartir
+                const preTicket = document.getElementById("preTicket");
+                const originalPadding = preTicket.style.paddingBottom;
+                const originalBarcodeMargin = preTicket.querySelector('.barcode')?.style.marginBottom || '';
+                const originalBarcodeHeight = preTicket.querySelector('.barcode')?.style.minHeight || '';
+                
+                // Pre-ajustar altura con valores más agresivos para compartir
+                preTicket.style.paddingBottom = "100px";
+                const barcodeArea = preTicket.querySelector('.barcode');
+                if (barcodeArea) {
+                    barcodeArea.style.marginBottom = "60px";
+                    barcodeArea.style.minHeight = "200px";
+                    barcodeArea.style.paddingBottom = "40px";
+                }
+                
+                const qrElement = document.getElementById("qrcode");
+                if (qrElement) {
+                    qrElement.style.marginBottom = "30px";
+                    qrElement.style.paddingBottom = "20px";
+                }
+                
+                // CONFIGURACIÓN MÁS CONSERVADORA para compartir (evitar imagen en blanco)
+                const canvas = await html2canvas(document.getElementById("preTicket"), {
+                    scale: 3, // Escala moderada para evitar problemas de memoria
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff',
+                    logging: false, // Deshabilitar logging para compartir
+                    foreignObjectRendering: false, // Usar configuración más compatible
+                    imageTimeout: 15000, // Timeout más corto para compartir
+                    width: document.getElementById("preTicket").scrollWidth,
+                    height: document.getElementById("preTicket").scrollHeight + 50, // Buffer adicional
+                    windowHeight: document.getElementById("preTicket").scrollHeight + 100,
+                    scrollX: 0,
+                    scrollY: 0,
+                    onclone: function(clonedDoc) {
+                        console.log("Procesando clon para compartir con valores mejorados...");
+                        
+                        // Mantener los ajustes en el clon
+                        const preTicketClone = clonedDoc.getElementById("preTicket");
+                        if (preTicketClone) {
+                            preTicketClone.style.paddingBottom = '100px';
+                        }
+                        
+                        const barcodeClone = clonedDoc.querySelector('.barcode');
+                        if (barcodeClone) {
+                            barcodeClone.style.marginBottom = '60px';
+                            barcodeClone.style.minHeight = '200px';
+                            barcodeClone.style.paddingBottom = '40px';
+                        }
+                        
+                        // SIMPLIFICADO: Solo asegurar que el QR sea visible
+                        const qrInClone = clonedDoc.getElementById("qrcode");
+                        if (qrInClone) {
+                            qrInClone.style.visibility = 'visible';
+                            qrInClone.style.opacity = '1';
+                            qrInClone.style.display = 'block';
+                            qrInClone.style.backgroundColor = 'transparent';
+                            qrInClone.style.margin = '10px auto 30px auto';
+                            
+                            const qrCanvas = qrInClone.querySelector('canvas');
+                            const qrImg = qrInClone.querySelector('img');
+                            const qrTable = qrInClone.querySelector('table');
+                            
+                            if (qrCanvas) {
+                                qrCanvas.style.visibility = 'visible';
+                                qrCanvas.style.opacity = '1';
+                                qrCanvas.style.display = 'block';
+                            }
+                            
+                            if (qrImg) {
+                                qrImg.style.visibility = 'visible';
+                                qrImg.style.opacity = '1';
+                                qrImg.style.display = 'block';
+                            }
+                            
+                            if (qrTable) {
+                                qrTable.style.visibility = 'visible';
+                                qrTable.style.opacity = '1';
+                                qrTable.style.display = 'block';
+                            }
+                        }
+                    }
                 });
-            } catch (error) { console.error('Error sharing:', error); alert('Could not share ticket.'); }
-        } else { alert('Web Share API is not supported in your browser.'); }
+                
+                // RESTAURAR valores originales inmediatamente después de capturar
+                preTicket.style.paddingBottom = originalPadding;
+                if (barcodeArea) {
+                    barcodeArea.style.marginBottom = originalBarcodeMargin;
+                    barcodeArea.style.minHeight = originalBarcodeHeight;
+                    barcodeArea.style.paddingBottom = '';
+                }
+                if (qrElement) {
+                    qrElement.style.marginBottom = '';
+                    qrElement.style.paddingBottom = '';
+                }
+                
+                console.log(`Canvas para compartir generado: ${canvas.width}x${canvas.height}`);
+                
+                canvas.toBlob(async function(blob) {
+                    if (blob && blob.size > 0) {
+                        const file = new File([blob], 'ticket.png', {type: 'image/png'});
+                        await navigator.share({
+                            files: [file],
+                            title: 'Mi Ticket de Lotería',
+                            text: '¡Aquí tienes mi ticket generado!',
+                        });
+                        console.log("Ticket compartido exitosamente");
+                    } else {
+                        throw new Error("Generated blob is empty");
+                    }
+                    // Re-habilitar el botón después de compartir
+                    $("#shareTicket").prop('disabled', false);
+                }, 'image/png', 0.95); // Calidad ligeramente reducida para evitar problemas
+            } catch (error) { 
+                // RESTAURAR valores originales en caso de error
+                const preTicket = document.getElementById("preTicket");
+                const barcodeArea = preTicket.querySelector('.barcode');
+                const qrElement = document.getElementById("qrcode");
+                
+                if (preTicket && typeof originalPadding !== 'undefined') {
+                    preTicket.style.paddingBottom = originalPadding;
+                }
+                if (barcodeArea && typeof originalBarcodeMargin !== 'undefined') {
+                    barcodeArea.style.marginBottom = originalBarcodeMargin;
+                    barcodeArea.style.minHeight = originalBarcodeHeight || '';
+                    barcodeArea.style.paddingBottom = '';
+                }
+                if (qrElement) {
+                    qrElement.style.marginBottom = '';
+                    qrElement.style.paddingBottom = '';
+                }
+                
+                console.error('Error sharing:', error); 
+                alert('Could not share ticket: ' + error.message);
+                $("#shareTicket").prop('disabled', false);
+            }
+        } else { 
+            alert('Web Share API is not supported in your browser.');
+            $("#shareTicket").prop('disabled', false);
+        }
     });
 
 
@@ -848,7 +1196,7 @@ $(document).ready(function() {
             recalcAllMainRows();
             calculateMainTotal();
             highlightDuplicatesInMain();
-            storeFormState();
+            storeFormState(); // Guardado automático tras agregar desde wizard
         }
         $("#wizardTableBody").empty();
         wizardCount = 0;
@@ -875,6 +1223,105 @@ $(document).ready(function() {
     console.log("Document fully loaded and initial scripts executed.");
 });
 
+
+// Herramienta de depuración mejorada
+function debugQRCapture() {
+    const preTicket = document.getElementById("preTicket");
+    const barcode = preTicket.querySelector('.barcode');
+    const qrcode = document.getElementById("qrcode");
+
+    console.group('🔍 QR Capture Debug Info - ENHANCED');
+    
+    // Dimensiones del ticket
+    console.log('📏 Ticket dimensions:');
+    console.log('- scrollHeight:', preTicket.scrollHeight);
+    console.log('- clientHeight:', preTicket.clientHeight);
+    console.log('- offsetHeight:', preTicket.offsetHeight);
+    console.log('- computedHeight:', getComputedStyle(preTicket).height);
+    console.log('- paddingBottom:', getComputedStyle(preTicket).paddingBottom);
+    console.log('- paddingTop:', getComputedStyle(preTicket).paddingTop);
+
+    // Dimensiones del área barcode
+    if (barcode) {
+        console.log('\n📊 Barcode area dimensions:');
+        console.log('- scrollHeight:', barcode.scrollHeight);
+        console.log('- offsetHeight:', barcode.offsetHeight);
+        console.log('- clientHeight:', barcode.clientHeight);
+        console.log('- marginBottom:', getComputedStyle(barcode).marginBottom);
+        console.log('- marginTop:', getComputedStyle(barcode).marginTop);
+        console.log('- paddingBottom:', getComputedStyle(barcode).paddingBottom);
+        console.log('- minHeight:', getComputedStyle(barcode).minHeight);
+    }
+
+    // Dimensiones del QR
+    if (qrcode) {
+        console.log('\n🔲 QR Code dimensions:');
+        console.log('- scrollHeight:', qrcode.scrollHeight);
+        console.log('- offsetHeight:', qrcode.offsetHeight);
+        console.log('- clientHeight:', qrcode.clientHeight);
+        console.log('- position:', getComputedStyle(qrcode).position);
+        console.log('- margin:', getComputedStyle(qrcode).margin);
+        console.log('- padding:', getComputedStyle(qrcode).padding);
+        
+        const qrCanvas = qrcode.querySelector('canvas');
+        const qrImg = qrcode.querySelector('img');
+        const qrTable = qrcode.querySelector('table');
+        
+        if (qrCanvas) {
+            console.log('- Canvas height:', qrCanvas.height);
+            console.log('- Canvas style height:', qrCanvas.style.height);
+            console.log('- Canvas offsetHeight:', qrCanvas.offsetHeight);
+        }
+        
+        if (qrImg) {
+            console.log('- Image naturalHeight:', qrImg.naturalHeight);
+            console.log('- Image height:', qrImg.height);
+            console.log('- Image offsetHeight:', qrImg.offsetHeight);
+        }
+        
+        if (qrTable) {
+            console.log('- Table offsetHeight:', qrTable.offsetHeight);
+        }
+    }
+
+    // Posición del QR relativa al ticket
+    if (qrcode && preTicket) {
+        const qrRect = qrcode.getBoundingClientRect();
+        const ticketRect = preTicket.getBoundingClientRect();
+        console.log('\n📍 QR Position Analysis:');
+        console.log('- QR bottom:', qrRect.bottom);
+        console.log('- Ticket bottom:', ticketRect.bottom);
+        console.log('- Distance to ticket bottom:', ticketRect.bottom - qrRect.bottom);
+        console.log('- QR top relative to ticket:', qrRect.top - ticketRect.top);
+        console.log('- Available space below QR:', ticketRect.bottom - qrRect.bottom);
+        
+        // Calcular si el QR se cortaría
+        const spaceNeeded = 20; // Espacio mínimo requerido
+        const willBeCut = (ticketRect.bottom - qrRect.bottom) < spaceNeeded;
+        console.log(`- Will QR be cut? ${willBeCut ? '⚠️ YES' : '✅ NO'}`);
+        console.log(`- Space needed: ${spaceNeeded}px, Available: ${ticketRect.bottom - qrRect.bottom}px`);
+    }
+
+    console.groupEnd();
+
+    // Test visual con borde y fondo
+    if (qrcode) {
+        qrcode.style.border = '3px solid red';
+        qrcode.style.backgroundColor = 'rgba(255, 0, 0, 0.1)';
+        if (barcode) {
+            barcode.style.border = '3px solid blue';
+            barcode.style.backgroundColor = 'rgba(0, 0, 255, 0.1)';
+        }
+        setTimeout(() => {
+            qrcode.style.border = '1px dotted #999';
+            qrcode.style.backgroundColor = '';
+            if (barcode) {
+                barcode.style.border = '';
+                barcode.style.backgroundColor = '';
+            }
+        }, 5000);
+    }
+}
 
 // --- Helper Functions (determineGameMode, calculateRowTotal, etc.) ---
 function getCurrentSelectedTracks() {
@@ -1030,6 +1477,15 @@ function addMainRow(bet = null) {
         }
     }
     console.log(`Fila ${rowIndex} agregada exitosamente por addMainRow`);
+    
+    // CORRECCIÓN 6: Guardado automático al agregar fila
+    if (bet) {
+        // Solo guardar automáticamente si se agregó con datos (desde OCR o wizard)
+        setTimeout(() => {
+            storeFormState();
+        }, 100);
+    }
+    
     return $newRow;
 }
 
@@ -1091,6 +1547,7 @@ function calculateMainTotal() {
 function storeFormState() { 
     const st = {
         dateVal: fpInstance ? fpInstance.input.value : "", 
+        selectedTracks: $(".track-checkbox:checked").map(function() { return $(this).val(); }).get(),
         plays: []
     };
     $("#tablaJugadas > tr").each(function() { 
@@ -1104,47 +1561,73 @@ function storeFormState() {
             total: $(this).find(".total-cell .total-amount").text() || "0.00"
         });
     });
-    localStorage.setItem("formState", JSON.stringify(st));
+    
+    // CORRECCIÓN 6: Guardar con una clave más específica para persistencia
+    try {
+        localStorage.setItem("beastReaderFormState", JSON.stringify(st));
+        console.log("Form state saved to localStorage");
+    } catch (error) {
+        console.error("Error saving to localStorage:", error);
+    }
 }
 
 function loadFormState() { 
     console.log("loadFormState called");
-    const data = JSON.parse(localStorage.getItem("formState"));
-    if (!data) return;
+    try {
+        const data = JSON.parse(localStorage.getItem("beastReaderFormState"));
+        if (!data) {
+            console.log("No saved form state found");
+            return;
+        }
 
-    if (fpInstance && data.dateVal) {
-        const datesToSet = data.dateVal.split(', ').map(dateStr => {
-            const parts = dateStr.split('-');
-            if (parts.length === 3) {
-                const year = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
-                return `${parts[0]}-${parts[1]}-${year}`;
-            }
-            return null;
-        }).filter(d => d !== null);
-        fpInstance.setDate(datesToSet, false); 
-        selectedDaysCount = datesToSet.length > 0 ? datesToSet.length : 1;
-    }
+        // Restaurar fechas
+        if (fpInstance && data.dateVal) {
+            const datesToSet = data.dateVal.split(', ').map(dateStr => {
+                const parts = dateStr.split('-');
+                if (parts.length === 3) {
+                    const year = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
+                    return `${parts[0]}-${parts[1]}-${year}`;
+                }
+                return null;
+            }).filter(d => d !== null);
+            fpInstance.setDate(datesToSet, false); 
+            selectedDaysCount = datesToSet.length > 0 ? datesToSet.length : 1;
+        }
 
-
-    $("#tablaJugadas").empty(); 
-    playCount = 0; 
-    if (data.plays && data.plays.length > 0) {
-        data.plays.forEach((p) => {
-            addMainRow({ 
-                betNumber: p.betNumber, 
-                gameMode: p.gameMode, 
-                straightAmount: parseFloat(p.straight) || null,
-                boxAmount: p.box, 
-                comboAmount: parseFloat(p.combo) || null
-                // The total will be recalculated by recalcMainRow called within addMainRow
+        // Restaurar tracks seleccionados
+        if (data.selectedTracks && data.selectedTracks.length > 0) {
+            isUpdatingProgrammatically = true;
+            $(".track-checkbox").prop('checked', false);
+            data.selectedTracks.forEach(trackName => {
+                $(`.track-checkbox[value="${trackName}"]`).prop('checked', true);
             });
-        });
+            isUpdatingProgrammatically = false;
+        }
+
+        // Restaurar jugadas
+        $("#tablaJugadas").empty(); 
+        playCount = 0; 
+        if (data.plays && data.plays.length > 0) {
+            data.plays.forEach((p) => {
+                addMainRow({ 
+                    betNumber: p.betNumber, 
+                    gameMode: p.gameMode, 
+                    straightAmount: parseFloat(p.straight) || null,
+                    boxAmount: p.box, 
+                    comboAmount: parseFloat(p.combo) || null
+                });
+            });
+        }
+        
+        recalcAllMainRows(); 
+        calculateMainTotal(); 
+        highlightDuplicatesInMain();
+        $("#selectAllCheckbox").prop('checked', false);
+        
+        console.log(`Restored ${data.plays ? data.plays.length : 0} plays from localStorage`);
+    } catch (error) {
+        console.error("Error loading form state:", error);
     }
-    
-    recalcAllMainRows(); 
-    calculateMainTotal(); 
-    highlightDuplicatesInMain();
-    $("#selectAllCheckbox").prop('checked', false); 
 }
 
 
@@ -1189,7 +1672,8 @@ function resetForm() {
 
     updateSelectedTracksAndTotal(); 
     
-    localStorage.removeItem("formState");
+    // CORRECCIÓN 6: Limpiar localStorage con la nueva clave
+    localStorage.removeItem("beastReaderFormState");
 
     // Reset selectedDaysCount based on default date
     selectedDaysCount = fpInstance.selectedDates.length > 0 ? fpInstance.selectedDates.length : 1;
@@ -1206,6 +1690,22 @@ function validateMainPlays() {
         const bnInput = $row.find(".betNumber");
         const gmText = $row.find(".gameMode").text();
         const bn = bnInput.val().trim();
+        
+        // CORRECCIÓN 5: Verificar montos de apuesta
+        const straightVal = parseFloat($row.find(".straight").val()) || 0;
+        const boxVal = $row.find(".box").val().trim();
+        const comboVal = parseFloat($row.find(".combo").val()) || 0;
+        
+        // Para box, verificar si es numérico o string (para Pulito con posiciones)
+        let boxAmount = 0;
+        if (boxVal) {
+            if (boxVal.includes(',')) {
+                // Es un string con posiciones (Pulito)
+                boxAmount = boxVal.split(',').length > 0 ? 1 : 0; // Si tiene posiciones, cuenta como válido
+            } else {
+                boxAmount = parseFloat(boxVal) || 0;
+            }
+        }
 
         let rowIsValid = true;
 
@@ -1226,6 +1726,11 @@ function validateMainPlays() {
         if (gmText === "-") {
             rowIsValid = false;
         }
+        
+        // 4. NUEVA VALIDACIÓN: Verificar que tenga al menos un monto de apuesta
+        if (straightVal === 0 && boxAmount === 0 && comboVal === 0) {
+            rowIsValid = false;
+        }
 
         if (!rowIsValid) {
             $row.addClass("invalid-play");
@@ -1233,6 +1738,11 @@ function validateMainPlays() {
         }
     });
     return formIsValid;
+}
+
+// CORRECCIÓN 3: Función para filtrar tracks excluyendo Venezuela
+function getDisplayTracks(tracks) {
+    return tracks.filter(track => track !== "Venezuela");
 }
 
 function doGenerateTicket() { 
@@ -1249,7 +1759,10 @@ function doGenerateTicket() {
         alert("Please select at least one track.");
         return;
     }
-    $("#ticketTracks").text(chosenTracks.join(", "));
+    
+    // CORRECCIÓN 3: Filtrar Venezuela de los tracks mostrados en el ticket
+    const displayTracks = getDisplayTracks(chosenTracks);
+    $("#ticketTracks").text(displayTracks.join(", "));
 
 
     const rows = $("#tablaJugadas > tr"); 
@@ -1262,9 +1775,12 @@ function doGenerateTicket() {
     formIsValid = validateMainPlays(); // Call the validation function
 
     if (!formIsValid) {
-        alert("Please correct the highlighted errors in the plays before generating the ticket.");
+        alert("Please correct the highlighted errors in the plays before generating the ticket. Make sure each play has at least one wager amount (Straight, Box, or Combo).");
         return; // Stop ticket generation
     }
+
+    // CORRECCIÓN 2: Asegurar que el total se actualice antes de mostrar el ticket
+    calculateMainTotal();
 
     $("#ticketJugadas").empty();
     rows.each(function(idx) {
@@ -1296,8 +1812,20 @@ function doGenerateTicket() {
         $("#ticketJugadas").append(rowHTML);
     });
 
-
-    $("#ticketTotal").text($("#totalJugadas").text());
+    // CORRECCIÓN 4: Asegurar que el total del ticket se actualice correctamente
+    const currentTotal = $("#totalJugadas").text();
+    console.log("Total actual del formulario:", currentTotal);
+    $("#ticketTotal").text(currentTotal);
+    
+    // Verificar que el elemento existe y se actualizó
+    setTimeout(() => {
+        const ticketTotalElement = $("#ticketTotal");
+        if (ticketTotalElement.length === 0) {
+            console.error("ERROR: Elemento #ticketTotal no encontrado en el DOM");
+        } else {
+            console.log("Total del ticket actualizado a:", ticketTotalElement.text());
+        }
+    }, 100);
 
     if (ticketModalInstance) {
         $("#editButton").removeClass("d-none");
@@ -1462,9 +1990,132 @@ function permuteWizardBetNumbers() {
 }
 
 // Tutorial and Manual display functions
-const tutorialStepsEN = [ /* ... */ ]; const tutorialStepsES = [ /* ... */ ]; const tutorialStepsHT = [ /* ... */ ];
-function startTutorial(lang) { /* ... */ }
+const tutorialStepsEN = [
+    {
+        element: '#fecha',
+        intro: 'Select one or more dates for your bets. Today is selected by default.',
+        position: 'bottom'
+    },
+    {
+        element: '#tracksAccordion',
+        intro: 'Choose your lottery tracks. You can select multiple tracks from different regions.',
+        position: 'top'
+    },
+    {
+        element: '#jugadasTable',
+        intro: 'Your plays will appear here. You can edit amounts directly in the table.',
+        position: 'top'
+    },
+    {
+        element: '#agregarJugada',
+        intro: 'Click here to add a new play manually.',
+        position: 'left'
+    },
+    {
+        element: '#wizardButton',
+        intro: 'Use the Wizard for quick entry of multiple plays.',
+        position: 'left'
+    },
+    {
+        element: '#generarTicket',
+        intro: 'Generate your ticket when all plays are ready.',
+        position: 'left'
+    }
+];
 
+const tutorialStepsES = [
+    {
+        element: '#fecha',
+        intro: 'Selecciona una o más fechas para tus apuestas. Hoy está seleccionado por defecto.',
+        position: 'bottom'
+    },
+    {
+        element: '#tracksAccordion',
+        intro: 'Elige tus pistas de lotería. Puedes seleccionar múltiples pistas de diferentes regiones.',
+        position: 'top'
+    },
+    {
+        element: '#jugadasTable',
+        intro: 'Tus jugadas aparecerán aquí. Puedes editar los montos directamente en la tabla.',
+        position: 'top'
+    },
+    {
+        element: '#agregarJugada',
+        intro: 'Haz clic aquí para agregar una nueva jugada manualmente.',
+        position: 'left'
+    },
+    {
+        element: '#wizardButton',
+        intro: 'Usa el Asistente para entrada rápida de múltiples jugadas.',
+        position: 'left'
+    },
+    {
+        element: '#generarTicket',
+        intro: 'Genera tu ticket cuando todas las jugadas estén listas.',
+        position: 'left'
+    }
+];
+
+const tutorialStepsHT = [
+    {
+        element: '#fecha',
+        intro: 'Chwazi youn oswa plizyè dat pou paryaj ou yo. Jodi a seleksyone otomatikman.',
+        position: 'bottom'
+    },
+    {
+        element: '#tracksAccordion',
+        intro: 'Chwazi tchèk bòlèt ou yo. Ou ka chwazi plizyè tchèk nan diferan rejyon.',
+        position: 'top'
+    },
+    {
+        element: '#jugadasTable',
+        intro: 'Jwèt ou yo ap parèt isit la. Ou ka edite montan yo dirèkteman nan tablo a.',
+        position: 'top'
+    },
+    {
+        element: '#agregarJugada',
+        intro: 'Klike la pou ajoute yon nouvo jwèt manyèlman.',
+        position: 'left'
+    },
+    {
+        element: '#wizardButton',
+        intro: 'Itilize Asistan an pou antre plizyè jwèt rapidman.',
+        position: 'left'
+    },
+    {
+        element: '#generarTicket',
+        intro: 'Jenere tikè ou a lè tout jwèt yo pare.',
+        position: 'left'
+    }
+];
+
+function startTutorial(lang) {
+    let steps;
+    switch(lang) {
+        case 'es':
+            steps = tutorialStepsES;
+            break;
+        case 'ht':
+            steps = tutorialStepsHT;
+            break;
+        default:
+            steps = tutorialStepsEN;
+    }
+    
+    const intro = introJs();
+    intro.setOptions({
+        steps: steps,
+        showProgress: true,
+        showBullets: true,
+        exitOnOverlayClick: false,
+        exitOnEsc: true,
+        nextLabel: lang === 'es' ? 'Siguiente' : (lang === 'ht' ? 'Pwochen' : 'Next'),
+        prevLabel: lang === 'es' ? 'Anterior' : (lang === 'ht' ? 'Anvan' : 'Previous'),
+        skipLabel: lang === 'es' ? 'Saltar' : (lang === 'ht' ? 'Sote' : 'Skip'),
+        doneLabel: lang === 'es' ? 'Finalizar' : (lang === 'ht' ? 'Fini' : 'Done')
+    });
+    intro.start();
+}
 
 const lockedFields = { straight: false, box: false, combo: false }; 
 let fpDateInstance = null; 

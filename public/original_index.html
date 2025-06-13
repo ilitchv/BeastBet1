@@ -211,33 +211,93 @@
           </tbody>
         </table>
       </div>
- <!-- Total Plays Section - Moved inside the table container -->
- <div class="total-section mb-4" style="font-size:1.25rem;"> <!-- Ensure margin bottom for spacing -->
- Total Plays: $<span id="totalJugadas">0.00</span>
- </div>
 
-      <!-- Buttons: Add, Wizard, Remove Last, Reset -->
-      <div class="action-buttons-container-mobile mb-4"> <!-- New container for action buttons -->
-        <button type="button" class="btn btn-dark me-2" id="pasteAmountsButton"><i class="bi bi-clipboard-fill"></i> Paste Amounts</button> <!-- Added Paste Button -->
-        <div class="button-group mb-2 mb-md-0"> <!-- Margin bottom on small screens - Adjust styling with CSS -->
-          <button type="button" class="btn btn-primary me-1" id="agregarJugada"><i class="bi bi-plus-circle"></i> Add</button>
- <button type="button" class="btn btn-info me-1" id="wizardButton"><i class="bi bi-magic"></i> Wizard</button>
- <button type="button" class="btn btn-secondary me-1" id="openDailyReportBtn"><i class="bi bi-file-text"></i> Abrir Reporte Diario</button>
-          <button type="button" class="btn btn-danger me-1" id="eliminarJugada"><i class="bi bi-dash-circle"></i> Remove Last</button>
-          <button type="button" class="btn btn-warning" id="resetForm"><i class="bi bi-arrow-clockwise"></i> Reset</button>
-        </div>
-
-        <!-- Include Generate Ticket & OCR Buttons inside the new container -->
-        <button type="button" class="btn btn-success btn-lg" id="generarTicket"><i class="bi bi-ticket-detailed-fill"></i> Generate Ticket</button>
-
-         <button type="button" class="btn btn-warning btn-lg" id="btnOcrModalTrigger" onclick="abrirModalOCR()">
-            <i class="bi bi-camera"></i> Capturar Boleto (OCR)
-        </button>
+      <!-- Total Plays Section -->
+      <div class="total-section mb-4" style="font-size:1.25rem;">
+        Total Plays: $<span id="totalJugadas">0.00</span>
       </div>
 
-      <!-- Total Plays Section - Moved outside the action-buttons-container-mobile -->
-      <div class="total-section mb-4" style="font-size:1.25rem;"> <!-- Ensure margin bottom for spacing -->
-        Total Plays: $<span id="totalJugadas">0.00</span>
+      <!-- Actions Accordion - NUEVA SECCIÓN -->
+      <div class="mb-4">
+        <div class="accordion" id="actionsAccordion">
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingActions">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseActions" aria-expanded="true" aria-controls="collapseActions">
+                Actions
+              </button>
+            </h2>
+            <div id="collapseActions" class="accordion-collapse collapse show" aria-labelledby="headingActions" data-bs-parent="#actionsAccordion">
+              <div class="accordion-body">
+                <!-- Los 8 Action Buttons con estructura similar a tracks -->
+                
+                <!-- Fila 1: Generate Ticket (Primero como solicitaste) -->
+                <div class="action-button-container">
+                  <button type="button" class="btn btn-success action-button" id="generarTicket">
+                    <i class="bi bi-ticket-detailed-fill"></i>
+                    <span class="action-button-name">Generate Ticket</span>
+                  </button>
+                </div>
+                
+                <!-- Add Play -->
+                <div class="action-button-container">
+                  <button type="button" class="btn btn-primary action-button" id="agregarJugada">
+                    <i class="bi bi-plus-circle"></i>
+                    <span class="action-button-name">Add Play</span>
+                  </button>
+                </div>
+                
+                <!-- Wizard -->
+                <div class="action-button-container">
+                  <button type="button" class="btn btn-info action-button" id="wizardButton">
+                    <i class="bi bi-magic"></i>
+                    <span class="action-button-name">Wizard</span>
+                  </button>
+                </div>
+                
+                <!-- Capturar Boleto (OCR) -->
+                <div class="action-button-container">
+                  <button type="button" class="btn btn-warning action-button" id="btnOcrModalTrigger" onclick="abrirModalOCR()">
+                    <i class="bi bi-camera"></i>
+                    <span class="action-button-name">Capturar Boleto (OCR)</span>
+                  </button>
+                </div>
+                
+                <!-- Fila 2: Paste Amounts -->
+                <div class="action-button-container">
+                  <button type="button" class="btn btn-dark action-button" id="pasteAmountsButton">
+                    <i class="bi bi-clipboard-fill"></i>
+                    <span class="action-button-name">Paste Amounts</span>
+                  </button>
+                </div>
+                
+                <!-- Daily Report -->
+                <div class="action-button-container">
+                  <button type="button" class="btn btn-secondary action-button" id="openDailyReportBtn">
+                    <i class="bi bi-file-text"></i>
+                    <span class="action-button-name">Daily Report</span>
+                  </button>
+                </div>
+                
+                <!-- Remove Last -->
+                <div class="action-button-container">
+                  <button type="button" class="btn btn-danger action-button" id="eliminarJugada">
+                    <i class="bi bi-dash-circle"></i>
+                    <span class="action-button-name">Remove Last</span>
+                  </button>
+                </div>
+                
+                <!-- Reset -->
+                <div class="action-button-container">
+                  <button type="button" class="btn btn-warning action-button" id="resetForm">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    <span class="action-button-name">Reset</span>
+                  </button>
+                </div>
+                
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- MODAL OCR (Bootstrap) -->
@@ -283,9 +343,6 @@
       </div>
     </form>
   </div>
-
-  <!-- BOTÓN para abrir dailyReport.html (si lo deseas en otra pestaña) -->
-  <!-- <button class="btn btn-secondary" onclick="window.open('dailyReport.html','_blank')">Abrir Reporte Diario</button> -->
 
   <!-- Ticket Preview Window -->
   <div class="modal fade" id="ticketModal" tabindex="-1" aria-labelledby="ticketModalLabel" aria-hidden="true">
@@ -352,8 +409,8 @@
           <div class="accordion-body">
             <div class="d-flex gap-2 mb-3"><button class="btn btn-secondary btn-sm" id="manualEnglishBtn">English</button><button class="btn btn-secondary btn-sm" id="manualSpanishBtn">Español</button><button class="btn btn-secondary btn-sm" id="manualCreoleBtn">Kreyòl</button></div>
             <div id="manualEnglishText"><h4>Lottery App Manual (English)</h4><p><strong>Date Selection:</strong> The date input lets you pick one or multiple betting dates. Today is automatically assigned.</p></div>
-            <div id="manualSpanishText" class="d-none"><h4>Manual Completo de la App de Lotería (Español)</h4><p><strong>Selección de Fechas:</strong> Puede elegir una o varias fechas. “Hoy” se asigna por defecto.</p></div>
-            <div id="manualCreoleText" class="d-none"><h4>Manyèl Aplikasyon Lòtri (Kreyòl)</h4><p><strong>Chwazi Dat:</strong> Ou ka pran youn oswa plizyè dat, “jodia” default.</p></div>
+            <div id="manualSpanishText" class="d-none"><h4>Manual Completo de la App de Lotería (Español)</h4><p><strong>Selección de Fechas:</strong> Puede elegir una o varias fechas. "Hoy" se asigna por defecto.</p></div>
+            <div id="manualCreoleText" class="d-none"><h4>Manyèl Aplikasyon Lòtri (Kreyòl)</h4><p><strong>Chwazi Dat:</strong> Ou ka pran youn oswa plizyè dat, "jodia" default.</p></div>
           </div>
         </div>
       </div>
@@ -365,7 +422,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-  <!-- Note: Flatpickr CSS is already in head. No separate JS theme for material_blue needed. -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/customParseFormat.js"></script>
