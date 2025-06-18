@@ -925,6 +925,7 @@ $(document).ready(function() {
                 if (qrElement) {
                     qrElement.style.marginBottom = "30px";
                     qrElement.style.paddingBottom = "20px";
+                    await waitForQrReady();
                 }
                 
                 // CONFIGURACIÓN MÁS CONSERVADORA para compartir (evitar imagen en blanco)
@@ -1321,6 +1322,27 @@ function debugQRCapture() {
             }
         }, 5000);
     }
+}
+
+async function waitForQrReady(timeout = 2000) {
+    const qr = document.getElementById('qrcode');
+    if (!qr) return;
+
+    const start = Date.now();
+    return new Promise(resolve => {
+        (function check() {
+            const canvas = qr.querySelector('canvas');
+            const img = qr.querySelector('img');
+            if ((canvas && canvas.offsetHeight > 0) ||
+                (img && img.complete && img.naturalHeight > 0)) {
+                resolve();
+            } else if (Date.now() - start > timeout) {
+                resolve();
+            } else {
+                setTimeout(check, 50);
+            }
+        })();
+    });
 }
 
 // --- Helper Functions (determineGameMode, calculateRowTotal, etc.) ---
