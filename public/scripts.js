@@ -18,6 +18,9 @@ let wizardCount = 0;
 // Global variable to store copied amounts for pasting, now visible globally
 window.copiedAmounts = {};
 
+// Global variable to store the active QRCode instance
+let currentQRCode = null;
+
 // Cutoff times (remains unchanged)
 const cutoffTimes = {
     "USA": { 
@@ -662,12 +665,19 @@ $(document).ready(function() {
         $("#ticketTransaccion").text(transactionDateTime);
         
         // CORRECCIÓN QR + RESOLUCIÓN: Generar QR y esperar renderizado completo
-        $("#qrcode").empty();
-        
+        if (currentQRCode && typeof currentQRCode.clear === 'function') {
+            currentQRCode.clear();
+        } else {
+            const qrContainer = document.getElementById("qrcode");
+            while (qrContainer && qrContainer.firstChild) {
+                qrContainer.removeChild(qrContainer.firstChild);
+            }
+        }
+
         let qrCodeGenerated = false;
         if (typeof QRCode !== 'undefined') {
             try {
-                new QRCode(document.getElementById("qrcode"), {
+                currentQRCode = new QRCode(document.getElementById("qrcode"), {
                     text: uniqueTicket,
                     width: 128,
                     height: 128,
