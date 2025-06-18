@@ -668,7 +668,7 @@ $(document).ready(function() {
         doGenerateTicket();
     });
 
-    $("#confirmarTicket").click(function() {
+    $("#confirmarTicket").click(async function() {
         const $confirmButton = $(this);
         $confirmButton.prop("disabled", true); 
         $("#editButton").addClass("d-none");
@@ -702,28 +702,9 @@ $(document).ready(function() {
         }
         
         // Esperar a que el QR termine de renderizarse antes de capturar
-        const qrContainer = document.getElementById("qrcode");
-        const qrImg = qrContainer ? qrContainer.querySelector("img") : null;
-        const qrCanvas = qrContainer ? qrContainer.querySelector("canvas") : null;
-
-        const waitForQR = new Promise(resolve => {
-            if (qrImg) {
-                if (qrImg.complete) {
-                    resolve();
-                } else {
-                    qrImg.addEventListener("load", () => resolve(), { once: true });
-                }
-            } else if (qrCanvas) {
-                // El canvas se dibuja sin evento 'load'; esperar al siguiente frame
-                requestAnimationFrame(() => resolve());
-            } else {
-                resolve();
-            }
-        });
-
-        waitForQR.then(() => {
-            const jugadasCount = $("#ticketJugadas tr").length;
-            console.log(`Generando ticket para DESCARGA con ${jugadasCount} jugadas`);
+        await waitForQrReady();
+        const jugadasCount = $("#ticketJugadas tr").length;
+        console.log(`Generando ticket para DESCARGA con ${jugadasCount} jugadas`);
             
             // SOLUCIÓN MEJORADA: Pre-ajustar altura con valores más agresivos
             const preTicket = document.getElementById("preTicket");
@@ -926,7 +907,6 @@ $(document).ready(function() {
                 console.error("Error generando imagen de descarga:", error);
                 alert("Error generating ticket for download: " + error.message);
             });
-        }); // Esperar a la carga del QR antes de capturar
     });
     
     $("#editButton").click(function(){
