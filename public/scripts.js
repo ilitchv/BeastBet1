@@ -21,6 +21,20 @@ window.copiedAmounts = {};
 // Global variable to store the active QRCode instance
 let currentQRCode = null;
 
+function clearQrContainer() {
+    const qrContainer = document.getElementById('qrcode');
+    if (qrContainer) {
+        while (qrContainer.firstChild) {
+            qrContainer.removeChild(qrContainer.firstChild);
+        }
+    }
+    if (currentQRCode && typeof currentQRCode.clear === 'function') {
+        try { currentQRCode.clear(); } catch (err) { console.error('Error clearing QRCode:', err); }
+    }
+    currentQRCode = null;
+}
+
+
 // Cutoff times (remains unchanged)
 const cutoffTimes = {
     "USA": { 
@@ -665,14 +679,7 @@ $(document).ready(function() {
         $("#ticketTransaccion").text(transactionDateTime);
         
         // CORRECCIÓN QR + RESOLUCIÓN: Generar QR y esperar renderizado completo
-        if (currentQRCode && typeof currentQRCode.clear === 'function') {
-            currentQRCode.clear();
-        } else {
-            const qrContainer = document.getElementById("qrcode");
-            while (qrContainer && qrContainer.firstChild) {
-                qrContainer.removeChild(qrContainer.firstChild);
-            }
-        }
+        clearQrContainer();
 
         let qrCodeGenerated = false;
         if (typeof QRCode !== 'undefined') {
@@ -899,6 +906,7 @@ $(document).ready(function() {
                     
                     console.log("Ticket descargado exitosamente");
                     $("#shareTicket").removeClass("d-none");
+                    clearQrContainer();
                 } else {
                     throw new Error("Canvas de descarga generado incorrectamente");
                 }
@@ -934,7 +942,24 @@ $(document).ready(function() {
         if (navigator.share) {
             try {
                 console.log("Iniciando proceso de compartir...");
-                
+
+                const shareTicketNumber = $("#numeroTicket").text().trim();
+                clearQrContainer();
+                if (typeof QRCode !== 'undefined' && shareTicketNumber) {
+                    try {
+                        currentQRCode = new QRCode(document.getElementById("qrcode"), {
+                            text: shareTicketNumber,
+                            width: 128,
+                            height: 128,
+                            colorDark: "#000000",
+                            colorLight: "#ffffff",
+                            correctLevel: QRCode.CorrectLevel.M
+                        });
+                    } catch (error) {
+                        console.error("Error generating QR Code for share:", error);
+                    }
+                }
+
                 // APLICAR MISMA SOLUCIÓN MEJORADA para compartir
                 const preTicket = document.getElementById("preTicket");
                 const originalPadding = preTicket.style.paddingBottom;
@@ -1032,7 +1057,8 @@ $(document).ready(function() {
                     qrElement.style.marginBottom = '';
                     qrElement.style.paddingBottom = '';
                 }
-                
+
+                clearQrContainer();
                 console.log(`Canvas para compartir generado: ${canvas.width}x${canvas.height}`);
                 
                 canvas.toBlob(async function(blob) {
