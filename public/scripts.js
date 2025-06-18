@@ -1364,7 +1364,7 @@ function debugQRCapture() {
     }
 }
 
-async function waitForQrReady(timeout = 2000) {
+async function waitForQrReady(timeout = 4000) {
     const qr = document.getElementById('qrcode');
     if (!qr) return;
 
@@ -1373,8 +1373,13 @@ async function waitForQrReady(timeout = 2000) {
         (function check() {
             const canvas = qr.querySelector('canvas');
             const img = qr.querySelector('img');
-            if ((canvas && canvas.offsetHeight > 0) ||
-                (img && img.complete && img.naturalHeight > 0)) {
+            const canvasReady = canvas &&
+                (canvas.naturalWidth > 0 || canvas.width > 0) &&
+                (canvas.naturalHeight > 0 || canvas.height > 0);
+            const imgReady = img && img.complete &&
+                img.naturalWidth > 0 && img.naturalHeight > 0;
+
+            if (canvasReady || imgReady) {
                 resolve();
             } else if (Date.now() - start > timeout) {
                 resolve();
