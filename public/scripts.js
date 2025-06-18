@@ -1038,22 +1038,27 @@ $(document).ready(function() {
                     qrElement.style.paddingBottom = '';
                 }
 
-                clearQrContainer();
                 console.log(`Canvas para compartir generado: ${canvas.width}x${canvas.height}`);
-                
+
                 canvas.toBlob(async function(blob) {
                     if (blob && blob.size > 0) {
                         const file = new File([blob], 'ticket.png', {type: 'image/png'});
-                        await navigator.share({
-                            files: [file],
-                            title: 'Mi Ticket de Lotería',
-                            text: '¡Aquí tienes mi ticket generado!',
-                        });
-                        console.log("Ticket compartido exitosamente");
+                        try {
+                            await navigator.share({
+                                files: [file],
+                                title: 'Mi Ticket de Lotería',
+                                text: '¡Aquí tienes mi ticket generado!',
+                            });
+                            console.log("Ticket compartido exitosamente");
+                        } catch (shareError) {
+                            console.error('Error sharing:', shareError);
+                            alert('Could not share ticket: ' + shareError.message);
+                        }
                     } else {
-                        throw new Error("Generated blob is empty");
+                        alert('Could not share ticket: Generated image is empty.');
                     }
-                    // Re-habilitar el botón después de compartir
+                    clearQrContainer();
+                    // Re-habilitar el botón después de compartir o fallar
                     $("#shareTicket").prop('disabled', false);
                 }, 'image/png', 0.95); // Calidad ligeramente reducida para evitar problemas
             } catch (error) { 
