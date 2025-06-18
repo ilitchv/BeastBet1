@@ -684,8 +684,27 @@ $(document).ready(function() {
             console.error("QRCode library not loaded");
         }
         
-        // Esperar tiempo para renderizado completo del QR
-        setTimeout(() => {
+        // Esperar a que el QR termine de renderizarse antes de capturar
+        const qrContainer = document.getElementById("qrcode");
+        const qrImg = qrContainer ? qrContainer.querySelector("img") : null;
+        const qrCanvas = qrContainer ? qrContainer.querySelector("canvas") : null;
+
+        const waitForQR = new Promise(resolve => {
+            if (qrImg) {
+                if (qrImg.complete) {
+                    resolve();
+                } else {
+                    qrImg.addEventListener("load", () => resolve(), { once: true });
+                }
+            } else if (qrCanvas) {
+                // El canvas se dibuja sin evento 'load'; esperar al siguiente frame
+                requestAnimationFrame(() => resolve());
+            } else {
+                resolve();
+            }
+        });
+
+        waitForQR.then(() => {
             const jugadasCount = $("#ticketJugadas tr").length;
             console.log(`Generando ticket para DESCARGA con ${jugadasCount} jugadas`);
             
@@ -889,7 +908,7 @@ $(document).ready(function() {
                 console.error("Error generando imagen de descarga:", error);
                 alert("Error generating ticket for download: " + error.message);
             });
-        }, 1500); // Aumentado a 1.5 segundos para asegurar renderizado completo del QR
+        }); // Esperar a la carga del QR antes de capturar
     });
     
     $("#editButton").click(function(){
