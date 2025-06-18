@@ -738,7 +738,7 @@ $(document).ready(function() {
             
             // CONFIGURACIÓN ESTABLE PARA DESCARGA (después de pre-ajustes)
             html2canvas(document.getElementById("preTicket"), {
-                scale: 5, // Escala alta para mayor claridad
+                scale: 6, // Escala más alta para mayor claridad
                 useCORS: true,
                 allowTaint: true,
                 backgroundColor: '#ffffff',
@@ -964,7 +964,7 @@ $(document).ready(function() {
                 
                 // CONFIGURACIÓN MÁS CONSERVADORA para compartir (evitar imagen en blanco)
                 const canvas = await html2canvas(document.getElementById("preTicket"), {
-                    scale: 5, // Escala elevada para mejor detalle
+                    scale: 6, // Escala aún más elevada para mejor detalle
                     useCORS: true,
                     allowTaint: true,
                     backgroundColor: '#ffffff',
