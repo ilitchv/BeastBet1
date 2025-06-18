@@ -1677,18 +1677,18 @@ body.light-mode .flatpickr-day.disabled {
   }
   
   #preTicket .table {
-    font-size: 0.65rem !important;
+    font-size: 0.85rem !important;
     margin: 8px 0 !important;
   }
-  
+
   #preTicket .table th {
     padding: 2px 1px !important;
-    font-size: 0.6rem !important;
+    font-size: 0.8rem !important;
   }
-  
+
   #preTicket .table td {
     padding: 2px 1px !important;
-    font-size: 0.65rem !important;
+    font-size: 0.8rem !important;
   }
   
   #preTicket .total-section {
