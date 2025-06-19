@@ -18,6 +18,10 @@ let wizardCount = 0;
 // Global variable to store copied amounts for pasting, now visible globally
 window.copiedAmounts = {};
 
+// Stores the last generated ticket image so it can be shared without
+// re-rendering (helps preserve the QR code).
+let latestTicketDataUrl = null;
+
 // Cutoff times (remains unchanged)
 const cutoffTimes = {
     "USA": { 
@@ -860,9 +864,10 @@ $(document).ready(function() {
                 if (canvas && canvas.width > 0 && canvas.height > 0) {
                     console.log(`Canvas DESCARGA generado correctamente: ${canvas.width}x${canvas.height}`);
                     
+                    latestTicketDataUrl = canvas.toDataURL('image/png', 1.0);
                     const link = document.createElement('a');
                     link.download = `ticket_${uniqueTicket}.png`;
-                    link.href = canvas.toDataURL('image/png', 1.0);
+                    link.href = latestTicketDataUrl;
                     
                     document.body.appendChild(link);
                     link.click();
@@ -905,6 +910,22 @@ $(document).ready(function() {
         if (navigator.share) {
             try {
                 console.log("Iniciando proceso de compartir...");
+
+                // If we already have a generated ticket image (from the
+                // download step), use it directly to ensure the QR is intact.
+                if (latestTicketDataUrl) {
+                    const response = await fetch(latestTicketDataUrl);
+                    const blob = await response.blob();
+                    const file = new File([blob], 'ticket.png', { type: 'image/png' });
+                    await navigator.share({
+                        files: [file],
+                        title: 'Mi Ticket de Lotería',
+                        text: '¡Aquí tienes mi ticket generado!',
+                    });
+                    console.log("Ticket compartido exitosamente (reused image)");
+                    $("#shareTicket").prop('disabled', false);
+                    return;
+                }
                 
                 // APLICAR MISMA SOLUCIÓN MEJORADA para compartir
                 const preTicket = document.getElementById("preTicket");
@@ -1632,8 +1653,11 @@ function loadFormState() {
 
 
 // --- Form Actions ---
-function resetForm() { 
+function resetForm() {
     console.log("resetForm called");
+
+    // Clear any stored ticket image when the form is reset
+    latestTicketDataUrl = null;
     
     $(".track-checkbox").off('change', trackCheckboxChangeHandler);
     isUpdatingProgrammatically = true;
@@ -1745,8 +1769,11 @@ function getDisplayTracks(tracks) {
     return tracks.filter(track => track !== "Venezuela");
 }
 
-function doGenerateTicket() { 
+function doGenerateTicket() {
     console.log("doGenerateTicket called");
+
+    // New ticket generation resets previously stored image
+    latestTicketDataUrl = null;
     const dateVal = fpInstance ? fpInstance.input.value : "";
     if (!dateVal) {
         alert("Please select at least one date.");
