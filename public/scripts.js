@@ -21,6 +21,7 @@ window.copiedAmounts = {};
 // Stores the last generated ticket image so it can be shared without
 // re-rendering (helps preserve the QR code).
 let latestTicketDataUrl = null;
+let latestTicketBlob = null;
 
 // Cutoff times (remains unchanged)
 const cutoffTimes = {
@@ -863,18 +864,22 @@ $(document).ready(function() {
                 
                 if (canvas && canvas.width > 0 && canvas.height > 0) {
                     console.log(`Canvas DESCARGA generado correctamente: ${canvas.width}x${canvas.height}`);
-                    
+
                     latestTicketDataUrl = canvas.toDataURL('image/png', 1.0);
-                    const link = document.createElement('a');
-                    link.download = `ticket_${uniqueTicket}.png`;
-                    link.href = latestTicketDataUrl;
-                    
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link); 
-                    
-                    console.log("Ticket descargado exitosamente");
-                    $("#shareTicket").removeClass("d-none");
+                    canvas.toBlob(function(blob){
+                        latestTicketBlob = blob;
+                        const link = document.createElement('a');
+                        link.download = `ticket_${uniqueTicket}.png`;
+                        link.href = URL.createObjectURL(blob);
+
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(link.href);
+
+                        console.log("Ticket descargado exitosamente");
+                        $("#shareTicket").removeClass("d-none");
+                    }, 'image/png', 1.0);
                 } else {
                     throw new Error("Canvas de descarga generado incorrectamente");
                 }
@@ -906,32 +911,40 @@ $(document).ready(function() {
         // Prevenir múltiples clicks
         if ($(this).prop('disabled')) return;
         $(this).prop('disabled', true);
-        
+
         if (navigator.share) {
+            let originalPadding, originalBarcodeMargin, originalBarcodeHeight;
             try {
                 console.log("Iniciando proceso de compartir...");
 
-                // If we already have a generated ticket image (from the
-                // download step), use it directly to ensure the QR is intact.
-                if (latestTicketDataUrl) {
+                // Use previously generated image if available
+                let shareBlob = null;
+                if (latestTicketBlob) {
+                    shareBlob = latestTicketBlob;
+                } else if (latestTicketDataUrl) {
                     const response = await fetch(latestTicketDataUrl);
-                    const blob = await response.blob();
-                    const file = new File([blob], 'ticket.png', { type: 'image/png' });
-                    await navigator.share({
-                        files: [file],
-                        title: 'Mi Ticket de Lotería',
-                        text: '¡Aquí tienes mi ticket generado!',
-                    });
-                    console.log("Ticket compartido exitosamente (reused image)");
-                    $("#shareTicket").prop('disabled', false);
-                    return;
+                    shareBlob = await response.blob();
                 }
-                
+
+                if (shareBlob) {
+                    const file = new File([shareBlob], 'ticket.png', { type: 'image/png' });
+                    if (!navigator.canShare || navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                            files: [file],
+                            title: 'Mi Ticket de Lotería',
+                            text: '¡Aquí tienes mi ticket generado!',
+                        });
+                        console.log("Ticket compartido exitosamente (reused image)");
+                        $("#shareTicket").prop('disabled', false);
+                        return;
+                    }
+                }
+
                 // APLICAR MISMA SOLUCIÓN MEJORADA para compartir
                 const preTicket = document.getElementById("preTicket");
-                const originalPadding = preTicket.style.paddingBottom;
-                const originalBarcodeMargin = preTicket.querySelector('.barcode')?.style.marginBottom || '';
-                const originalBarcodeHeight = preTicket.querySelector('.barcode')?.style.minHeight || '';
+                originalPadding = preTicket.style.paddingBottom;
+                originalBarcodeMargin = preTicket.querySelector('.barcode')?.style.marginBottom || '';
+                originalBarcodeHeight = preTicket.querySelector('.barcode')?.style.minHeight || '';
                 
                 // Pre-ajustar altura con valores más agresivos para compartir
                 preTicket.style.paddingBottom = "100px";
@@ -1060,8 +1073,9 @@ $(document).ready(function() {
                     qrElement.style.paddingBottom = '';
                 }
                 
-                console.error('Error sharing:', error); 
-                alert('Could not share ticket: ' + error.message);
+                console.error('Error sharing:', error);
+                const msg = (error && error.name === 'AbortError') ? 'Share cancelled by user.' : 'Could not share ticket: ' + (error.message || error);
+                alert(msg);
                 $("#shareTicket").prop('disabled', false);
             }
         } else { 
@@ -1658,6 +1672,7 @@ function resetForm() {
 
     // Clear any stored ticket image when the form is reset
     latestTicketDataUrl = null;
+    latestTicketBlob = null;
     
     $(".track-checkbox").off('change', trackCheckboxChangeHandler);
     isUpdatingProgrammatically = true;
@@ -1774,6 +1789,7 @@ function doGenerateTicket() {
 
     // New ticket generation resets previously stored image
     latestTicketDataUrl = null;
+    latestTicketBlob = null;
     const dateVal = fpInstance ? fpInstance.input.value : "";
     if (!dateVal) {
         alert("Please select at least one date.");
