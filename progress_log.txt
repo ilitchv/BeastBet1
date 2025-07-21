@@ -63,6 +63,12 @@ El enfoque actual ha sido mejorar la usabilidad y completar funcionalidades clav
   - Resultado Parcial: Se logró que más botones quepan por fila, se mantiene el aspecto cuadrado, y se mejoró el ajuste general del layout. **Problema Pendiente:** El texto dentro de los botones de track no es visible después de los últimos ajustes de tamaño y overflow. Se necesita depurar y corregir la visualización del texto.
   - Próximo Paso: Investigar y resolver el problema de visibilidad del texto en los botones de track escalados en mobile.
 
+- **Export Plays Button Visible:**
+  - Objetivo: Hacer visible el nuevo botón "Export Plays" en todas las vistas.
+  - Archivos Modificados: `public/styles.css`.
+  - Cambios Realizados: Se incluyó `#exportPlaysButton` en las reglas de estilos que forzaban la visibilidad y formato de los action buttons, aplicando un gradiente verde y asegurando los estados `hover` y `active`.
+  - Resultado: El botón de exportación ahora aparece correctamente junto a los demás botones de acción y permite descargar las jugadas en CSV.
+
 ## 7. AI Instructions / Memory Management
 <!-- Instructions for el modelo de lenguaje sobre cómo leer y actualizar este archivo para mantener el contexto. Esto actuaría como tu "custom instructions" dentro del archivo. -->
 Al inicio de cada sesión, DEBES leer completamente este archivo para reconstruir el contexto del proyecto.

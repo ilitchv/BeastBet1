@@ -230,7 +230,8 @@ h2 {
 #resetForm,
 #pasteAmountsButton,
 #openDailyReportBtn,
-#btnOcrModalTrigger {
+#btnOcrModalTrigger,
+#exportPlaysButton {
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
@@ -247,7 +248,8 @@ h2 {
 .action-buttons-container-mobile #resetForm,
 .action-buttons-container-mobile #pasteAmountsButton,
 .action-buttons-container-mobile #openDailyReportBtn,
-.action-buttons-container-mobile #btnOcrModalTrigger {
+.action-buttons-container-mobile #btnOcrModalTrigger,
+.action-buttons-container-mobile #exportPlaysButton {
   aspect-ratio: 1 / 1 !important;
   width: 100% !important;
   min-height: 80px !important;
@@ -277,7 +279,8 @@ h2 {
 .action-buttons-container-mobile #resetForm:hover,
 .action-buttons-container-mobile #pasteAmountsButton:hover,
 .action-buttons-container-mobile #openDailyReportBtn:hover,
-.action-buttons-container-mobile #btnOcrModalTrigger:hover {
+.action-buttons-container-mobile #btnOcrModalTrigger:hover,
+.action-buttons-container-mobile #exportPlaysButton:hover {
   transform: translateY(-2px) !important;
   box-shadow: 0 7px #111 !important;
 }
@@ -290,7 +293,8 @@ h2 {
 .action-buttons-container-mobile #resetForm:active,
 .action-buttons-container-mobile #pasteAmountsButton:active,
 .action-buttons-container-mobile #openDailyReportBtn:active,
-.action-buttons-container-mobile #btnOcrModalTrigger:active {
+.action-buttons-container-mobile #btnOcrModalTrigger:active,
+.action-buttons-container-mobile #exportPlaysButton:active {
   transform: translateY(2px) !important;
   box-shadow: 0 3px #111 !important;
 }
@@ -304,7 +308,8 @@ h2 {
 .action-buttons-container-mobile #resetForm i,
 .action-buttons-container-mobile #pasteAmountsButton i,
 .action-buttons-container-mobile #openDailyReportBtn i,
-.action-buttons-container-mobile #btnOcrModalTrigger i {
+.action-buttons-container-mobile #btnOcrModalTrigger i,
+.action-buttons-container-mobile #exportPlaysButton i {
   font-size: 1.5rem !important;
 }
 
@@ -351,6 +356,11 @@ h2 {
   color: #000 !important;
 }
 
+.action-buttons-container-mobile #exportPlaysButton {
+  background: linear-gradient(#28a745, #218838) !important;
+  color: #fff !important;
+}
+
 /* FORZAR VISIBILIDAD de TODOS los action buttons - sin importar el contenedor */
 #generarTicket,
 #agregarJugada,
@@ -359,7 +369,8 @@ h2 {
 #resetForm,
 #pasteAmountsButton,
 #openDailyReportBtn,
-#btnOcrModalTrigger {
+#btnOcrModalTrigger,
+#exportPlaysButton {
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
@@ -480,6 +491,11 @@ h2 {
   color: #000;
 }
 
+#exportPlaysButton.action-button {
+  background: linear-gradient(#28a745, #218838);
+  color: #fff;
+}
+
 /* LIMPIAR CSS obsoleto de action buttons */
 /* Eliminar todas las reglas anteriores que causan conflicto */
 .action-buttons-container-mobile {
@@ -504,7 +520,8 @@ h2 {
 #resetForm,
 #pasteAmountsButton,
 #openDailyReportBtn,
-#btnOcrModalTrigger {
+#btnOcrModalTrigger,
+#exportPlaysButton {
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
