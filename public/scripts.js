@@ -535,7 +535,7 @@ $(document).ready(function() {
             combo: combo
         };
         $("#pasteAmountsButton").prop('disabled', false); 
-        console.log("Montos copiados:", window.copiedAmounts);     });
+        console.log("Montos copiados:", window.copiedAmounts);      });
 
     $("#pasteAmountsButton").on("click", function() {
         if (Object.keys(window.copiedAmounts).length === 0) {
@@ -651,6 +651,17 @@ $(document).ready(function() {
             resetForm();
         }
     });
+
+    // ======================= INICIO: CÓDIGO AÑADIDO =======================
+    // Se asume que el nuevo botón en el HTML tendrá el id="exportExcelBtn".
+    // Este listener llamará a la función `exportPlaysToCsv` que ya existe
+    // y que genera un archivo .csv compatible con Excel.
+    // **NOTA:** El `exportPlaysToCsv` ya existe más abajo en el código original.
+    $("#exportExcelBtn").click(function() {
+        exportPlaysToCsv();
+    });
+    // ======================= FIN: CÓDIGO AÑADIDO =========================
+
 
     $("#generarTicket").click(function() {
         doGenerateTicket();
