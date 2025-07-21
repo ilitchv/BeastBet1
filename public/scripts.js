@@ -1246,6 +1246,8 @@ $(document).ready(function() {
     $("#wizardEditMainForm").click(function() {
         if(wizardModalInstance) wizardModalInstance.hide();
     });
+
+    $("#exportPlaysButton").click(exportPlaysToCsv);
     
     // Tutorial and Manual buttons
     $("#helpEnglish").click(() => startTutorial('en'));
@@ -1718,6 +1720,33 @@ function resetForm() {
     selectedDaysCount = fpInstance.selectedDates.length > 0 ? fpInstance.selectedDates.length : 1;
 
     console.log("Form reset complete.");
+}
+
+function exportPlaysToCsv() {
+    const rows = $("#tablaJugadas > tr");
+    if (rows.length === 0) {
+        alert("No plays to export.");
+        return;
+    }
+
+    let csvContent = "Bet Number,Straight,Box,Combo\n";
+    rows.each(function() {
+        const bn = $(this).find(".betNumber").val() || "";
+        const straight = $(this).find(".straight").val() || "";
+        const box = $(this).find(".box").val() || "";
+        const combo = $(this).find(".combo").val() || "";
+        csvContent += `"${bn}","${straight}","${box}","${combo}"\n`;
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'jugadas.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 }
 
 function validateMainPlays() {
