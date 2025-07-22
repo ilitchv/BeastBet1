@@ -231,7 +231,7 @@ h2 {
 #pasteAmountsButton,
 #openDailyReportBtn,
 #btnOcrModalTrigger,
-#exportPlaysButton {
+#exportExcelBtn {
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
@@ -249,7 +249,7 @@ h2 {
 .action-buttons-container-mobile #pasteAmountsButton,
 .action-buttons-container-mobile #openDailyReportBtn,
 .action-buttons-container-mobile #btnOcrModalTrigger,
-.action-buttons-container-mobile #exportPlaysButton {
+.action-buttons-container-mobile #exportExcelBtn {
   aspect-ratio: 1 / 1 !important;
   width: 100% !important;
   min-height: 80px !important;
@@ -280,7 +280,7 @@ h2 {
 .action-buttons-container-mobile #pasteAmountsButton:hover,
 .action-buttons-container-mobile #openDailyReportBtn:hover,
 .action-buttons-container-mobile #btnOcrModalTrigger:hover,
-.action-buttons-container-mobile #exportPlaysButton:hover {
+.action-buttons-container-mobile #exportExcelBtn:hover {
   transform: translateY(-2px) !important;
   box-shadow: 0 7px #111 !important;
 }
@@ -294,7 +294,7 @@ h2 {
 .action-buttons-container-mobile #pasteAmountsButton:active,
 .action-buttons-container-mobile #openDailyReportBtn:active,
 .action-buttons-container-mobile #btnOcrModalTrigger:active,
-.action-buttons-container-mobile #exportPlaysButton:active {
+.action-buttons-container-mobile #exportExcelBtn:active {
   transform: translateY(2px) !important;
   box-shadow: 0 3px #111 !important;
 }
@@ -309,7 +309,7 @@ h2 {
 .action-buttons-container-mobile #pasteAmountsButton i,
 .action-buttons-container-mobile #openDailyReportBtn i,
 .action-buttons-container-mobile #btnOcrModalTrigger i,
-.action-buttons-container-mobile #exportPlaysButton i {
+.action-buttons-container-mobile #exportExcelBtn i {
   font-size: 1.5rem !important;
 }
 
@@ -356,27 +356,11 @@ h2 {
   color: #000 !important;
 }
 
-.action-buttons-container-mobile #exportPlaysButton {
-  background: linear-gradient(#28a745, #218838) !important;
+.action-buttons-container-mobile #exportExcelBtn {
+  background: linear-gradient(#1D6F42, #104C2B) !important;
   color: #fff !important;
 }
 
-/* FORZAR VISIBILIDAD de TODOS los action buttons - sin importar el contenedor */
-#generarTicket,
-#agregarJugada,
-#wizardButton,
-#eliminarJugada,
-#resetForm,
-#pasteAmountsButton,
-#openDailyReportBtn,
-#btnOcrModalTrigger,
-#exportPlaysButton {
-  display: flex !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  position: relative !important;
-  z-index: 1 !important;
-}
 
 /* ACTION BUTTONS - Estructura idéntica a track buttons */
 .action-button-container {
@@ -491,54 +475,12 @@ h2 {
   color: #000;
 }
 
-#exportPlaysButton.action-button {
-  background: linear-gradient(#28a745, #218838);
+#exportExcelBtn.action-button {
+  background: linear-gradient(#1D6F42, #104C2B);
   color: #fff;
 }
 
-/* LIMPIAR CSS obsoleto de action buttons */
-/* Eliminar todas las reglas anteriores que causan conflicto */
-.action-buttons-container-mobile {
-  display: none !important;
-}
-
-.button-group {
-  display: none !important;
-}
-
-/* Ocultar cualquier estilo de los contenedores antiguos */
-.action-buttons-container-mobile .btn,
-.button-group .btn {
-  display: none !important;
-}
-
-/* FORZAR que TODOS los 8 botones aparezcan y sean del mismo tamaño */
-#generarTicket,
-#agregarJugada,
-#wizardButton,
-#eliminarJugada,
-#resetForm,
-#pasteAmountsButton,
-#openDailyReportBtn,
-#btnOcrModalTrigger,
-#exportPlaysButton {
-  display: flex !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  position: relative !important;
-}
-
-/* Total solo después de la tabla */
-.action-buttons-container-mobile + .total-section {
-  display: none !important;
-}
-
-#playsTableContainer + .total-section {
-  display: block !important;
-  margin-bottom: 15px;
-}
-
-/* Total Section - MÁS COMPACTO */
+/* Total Section */
 .total-section {
   font-size: 1.25rem; /* Reducido de 1.5rem */
   font-weight: bold;
@@ -550,19 +492,6 @@ h2 {
   border: 2px solid var(--color-neon-cian);
   border-radius: 8px; /* Reducido de 10px para esquinas menos cuadradas */
   margin: 10px 0; /* Reducido de 15px */
-}
-
-/* Ocultar TODOS los totales duplicados */
-.action-buttons-container-mobile .total-section,
-.action-buttons-container-mobile + .total-section,
-body .total-section:not(:first-of-type) {
-  display: none !important;
-}
-
-/* Solo mostrar el total inmediatamente después de la tabla */
-#playsTableContainer + .total-section {
-  display: block !important;
-  margin-bottom: 15px;
 }
 
 /* Acordeón de Tracks - MÁS COMPACTO */
@@ -1801,7 +1730,7 @@ body.light-mode .flatpickr-day.disabled {
 }
 
 /* ===========================
-   MOBILE RESPONSIVE STYLES - COMPACTO Y OPTIMIZADO
+    MOBILE RESPONSIVE STYLES - COMPACTO Y OPTIMIZADO
    =========================== */
 @media (max-width: 768px) {
   .container {
