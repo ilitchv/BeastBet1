@@ -389,7 +389,7 @@ $(document).ready(function() {
                 console.error("Error al inicializar modal #modalOcr:", error);
             }
         } else {
-            console.error("Modal #modalOcr not found in HTML!");
+            // Modal #modalOcr not present; OCR init skipped.
         }
 
         const wizardModalElement = document.getElementById('wizardModal');
