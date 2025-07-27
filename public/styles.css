@@ -345,6 +345,3 @@ input::-ms-input-placeholder { /* Microsoft Edge */
     }
 }
 
-/* ==== OCR extra styles (2025-07-27) ==== */
-.small-ocr-table th, .small-ocr-table td { padding: 0.25rem 0.5rem; font-size: 0.85rem; }
-.ocr-play-separator { border-top: 1px dashed rgba(255,255,255,0.15); }
