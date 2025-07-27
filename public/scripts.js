@@ -401,7 +401,7 @@ $(document).ready(function() {
                 console.error("Error al inicializar modal #wizardModal:", error);
             }
         } else {
-            console.error("Modal #wizardModal not found in HTML!");
+            // Modal #wizardModal not present; skipping initialization.
         }
         
         const ticketModalElement = document.getElementById('ticketModal');
@@ -1100,8 +1100,9 @@ $(document).ready(function() {
     $("#wizardButton").click(function() {
         console.log("Wizard button clicked");
         resetWizard();
-        if(wizardModalInstance) wizardModalInstance.show();
-        else console.error("Wizard modal not initialized");
+        if (wizardModalInstance) { wizardModalInstance.show(); }
+        else if (typeof ticketModalInstance !== "undefined" && ticketModalInstance) { ticketModalInstance.show(); }
+        else { console.info("Wizard modal not available; no fallback modal found."); }
     });
 
     $(".lockBtn").click(function() {
@@ -1250,12 +1251,12 @@ $(document).ready(function() {
 
     $("#wizardGenerateTicket").click(function() {
         $("#wizardAddAllToMain").trigger("click");
-        if(wizardModalInstance) wizardModalInstance.hide();
+        if (wizardModalInstance) { wizardModalInstance.hide(); }
         doGenerateTicket();
     });
 
     $("#wizardEditMainForm").click(function() {
-        if(wizardModalInstance) wizardModalInstance.hide();
+        if (wizardModalInstance) { wizardModalInstance.hide(); }
     });
 
     $("#exportPlaysButton").click(exportPlaysToCsv);
@@ -2223,7 +2224,7 @@ function setupThemeToggle() {
     const sunIcon = themeToggleBtn ? themeToggleBtn.querySelector('.bi-sun') : null;
 
     if (!themeToggleBtn || !moonIcon || !sunIcon) {
-        console.error("Theme toggle elements not found.");
+        // Theme toggle elements not found; feature disabled silently.
         return;
     }
 
@@ -2250,17 +2251,13 @@ function setupThemeToggle() {
 console.log("End of scripts.js reached");
 
 
-
 /* =========================
- * Beast Reader Integration
- * (Added by ChatGPT on 2025-07-27)
+ * Beast Reader Integration (Re-Add)
  * ========================= */
 (function () {
-  // Avoid double-inject
   if (window.__BEAST_READER_PATCHED__) return;
   window.__BEAST_READER_PATCHED__ = true;
 
-  // ---- PROMPT (Spanish) ----
   const BEAST_READER_PROMPT = `UPER PROMPT PARA “BEAST READER” (agent Cline)
 (Incluye TODO el contexto de reglas, convenciones manuscritas y casos especiales para interpretar tickets de lotería)
 
@@ -2337,7 +2334,6 @@ Preprocesamiento → Segmentación → OCR → Parseo → Salida.
 
 *REGLA CRÍTICA FINAL:* Prioriza la precisión absoluta. Si hay duda, usa "notas" o omite la jugada incierta.`;
 
-  // ---- Helpers ----
   const fmt2 = (v) => {
     const n = (v === "" || v === null || v === undefined) ? NaN : Number(v);
     return Number.isFinite(n) ? n.toFixed(2) : "-";
@@ -2350,21 +2346,17 @@ Preprocesamiento → Segmentación → OCR → Parseo → Salida.
     const rawArray = Array.isArray(payload)
       ? payload
       : (Array.isArray(payload?.bets) ? payload.bets : []);
-
-    return rawArray
-      .map(p => ({
-        fecha:    p.fecha ?? p.date ?? null,
-        track:    p.track ?? p.loteria ?? null,
-        numeros:  p.numeros ?? p.betNumber ?? "",
-        straight: toNumberOrZero(p.straight ?? p.straightAmount),
-        box:      toNumberOrZero(p.box ?? p.boxAmount),
-        combo:    toNumberOrZero(p.combo ?? p.comboAmount),
-        notas:    p.notas ?? p.notes ?? ""
-      }))
-      .filter(x => String(x.numeros || "").trim() !== "");
+    return rawArray.map(p => ({
+      fecha:    p.fecha ?? p.date ?? null,
+      track:    p.track ?? p.loteria ?? null,
+      numeros:  p.numeros ?? p.betNumber ?? "",
+      straight: toNumberOrZero(p.straight ?? p.straightAmount),
+      box:      toNumberOrZero(p.box ?? p.boxAmount),
+      combo:    toNumberOrZero(p.combo ?? p.comboAmount),
+      notas:    p.notas ?? p.notes ?? ""
+    })).filter(x => String(x.numeros || "").trim() !== "");
   }
   function mapBeastToLegacy(beast) {
-    // determineGameMode y getCurrentSelectedTracks pueden existir en el proyecto
     let gm = null;
     try {
       if (typeof determineGameMode === "function") {
@@ -2381,144 +2373,60 @@ Preprocesamiento → Segmentación → OCR → Parseo → Salida.
     };
   }
 
-  // Ensure globals
-  if (typeof window.jugadasGlobalOCR === "undefined") window.jugadasGlobalOCR = [];
-  if (typeof window.selectedFileGlobalOCR === "undefined") window.selectedFileGlobalOCR = null;
-  if (typeof window.modalOcrInstance === "undefined") window.modalOcrInstance = null;
-
-  // Modal injector (if not in DOM)
-  function ensureOcrModalExists() {
-    if (document.getElementById('modalOcr')) return;
-    const html = `
-    <div class="modal fade" id="modalOcr" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-xl modal-dialog-scrollable">
-        <div class="modal-content bg-dark text-light">
-          <div class="modal-header">
-            <h5 class="modal-title">Lectura de Ticket (OCR)</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-          </div>
-          <div class="modal-body">
-            <div id="ocrLoadingSection" class="d-none mb-3">
-              <div class="progress"><div id="ocrProgressBar" class="progress-bar" role="progressbar" style="width:0%"></div></div>
-              <div id="ocrProgressText" class="mt-1 small">Preparando...</div>
-            </div>
-            <div id="ocrDropZone" class="p-3 border border-secondary rounded text-center mb-3"
-              ondragover="handleDragOverOCR && handleDragOverOCR(event)"
-              ondragleave="handleDragLeaveOCR && handleDragLeaveOCR(event)"
-              ondrop="handleDropOCR && handleDropOCR(event)">
-              Arrastra la imagen aquí o
-              <label class="btn btn-outline-info btn-sm ms-1 mb-0">
-                selecciona un archivo
-                <input id="ocrFile" type="file" accept="image/*" class="d-none" onchange="handleFileChangeOCR && handleFileChangeOCR(event)">
-              </label>
-            </div>
-            <img id="ocrPreview" class="img-fluid d-none mb-3" alt="Preview OCR">
-            <div id="ocrJugadas" class="mb-3"><p>Sube una imagen para ver las jugadas detectadas aquí.</p></div>
-            <div id="ocrDebugPanel" class="d-none"><hr/><div class="small text-muted">Debug del OCR aparecerá aquí si el backend lo envía.</div></div>
-          </div>
-          <div class="modal-footer">
-            <button id="btnProcesarOCR" class="btn btn-primary" onclick="procesarOCR()" disabled>Procesar OCR</button>
-            <button id="btnCargarJugadas" class="btn btn-success" onclick="handleCargarTodasLasJugadasClick()" disabled>Cargar todas</button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-          </div>
-        </div>
-      </div>
-    </div>`;
-    document.body.insertAdjacentHTML('beforeend', html);
-    try {
-      if (window.bootstrap && bootstrap.Modal) {
-        window.modalOcrInstance = new bootstrap.Modal(document.getElementById('modalOcr'));
+  // Patch hooks if not present
+  if (typeof window.usarJugadaOCR !== "function") {
+    window.usarJugadaOCR = function(idx){
+      const arr = window.jugadasGlobalOCR || [];
+      const beast = arr[idx];
+      if (!beast) return;
+      const legacy = mapBeastToLegacy(beast);
+      if (typeof addMainRow === "function") addMainRow(legacy);
+    };
+  }
+  if (typeof window.handleCargarTodasLasJugadasClick !== "function") {
+    window.handleCargarTodasLasJugadasClick = function(){
+      const arr = window.jugadasGlobalOCR || [];
+      for (let i=0;i<arr.length;i++){
+        const legacy = mapBeastToLegacy(arr[i]);
+        if (typeof addMainRow === "function") addMainRow(legacy);
       }
-    } catch (e) { console.error("Error inicializando modal OCR:", e); }
-  }
-  // Ensure modal on DOM ready
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", ensureOcrModalExists);
-  } else {
-    ensureOcrModalExists();
+      try {
+        const el = document.getElementById("modalOcr");
+        if (el && window.bootstrap && bootstrap.Modal) bootstrap.Modal.getOrCreateInstance(el).hide();
+      } catch(e){}
+    };
   }
 
-  // ---- UI helpers for progress ----
-  function setOcrProgress(percentage, text) {
-    try {
-      const pct = Math.max(0, Math.min(100, percentage|0));
-      const $bar = window.$ ? $("#ocrProgressBar") : null;
-      const $txt = window.$ ? $("#ocrProgressText") : null;
-      const $sec = window.$ ? $("#ocrLoadingSection") : null;
-      if ($bar) $bar.css("width", pct + "%");
-      if ($txt) $txt.text(text || "");
-      if ($sec) $sec.removeClass("d-none");
-    } catch(e) { /* noop */ }
-  }
-  function clearOcrProgress() {
-    try {
-      const $bar = window.$ ? $("#ocrProgressBar") : null;
-      const $txt = window.$ ? $("#ocrProgressText") : null;
-      const $sec = window.$ ? $("#ocrLoadingSection") : null;
-      if ($bar) $bar.css("width", "0%");
-      if ($txt) $txt.text("");
-      if ($sec) $sec.addClass("d-none");
-    } catch(e) { /* noop */ }
-  }
-
-  // ---- Overrides ----
-  window.procesarOCR = async function () {
+  // Wrap procesarOCR if exists; otherwise define.
+  const originalProcesar = window.procesarOCR;
+  window.procesarOCR = async function() {
+    if (originalProcesar && originalProcesar.__beastWrapped) {
+      return originalProcesar();
+    }
     try {
       const fileInput = document.getElementById("ocrFile");
-      let file = window.selectedFileGlobalOCR || (fileInput ? fileInput.files[0] : null);
-      if (!file) {
-        alert("Selecciona una imagen primero.");
-        return;
-      }
-      setOcrProgress(5, "Leyendo imagen...");
-      const base64data = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
+      const file = (window.selectedFileGlobalOCR) || (fileInput ? fileInput.files[0] : null);
+      if (!file) { alert("Selecciona una imagen primero."); return; }
+      const base64data = await new Promise((resolve,reject)=>{
+        const r = new FileReader(); r.onload=()=>resolve(r.result); r.onerror=reject; r.readAsDataURL(file);
       });
-
-      setOcrProgress(30, "Enviando al intérprete...");
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "America/New_York";
       const nowIso = new Date().toISOString();
-      const response = await fetch("/api/interpret-ticket", {
+      const resp = await fetch("/api/interpret-ticket", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-          photoDataUri: base64data,
-          prompt: BEAST_READER_PROMPT,
-          timezone: tz,
-          nowIso
-        })
+        body: JSON.stringify({ photoDataUri: base64data, prompt: BEAST_READER_PROMPT, timezone: tz, nowIso })
       });
-      if (!response.ok) {
-        clearOcrProgress();
-        const txt = await response.text().catch(()=>String(response.status));
-        throw new Error("Error del servidor: " + txt);
-      }
-
-      setOcrProgress(70, "Procesando respuesta...");
-      const interpreted = await response.json();
+      if (!resp.ok) { throw new Error("Error del servidor: " + (await resp.text())); }
+      const interpreted = await resp.json();
       const normalized = normalizeOcrResponse(interpreted);
       window.jugadasGlobalOCR = normalized;
-
-      const $jugadas = window.$ ? $("#ocrJugadas") : null;
-      const $btnAll = window.$ ? $("#btnCargarJugadas") : null;
-      if (normalized.length === 0) {
-        if ($jugadas) $jugadas.html("<p>No se detectaron jugadas válidas en la imagen.</p>");
-        if ($btnAll) $btnAll.prop("disabled", true);
-        clearOcrProgress();
-        return;
-      }
-
       let html = `<h5>Jugadas Detectadas (${normalized.length}):</h5>`;
       normalized.forEach((j, idx) => {
         html += `
           <div class="ocr-detected-play">
             <table class="table table-sm table-bordered table-dark small-ocr-table">
-              <thead><tr>
-                <th>#</th><th>Bet</th><th>Str</th><th>Box</th><th>Com</th><th>Track</th><th>Fecha</th>
-              </tr></thead>
+              <thead><tr><th>#</th><th>Bet</th><th>Str</th><th>Box</th><th>Com</th><th>Track</th><th>Fecha</th></tr></thead>
               <tbody><tr>
                 <td>${idx + 1}</td>
                 <td>${j.numeros || "-"}</td>
@@ -2534,58 +2442,18 @@ Preprocesamiento → Segmentación → OCR → Parseo → Salida.
           </div>
           <hr class="ocr-play-separator">`;
       });
-      if ($jugadas) $jugadas.html(html);
-      if ($btnAll) $btnAll.prop("disabled", false);
-      setOcrProgress(100, "Listo");
-      setTimeout(clearOcrProgress, 600);
-    } catch (err) {
-      console.error(err);
-      try {
-        if (window.$) {
-          $("#ocrJugadas").html(`<div class="text-danger">Error procesando OCR: ${String(err.message || err)}</div>`);
-          $("#btnCargarJugadas").prop("disabled", true);
-        }
-      } catch(e) { /* noop */ }
-      clearOcrProgress();
-      alert("No se pudo interpretar el ticket. Revisa la consola para más detalles.");
-    }
-  };
-
-  window.usarJugadaOCR = function (idx) {
-    try {
-      const beast = window.jugadasGlobalOCR[idx];
-      if (!beast) return;
-      const legacy = mapBeastToLegacy(beast);
-      if (typeof addMainRow === "function") {
-        addMainRow(legacy);
+      if (window.$) {
+        $("#ocrJugadas").html(normalized.length ? html : "<p>No se detectaron jugadas válidas en la imagen.</p>");
+        $("#btnCargarJugadas").prop("disabled", normalized.length === 0);
       }
     } catch (e) {
-      console.error("usarJugadaOCR error:", e);
-    }
-  };
-
-  window.handleCargarTodasLasJugadasClick = function () {
-    try {
-      if (!Array.isArray(window.jugadasGlobalOCR) || window.jugadasGlobalOCR.length === 0) return;
-      for (let i = 0; i < window.jugadasGlobalOCR.length; i++) {
-        const legacy = mapBeastToLegacy(window.jugadasGlobalOCR[i]);
-        if (typeof addMainRow === "function") {
-          addMainRow(legacy);
-        }
+      console.error("procesarOCR (Beast) error:", e);
+      if (window.$) {
+        $("#ocrJugadas").html(`<div class="text-danger">Error procesando OCR: ${String(e.message || e)}</div>`);
+        $("#btnCargarJugadas").prop("disabled", true);
       }
-      // Cierra modal si existe
-      try {
-        if (window.modalOcrInstance && typeof window.modalOcrInstance.hide === "function") {
-          window.modalOcrInstance.hide();
-        } else {
-          const el = document.getElementById("modalOcr");
-          if (el && window.bootstrap && bootstrap.Modal) {
-            bootstrap.Modal.getOrCreateInstance(el).hide();
-          }
-        }
-      } catch (e) { /* noop */ }
-    } catch (e) {
-      console.error("handleCargarTodasLasJugadasClick error:", e);
+      alert("No se pudo interpretar el ticket.");
     }
   };
+  window.procesarOCR.__beastWrapped = true;
 })();
