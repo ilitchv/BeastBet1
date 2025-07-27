@@ -2248,3 +2248,344 @@ function setupThemeToggle() {
 }
 
 console.log("End of scripts.js reached");
+
+
+
+/* =========================
+ * Beast Reader Integration
+ * (Added by ChatGPT on 2025-07-27)
+ * ========================= */
+(function () {
+  // Avoid double-inject
+  if (window.__BEAST_READER_PATCHED__) return;
+  window.__BEAST_READER_PATCHED__ = true;
+
+  // ---- PROMPT (Spanish) ----
+  const BEAST_READER_PROMPT = `UPER PROMPT PARA “BEAST READER” (agent Cline)
+(Incluye TODO el contexto de reglas, convenciones manuscritas y casos especiales para interpretar tickets de lotería)
+
+Eres Beast Reader, un agente OCR entrenado para leer boletos de lotería manuscritos (Peak 3, Win 4, Venezuela, Santo Domingo, Pulito, SingleAction) y convertir cada jugada en un JSON mínimo que mi frontend (scripts.js) pueda procesar. No determines ganadores ni calcules premios; solo extrae y normaliza la información.
+
+1. ESQUEMA DE SALIDA (JSON)
+Devuelve un array de objetos con solo estos campos:
+
+[
+  {
+    "fecha":    "YYYY-MM-DD",    // Fecha escrita o “hoy” si no hay
+    "track":    "New York Midday",
+    "numeros":  "123",           // bet number: 2–4 dígitos puros
+    "straight": 1.00,            // monto $ straight
+    "box":      0.50,            // monto $ box
+    "combo":    0.00,            // monto $ combo
+    "notas":    ""               // “ilegible”, “montoFueraDeRango”, etc.
+  }
+]
+No incluyas tipoJuego, modalidad, total ni ningún cálculo extra.
+
+No repitas información que el frontend calculará después.
+
+2. FECHA
+Si aparece (p.ej. “4-30-25”), convertir a YYYY-MM-DD solo si es hoy o posterior.
+Si no aparece, usar la fecha actual (formato YYYY-MM-DD).
+Nunca devolver fecha pasada.
+
+3. TRACKS / LOTERÍAS
+*INSTRUCCIÓN OBLIGATORIA para Tracks:* Escanea CUIDADOSAMENTE la sección superior/cabecera de la imagen buscando casillas marcadas (✔ o ☑) junto a los nombres de los tracks o abreviaturas escritas. *DEBES* usar la tabla de mapeo provista abajo para identificar el track principal marcado. Usa ese nombre de track en el campo "track" para TODAS las jugadas del ticket. Si hay varias marcas, prioriza NY o la más clara. Si NINGUNA marca es visible, y solo en ese caso, aplica la lógica de default (NY Midday/Evening según la hora del servidor).
+
+Mapea exactamente la casilla marcada (✔ o ☑) y abreviaturas manuscritas al nombre completo:
+
+Abreviatura	Track completo
+MIDDAY	New York Midday
+NYS	New York Night
+BK-DAY	Brooklyn Midday
+BK-TV	Brooklyn Night (TV)
+NY	New York Horses (single)
+NJ-DAY	New Jersey Midday
+NJ-NIGHT	New Jersey Evening
+CONN-DAY	Connecticut Midday
+CONN-NIGHT	Connecticut Evening
+FLA-MIDDAY	Florida Midday
+FLA-NIGHT	Florida Evening
+GEORGIA-…	Georgia Day/Eve
+PENN-…	Pennsylvania Day/Eve
+VENEZUELA	Venezuela (2 dígitos)
+STO DGO	Santo Domingo (RD)
+
+4. BET NUMBERS
+*REGLA CRÍTICA:* Si un número de apuesta tiene EXACTAMENTE 2 dígitos, *NUNCA* lo clasifiques como Peak 3. Debe ser Pulito, Venezuela o Santo Domingo según el contexto del track.
+Siempre 1–4 dígitos (0–9999).
+Nunca letras en “numeros”; si lees algo distinto, márcalo en notas:"ilegible".
+Permite X, -, + solo en Palé para separar parejas de dos dígitos (ej. "24-28").
+
+5. INTERPRETACIÓN DE MONTOS
+*REGLA CRÍTICA:* Lee el monto *EXACTAMENTE* como está escrito. *NO inventes decimales ni modifiques el valor.*
+5.1 Monto único → straight
+5.2 División manual → box
+5.3 “C” abreviatura → combo
+5.4 Límites de apuesta (inferencia de dólares vs. centavos)
+
+6. JUGADAS ESPECIALES
+6.1 Round-Down / Secuencias (0-9) — genera 10 jugadas si aplica (mismo monto straight).
+6.2 Palé (XX[sep]XX) — normaliza a "XX-XX" en salida. Monto según reglas 5.x.
+6.3 SingleAction (1 dígito).
+
+7. CONTEXTO Y VALIDACIÓN
+Usa total manuscrito para validar; aplica montos a múltiples jugadas cuando el manuscrito lo indique; nunca asumas letras como números.
+
+8. FLUJO DE PROCESO
+Preprocesamiento → Segmentación → OCR → Parseo → Salida.
+
+*REGLA CRÍTICA FINAL:* Prioriza la precisión absoluta. Si hay duda, usa "notas" o omite la jugada incierta.`;
+
+  // ---- Helpers ----
+  const fmt2 = (v) => {
+    const n = (v === "" || v === null || v === undefined) ? NaN : Number(v);
+    return Number.isFinite(n) ? n.toFixed(2) : "-";
+  };
+  const toNumberOrZero = (v) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  };
+  function normalizeOcrResponse(payload) {
+    const rawArray = Array.isArray(payload)
+      ? payload
+      : (Array.isArray(payload?.bets) ? payload.bets : []);
+
+    return rawArray
+      .map(p => ({
+        fecha:    p.fecha ?? p.date ?? null,
+        track:    p.track ?? p.loteria ?? null,
+        numeros:  p.numeros ?? p.betNumber ?? "",
+        straight: toNumberOrZero(p.straight ?? p.straightAmount),
+        box:      toNumberOrZero(p.box ?? p.boxAmount),
+        combo:    toNumberOrZero(p.combo ?? p.comboAmount),
+        notas:    p.notas ?? p.notes ?? ""
+      }))
+      .filter(x => String(x.numeros || "").trim() !== "");
+  }
+  function mapBeastToLegacy(beast) {
+    // determineGameMode y getCurrentSelectedTracks pueden existir en el proyecto
+    let gm = null;
+    try {
+      if (typeof determineGameMode === "function") {
+        const tracks = (typeof getCurrentSelectedTracks === "function") ? getCurrentSelectedTracks() : [];
+        gm = determineGameMode(beast.numeros, tracks);
+      }
+    } catch(e) { console.warn("determineGameMode fallback:", e); }
+    return {
+      betNumber: beast.numeros || "",
+      straightAmount: beast.straight ?? 0,
+      boxAmount: beast.box ?? 0,
+      comboAmount: beast.combo ?? 0,
+      gameMode: gm
+    };
+  }
+
+  // Ensure globals
+  if (typeof window.jugadasGlobalOCR === "undefined") window.jugadasGlobalOCR = [];
+  if (typeof window.selectedFileGlobalOCR === "undefined") window.selectedFileGlobalOCR = null;
+  if (typeof window.modalOcrInstance === "undefined") window.modalOcrInstance = null;
+
+  // Modal injector (if not in DOM)
+  function ensureOcrModalExists() {
+    if (document.getElementById('modalOcr')) return;
+    const html = `
+    <div class="modal fade" id="modalOcr" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content bg-dark text-light">
+          <div class="modal-header">
+            <h5 class="modal-title">Lectura de Ticket (OCR)</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <div id="ocrLoadingSection" class="d-none mb-3">
+              <div class="progress"><div id="ocrProgressBar" class="progress-bar" role="progressbar" style="width:0%"></div></div>
+              <div id="ocrProgressText" class="mt-1 small">Preparando...</div>
+            </div>
+            <div id="ocrDropZone" class="p-3 border border-secondary rounded text-center mb-3"
+              ondragover="handleDragOverOCR && handleDragOverOCR(event)"
+              ondragleave="handleDragLeaveOCR && handleDragLeaveOCR(event)"
+              ondrop="handleDropOCR && handleDropOCR(event)">
+              Arrastra la imagen aquí o
+              <label class="btn btn-outline-info btn-sm ms-1 mb-0">
+                selecciona un archivo
+                <input id="ocrFile" type="file" accept="image/*" class="d-none" onchange="handleFileChangeOCR && handleFileChangeOCR(event)">
+              </label>
+            </div>
+            <img id="ocrPreview" class="img-fluid d-none mb-3" alt="Preview OCR">
+            <div id="ocrJugadas" class="mb-3"><p>Sube una imagen para ver las jugadas detectadas aquí.</p></div>
+            <div id="ocrDebugPanel" class="d-none"><hr/><div class="small text-muted">Debug del OCR aparecerá aquí si el backend lo envía.</div></div>
+          </div>
+          <div class="modal-footer">
+            <button id="btnProcesarOCR" class="btn btn-primary" onclick="procesarOCR()" disabled>Procesar OCR</button>
+            <button id="btnCargarJugadas" class="btn btn-success" onclick="handleCargarTodasLasJugadasClick()" disabled>Cargar todas</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+    try {
+      if (window.bootstrap && bootstrap.Modal) {
+        window.modalOcrInstance = new bootstrap.Modal(document.getElementById('modalOcr'));
+      }
+    } catch (e) { console.error("Error inicializando modal OCR:", e); }
+  }
+  // Ensure modal on DOM ready
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", ensureOcrModalExists);
+  } else {
+    ensureOcrModalExists();
+  }
+
+  // ---- UI helpers for progress ----
+  function setOcrProgress(percentage, text) {
+    try {
+      const pct = Math.max(0, Math.min(100, percentage|0));
+      const $bar = window.$ ? $("#ocrProgressBar") : null;
+      const $txt = window.$ ? $("#ocrProgressText") : null;
+      const $sec = window.$ ? $("#ocrLoadingSection") : null;
+      if ($bar) $bar.css("width", pct + "%");
+      if ($txt) $txt.text(text || "");
+      if ($sec) $sec.removeClass("d-none");
+    } catch(e) { /* noop */ }
+  }
+  function clearOcrProgress() {
+    try {
+      const $bar = window.$ ? $("#ocrProgressBar") : null;
+      const $txt = window.$ ? $("#ocrProgressText") : null;
+      const $sec = window.$ ? $("#ocrLoadingSection") : null;
+      if ($bar) $bar.css("width", "0%");
+      if ($txt) $txt.text("");
+      if ($sec) $sec.addClass("d-none");
+    } catch(e) { /* noop */ }
+  }
+
+  // ---- Overrides ----
+  window.procesarOCR = async function () {
+    try {
+      const fileInput = document.getElementById("ocrFile");
+      let file = window.selectedFileGlobalOCR || (fileInput ? fileInput.files[0] : null);
+      if (!file) {
+        alert("Selecciona una imagen primero.");
+        return;
+      }
+      setOcrProgress(5, "Leyendo imagen...");
+      const base64data = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      setOcrProgress(30, "Enviando al intérprete...");
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "America/New_York";
+      const nowIso = new Date().toISOString();
+      const response = await fetch("/api/interpret-ticket", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          photoDataUri: base64data,
+          prompt: BEAST_READER_PROMPT,
+          timezone: tz,
+          nowIso
+        })
+      });
+      if (!response.ok) {
+        clearOcrProgress();
+        const txt = await response.text().catch(()=>String(response.status));
+        throw new Error("Error del servidor: " + txt);
+      }
+
+      setOcrProgress(70, "Procesando respuesta...");
+      const interpreted = await response.json();
+      const normalized = normalizeOcrResponse(interpreted);
+      window.jugadasGlobalOCR = normalized;
+
+      const $jugadas = window.$ ? $("#ocrJugadas") : null;
+      const $btnAll = window.$ ? $("#btnCargarJugadas") : null;
+      if (normalized.length === 0) {
+        if ($jugadas) $jugadas.html("<p>No se detectaron jugadas válidas en la imagen.</p>");
+        if ($btnAll) $btnAll.prop("disabled", true);
+        clearOcrProgress();
+        return;
+      }
+
+      let html = `<h5>Jugadas Detectadas (${normalized.length}):</h5>`;
+      normalized.forEach((j, idx) => {
+        html += `
+          <div class="ocr-detected-play">
+            <table class="table table-sm table-bordered table-dark small-ocr-table">
+              <thead><tr>
+                <th>#</th><th>Bet</th><th>Str</th><th>Box</th><th>Com</th><th>Track</th><th>Fecha</th>
+              </tr></thead>
+              <tbody><tr>
+                <td>${idx + 1}</td>
+                <td>${j.numeros || "-"}</td>
+                <td>${fmt2(j.straight)}</td>
+                <td>${fmt2(j.box)}</td>
+                <td>${fmt2(j.combo)}</td>
+                <td>${j.track || "-"}</td>
+                <td>${j.fecha || "-"}</td>
+              </tr></tbody>
+            </table>
+            ${j.notas ? `<div class="text-warning small">Notas: ${j.notas}</div>` : ``}
+            <button class="btn btn-sm btn-info mt-1" type="button" onclick="usarJugadaOCR(${idx}); return false;">Usar esta Jugada</button>
+          </div>
+          <hr class="ocr-play-separator">`;
+      });
+      if ($jugadas) $jugadas.html(html);
+      if ($btnAll) $btnAll.prop("disabled", false);
+      setOcrProgress(100, "Listo");
+      setTimeout(clearOcrProgress, 600);
+    } catch (err) {
+      console.error(err);
+      try {
+        if (window.$) {
+          $("#ocrJugadas").html(`<div class="text-danger">Error procesando OCR: ${String(err.message || err)}</div>`);
+          $("#btnCargarJugadas").prop("disabled", true);
+        }
+      } catch(e) { /* noop */ }
+      clearOcrProgress();
+      alert("No se pudo interpretar el ticket. Revisa la consola para más detalles.");
+    }
+  };
+
+  window.usarJugadaOCR = function (idx) {
+    try {
+      const beast = window.jugadasGlobalOCR[idx];
+      if (!beast) return;
+      const legacy = mapBeastToLegacy(beast);
+      if (typeof addMainRow === "function") {
+        addMainRow(legacy);
+      }
+    } catch (e) {
+      console.error("usarJugadaOCR error:", e);
+    }
+  };
+
+  window.handleCargarTodasLasJugadasClick = function () {
+    try {
+      if (!Array.isArray(window.jugadasGlobalOCR) || window.jugadasGlobalOCR.length === 0) return;
+      for (let i = 0; i < window.jugadasGlobalOCR.length; i++) {
+        const legacy = mapBeastToLegacy(window.jugadasGlobalOCR[i]);
+        if (typeof addMainRow === "function") {
+          addMainRow(legacy);
+        }
+      }
+      // Cierra modal si existe
+      try {
+        if (window.modalOcrInstance && typeof window.modalOcrInstance.hide === "function") {
+          window.modalOcrInstance.hide();
+        } else {
+          const el = document.getElementById("modalOcr");
+          if (el && window.bootstrap && bootstrap.Modal) {
+            bootstrap.Modal.getOrCreateInstance(el).hide();
+          }
+        }
+      } catch (e) { /* noop */ }
+    } catch (e) {
+      console.error("handleCargarTodasLasJugadasClick error:", e);
+    }
+  };
+})();
