@@ -1503,11 +1503,6 @@ function addMainRow(bet = null) {
         } else if (parseFloat(st_val) > 0) {
             gm_val = "Straight";
         }
-    } else if (bet.box > 0) {
-            gm_val = "Box";
-        } else if (bet.combo > 0) {
-            gm_val = "Combo";
-        }
     }
 
     // Construcción de la fila HTML
