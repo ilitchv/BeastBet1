@@ -1459,84 +1459,73 @@ function calcCombos(str) {
 // --- Main Table Row Management ---
 function addMainRow(bet = null) {
     console.log("addMainRow llamada. playCount actual:", playCount, "Datos de jugada:", bet);
-    if ($("#tablaJugadas").length === 0) { 
-        console.error("CRITICAL: El elemento con ID #tablaJugadas (que debería ser el tbody) no se encuentra. Por favor, verifica tu archivo HTML (index.html). Las jugadas no se pueden agregar.");
-        alert("Error crítico: Falta el elemento #tablaJugadas (tbody) en la tabla. Contacte al administrador.");
+    if ($("#tablaJugadas").length === 0) {
+        console.error("CRITICAL: Falta el elemento #tablaJugadas (tbody) en la tabla. Las jugadas no se pueden agregar.");
+        alert("Error crítico: Falta el elemento #tablaJugadas (tbody). Contacte al administrador.");
         return null;
     }
 
-     if (playCount >= MAX_PLAYS) {
-        alert(`You have reached the limit of ${MAX_PLAYS} plays in the main form.`);
+    if (playCount >= MAX_PLAYS) {
+        alert(`Has alcanzado el límite de ${MAX_PLAYS} jugadas en el formulario.`);
         return null;
     }
     playCount++;
     const rowIndex = playCount;
 
+    // Valores por defecto
     let bn_val = "";
     let st_val = "";
-    let bx_val = ""; 
+    let bx_val = "";
     let co_val = "";
     let gm_val = "-";
-    
+
     if (bet) {
-        bn_val = bet.betNumber || "";
-        st_val = (bet.straightAmount !== null && bet.straightAmount !== undefined) ? String(bet.straightAmount) : "";
-        if (typeof bet.boxAmount === 'string' && bet.boxAmount.includes(',')) {
-            bx_val = bet.boxAmount;
-        } else {
-            bx_val = (bet.boxAmount !== null && bet.boxAmount !== undefined) ? String(bet.boxAmount) : "";
+        // Mapeo de campos según JSON: numeros, straight, box, combo
+        bn_val = bet.betNumber || bet.numeros || "";
+        st_val = (bet.straight !== undefined && bet.straight !== null) ? String(bet.straight) : "";
+        bx_val = (bet.box    !== undefined && bet.box    !== null) ? String(bet.box)    : "";
+        co_val = (bet.combo  !== undefined && bet.combo  !== null) ? String(bet.combo)  : "";
+
+        // Determinar game mode basado en montos
+        if (bet.straight > 0) {
+            gm_val = "Straight";
+        } else if (bet.box > 0) {
+            gm_val = "Box";
+        } else if (bet.combo > 0) {
+            gm_val = "Combo";
         }
-        co_val = (bet.comboAmount !== null && bet.comboAmount !== undefined) ? String(bet.comboAmount) : "";
-        
-        const currentTracks = getCurrentSelectedTracks();
-        gm_val = bet.gameMode || determineGameMode(bn_val, currentTracks);
     }
 
-    // CORRECTED: Ensure only one TD for total, and amount is wrapped in span.total-amount
+    // Construcción de la fila HTML
     const rowHTML = `
       <tr data-playindex="${rowIndex}">
         <td><input type="checkbox" class="row-select-checkbox form-check-input"></td>
-        <td><button type="button" class="btnRemovePlay removeMainBtn btn btn-sm btn-danger" data-row="${rowIndex}">${rowIndex}</button></td>
+        <td><button type="button" class="btnRemovePlay removeMainRow btn btn-sm btn-danger" data-row="${rowIndex}">${rowIndex}</button></td>
         <td><input type="text" class="form-control betNumber" value="${bn_val}" /></td>
         <td class="gameMode">${gm_val}</td>
         <td><input type="number" step="0.01" class="form-control straight" value="${st_val}" /></td>
-        <td><input type="text" class="form-control box" value="${bx_val}" /></td>
+        <td><input type="number" step="0.01" class="form-control box" value="${bx_val}" /></td>
         <td><input type="number" step="0.01" class="form-control combo" value="${co_val}" /></td>
-        <td class="total total-cell" title="Copiar montos"><span class="total-amount">0.00</span> <i class="bi bi-copy copy-amounts-btn" style="pointer-events: none; margin-left: 5px;"></i></td>
+        <td class="total total-cell" title="Copiar montos"><span class="total-amount">0.00</span> <i class="bi bi-files" style="pointer-events: none; margin-left: 5px;"></i></td>
       </tr>
     `;
-    
+
+    // Añadir la fila a la tabla
     $("#tablaJugadas").append(rowHTML);
-    const $newRow = $("#tablaJugadas > tr[data-playindex='" + rowIndex + "']");
+    const $newRow = $(`#tablaJugadas > tr[data-playindex='${rowIndex}']`);
 
     if ($newRow.length === 0) {
-        console.error("Error: La fila no se agregó correctamente al DOM por addMainRow. playCount actual:", playCount, "rowIndex intentado:", rowIndex);
-        playCount--; 
+        console.error("Error: No se agregó la fila correctamente. playCount:", playCount, "rowIndex:", rowIndex);
+        playCount--;
         return null;
     }
 
     if (bet) {
         recalcMainRow($newRow);
     }
-    
-    if ($("#selectAllCheckbox").prop('checked')) {
-        if ($("#tablaJugadas .row-select-checkbox:not(:checked)").length > 0) { 
-             $("#selectAllCheckbox").prop('checked', false);
-        }
-    }
-    console.log(`Fila ${rowIndex} agregada exitosamente por addMainRow`);
-    
-    // CORRECCIÓN 6: Guardado automático al agregar fila
-    if (bet) {
-        // Solo guardar automáticamente si se agregó con datos (desde OCR o wizard)
-        setTimeout(() => {
-            storeFormState();
-        }, 100);
-    }
-    
+
     return $newRow;
 }
-
 
 function renumberMainRows() { 
     let i = 0;
