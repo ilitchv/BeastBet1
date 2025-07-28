@@ -1480,16 +1480,30 @@ function addMainRow(bet = null) {
     let gm_val = "-";
 
     if (bet) {
-        // Mapeo de campos según JSON: numeros, straight, box, combo
-        bn_val = bet.betNumber || bet.numeros || "";
-        st_val = (bet.straight !== undefined && bet.straight !== null) ? String(bet.straight) : "";
-        bx_val = (bet.box    !== undefined && bet.box    !== null) ? String(bet.box)    : "";
-        co_val = (bet.combo  !== undefined && bet.combo  !== null) ? String(bet.combo)  : "";
+        // Map only numbers and positive amounts
+        bn_val = bet.numeros || bet.betNumber || "";
+        // Assign straight amount only if > 0
+        if (bet.straight !== undefined && parseFloat(bet.straight) > 0) {
+            st_val = parseFloat(bet.straight).toFixed(2);
+        }
+        // Assign box amount only if > 0
+        if (bet.box !== undefined && parseFloat(bet.box) > 0) {
+            bx_val = parseFloat(bet.box).toFixed(2);
+        }
+        // Assign combo amount only if > 0
+        if (bet.combo !== undefined && parseFloat(bet.combo) > 0) {
+            co_val = parseFloat(bet.combo).toFixed(2);
+        }
 
-        // Determinar game mode basado en montos
-        if (bet.straight > 0) {
+        // Determine game mode based on which positive amount is present
+        if (parseFloat(co_val) > 0) {
+            gm_val = "Combo";
+        } else if (parseFloat(bx_val) > 0) {
+            gm_val = "Box";
+        } else if (parseFloat(st_val) > 0) {
             gm_val = "Straight";
-        } else if (bet.box > 0) {
+        }
+    } else if (bet.box > 0) {
             gm_val = "Box";
         } else if (bet.combo > 0) {
             gm_val = "Combo";
