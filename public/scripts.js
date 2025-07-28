@@ -155,6 +155,13 @@ async function procesarOCR() {
                             <td>${j.straightAmount !== null ? j.straightAmount.toFixed(2) : "-"}</td>
                             <td>${j.boxAmount !== null ? j.boxAmount.toFixed(2) : "-"}</td>
                             <td>${j.comboAmount !== null ? j.comboAmount.toFixed(2) : "-"}</td>
+                            <td>${j.straightAmount > 0 ? j.straightAmount.toFixed(2) : "-"}</td>
+                            <td>${j.boxAmount     > 0 ? j.boxAmount.toFixed(2)     : "-"}</td>
+                            <td>${
+                                (j.comboAmount > 0 && j.straightAmount === 0 && j.boxAmount === 0)
+                                ? j.comboAmount.toFixed(2)
+                                : "-"
+                            }</td>                                
                           </tr></tbody>
                         </table>
                         <button class="btn btn-sm btn-info mt-1 mb-2" type="button" onclick="usarJugadaOCR(${idx}); return false;">
