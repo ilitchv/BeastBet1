@@ -1,347 +1,1960 @@
- /* Estilos Básicos */
+/* Estilos Generales */
+body {
+  font-family: 'Poppins', sans-serif;
+  padding-top: 70px !important; /* Espacio para botones fijos en la parte superior */
+  padding-left: 0 !important;
+}
+
 :root {
-    --color-fondo: #0a0a0a; /* Fondo oscuro */
-    --color-neon-cian: #00ffff;
-    --color-neon-morado: #ff00ff;
-    --color-neon-verde: #39ff14;
-    --color-texto: #ffffff;
-    --color-placeholder: #cccccc; /* Color tenue para placeholders */
-    --color-fondo-acordeon: #1e1e1e; /* Fondo para acordeón */
-    --color-fondo-acordeon-activo: #00ffff; /* Fondo activo para acordeón */
-    --color-texto-acordeon: #ffffff; /* Color de texto para acordeón */
+  /* Dark Mode (Default) - Matching Original Colors */
+  --main-bg: #0a0a0a; 
+  --text-color: #ffffff; 
+  --container-bg: #1e1e1e; 
+  --border-color: #00ffff; /* Cyan */
+  --glow-color: rgba(0, 255, 255, 0.2); 
+  --glow-intense: rgba(0, 255, 255, 0.3); 
+  --input-bg: #333333; 
+  --input-text: #fff; 
+  --input-border: #555; 
+  --placeholder-color: #cccccc; 
+  
+  /* Neon colors from original */
+  --color-neon-cian: #00ffff;
+  --color-neon-morado: #ff00ff;
+  --color-neon-verde: #39ff14;
+  --color-error: #ff00ff;
+  
+  /* Track button colors optimized for mobile, inspired by original reference */
+  --track-btn-bg-normal: linear-gradient(#555, #333);
+  --track-btn-shadow-normal: 0 3px #111; 
+  --track-btn-border-normal: #444;
+  --track-btn-bg-hover: linear-gradient(#666, #444);
+  --track-btn-shadow-hover: 0 4px #111; 
+  --track-btn-bg-active: linear-gradient(#4a4a4a, #2a2a2a); 
+  --track-btn-shadow-active: 0 1px #111; 
+  --track-btn-bg-checked: linear-gradient(#ffd966, #d1a824); 
+  --track-btn-text-checked: #000; 
+  --track-btn-shadow-checked: 0 3px #666; 
+  --track-btn-border-checked: #b8860b; 
+
+  /* Paste Amounts Button Colors */
+  --paste-btn-bg: #3a3a3a; /* Darker grey for paste button */
+  --paste-btn-text: var(--color-neon-cian);
+  --paste-btn-border: var(--color-neon-cian);
+  --paste-btn-shadow: 0 0 6px rgba(0, 255, 255, 0.3);
+  --paste-btn-bg-hover: #4f4f4f;
+  --paste-btn-shadow-hover: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+.container {
+  background-color: rgba(10, 10, 10, 0.95); 
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.2); 
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  max-width: 1000px; 
+  margin: 0 auto;
+  margin-top: 0 !important;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
 }
 
 body {
-    background-color: var(--color-fondo);
-    color: var(--color-texto);
-    font-family: 'Montserrat', 'Poppins', sans-serif;
-    margin: 0;
-    padding: 20px;
+  font-family: 'Montserrat', 'Poppins', sans-serif; 
+  background-color: var(--main-bg); 
+  color: var(--text-color); 
+  padding: 10px; /* Reducido de 20px */
+  padding-top: 20px; /* Reducido significativamente ya que los botones son absolute */
+  overflow-x: hidden;
 }
 
-/* Contenedor Principal */
-.container {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 20px;
-    background: rgba(10, 10, 10, 0.95);
-    border-radius: 15px;
-    box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+h2, h4, h5, h6, label, .form-label {
+    color: var(--text-color);
 }
 
-/* Títulos */
 h2 {
+    color: var(--color-neon-cian); 
+    text-shadow: 0 0 10px var(--color-neon-cian);
+    font-size: 1.125rem; 
     text-align: center;
     margin-bottom: 20px;
-    color: var(--color-neon-cian);
-    text-shadow: 0 0 10px var(--color-neon-cian);
 }
 
-/* Selección de Fecha */
-.glow-input {
-    box-shadow: 0 0 10px var(--color-neon-cian);
-    transition: box-shadow 0.3s, border-color 0.3s;
+/* Inputs con efecto glow más sutil */
+.glow-input, .form-control, .form-select {
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border: 1px solid var(--input-border);
+  box-shadow: none; 
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
-.glow-input:focus {
-    border-color: var(--color-neon-morado);
-    box-shadow: 0 0 15px var(--color-neon-morado);
-    outline: none;
+.glow-input:focus, .form-control:focus, .form-select:focus {
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border-color: var(--color-neon-cian);
+  box-shadow: 0 0 5px var(--color-neon-cian); 
+  outline: none;
 }
 
-/* Selección de Tracks */
-.form-check-label {
-    color: var(--color-texto);
-}
+/* Placeholder styling */
+.form-control::-webkit-input-placeholder { color: var(--placeholder-color); }
+.form-control::-moz-placeholder { color: var(--placeholder-color); opacity: 1; } 
+.form-control:-ms-input-placeholder { color: var(--placeholder-color); } 
+.form-control::-ms-input-placeholder { color: var(--placeholder-color); } 
+.form-control::placeholder { color: var(--placeholder-color); } 
 
-/* Estilos del Accordion */
-.accordion-button {
-    background-color: var(--color-fondo-acordeon);
-    color: var(--color-texto-acordeon);
-    border: 2px solid var(--color-neon-cian);
-    transition: background-color 0.3s, color 0.3s;
-}
-
-.accordion-button:not(.collapsed) {
-    background-color: var(--color-fondo-acordeon-activo);
-    color: #000;
-}
-
-.accordion-button:hover {
-    background-color: #2a2a2a;
-    color: var(--color-neon-cian);
-}
-
-.accordion-body {
-    background-color: #1e1e1e;
-    color: var(--color-texto);
-    border: 1px solid var(--color-neon-cian);
-}
-
-.accordion-header {
-    background-color: var(--color-fondo-acordeon);
-}
-
-.accordion-item {
-    background-color: var(--color-fondo-acordeon);
-    border: none;
-}
-
-.accordion-button::after {
-    filter: brightness(0) invert(1);
-}
-
-/* Indicador de Hora Límite */
-.cutoff-time {
-    font-size: 0.9em;
-    color: #aaaaaa; /* Color tenue */
-}
-
-/* Tabla de Jugadas */
-.table-dark {
-    box-shadow: 0 0 10px var(--color-neon-cian);
-}
-
-.table-bordered th, .table-bordered td {
-    border: 1px solid var(--color-neon-cian);
-}
-
-.table-dark th {
-    background-color: #1e1e1e;
-    color: var(--color-neon-cian);
-    text-shadow: 0 0 5px var(--color-neon-cian);
-}
-
-/* Botones */
+/* Botones - Matching original styles with animations */
 .btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.3s ease;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px; 
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  font-weight: bold;
 }
 
-/* Estilos para campos de entrada específicos */
-input.straight,
-input.box {
-    max-width: 80px; /* Ajusta este valor según sea necesario */
-}
-
-/* Ajustar el tamaño del botón "Eliminar Jugada" */
-#eliminarJugada {
-    min-width: 150px; /* Ajusta este valor para que el texto quepa en una sola línea */
-}
-
-/* Estilos adicionales para botones */
 .btn-primary {
-    background-color: var(--color-neon-cian);
-    color: #000;
-    box-shadow: 0 0 10px var(--color-neon-cian);
+  background-color: var(--color-neon-cian);
+  color: #000;
+  box-shadow: 0 0 10px var(--color-neon-cian);
 }
 
 .btn-primary:hover {
-    background-color: #00cccc;
-    box-shadow: 0 0 20px var(--color-neon-cian);
-    transform: scale(1.05);
+  background-color: #00cccc;
+  box-shadow: 0 0 20px var(--color-neon-cian);
+  transform: scale(1.05);
+}
+
+.btn-info {
+  background-color: #00bfff;
+  color: #000;
+  box-shadow: 0 0 10px #00bfff;
+}
+
+.btn-info:hover {
+  background-color: #00a3d6;
+  box-shadow: 0 0 20px #00bfff;
+  transform: scale(1.05);
 }
 
 .btn-danger {
-    background-color: #ff0044;
-    color: #fff;
-    box-shadow: 0 0 10px #ff0044;
-    /* El min-width ya está ajustado arriba */
+  background-color: #ff0044;
+  color: #fff;
+  box-shadow: 0 0 10px #ff0044;
 }
 
 .btn-danger:hover {
-    background-color: #cc0033;
-    box-shadow: 0 0 20px #ff0044;
-    transform: scale(1.05);
+  background-color: #cc0033;
+  box-shadow: 0 0 20px #ff0044;
+  transform: scale(1.05);
+}
+
+.btn-warning {
+  background-color: #ffcb00;
+  color: #000;
+  box-shadow: 0 0 10px #ffcb00;
+}
+
+.btn-warning:hover {
+  background-color: #e0b300;
+  box-shadow: 0 0 20px #ffcb00;
+  transform: scale(1.05);
 }
 
 .btn-success {
-    background-color: var(--color-neon-verde);
-    color: #000;
-    box-shadow: 0 0 10px var(--color-neon-verde), 0 0 20px var(--color-neon-verde);
-    animation: pulse 2s infinite;
+  background-color: var(--color-neon-verde);
+  color: #000;
+  box-shadow: 0 0 10px var(--color-neon-verde), 0 0 20px var(--color-neon-verde);
+  animation: pulse 2s infinite;
 }
 
 .btn-success:hover {
-    transform: scale(1.02);
+  transform: scale(1.02);
 }
 
+/* Pulse animation from original */
 @keyframes pulse {
-    0% {
-        box-shadow: 0 0 10px var(--color-neon-verde), 0 0 20px var(--color-neon-verde);
-    }
-    50% {
-        box-shadow: 0 0 20px var(--color-neon-verde), 0 0 30px var(--color-neon-verde);
-    }
-    100% {
-        box-shadow: 0 0 10px var(--color-neon-verde), 0 0 20px var(--color-neon-verde);
-    }
+  0% {
+    box-shadow: 0 0 10px var(--color-neon-verde), 0 0 20px var(--color-neon-verde);
+  }
+  50% {
+    box-shadow: 0 0 20px var(--color-neon-verde), 0 0 30px var(--color-neon-verde);
+  }
+  100% {
+    box-shadow: 0 0 10px var(--color-neon-verde), 0 0 20px var(--color-neon-verde);
+  }
 }
 
-/* Botones Alineados */
-.button-group {
-    display: flex;
-    gap: 10px;
+.btn-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  box-shadow: 0 0 8px rgba(108, 117, 125, 0.4);
 }
 
-.button-group .btn {
-    flex: 1;
+.btn-secondary:hover {
+  background-color: #545b62;
+  box-shadow: 0 0 12px rgba(108, 117, 125, 0.6);
 }
 
-/* Modal */
+/* Reset button purple from original */
+#resetForm {
+  background-color: #800080;
+  border-color: #800080;
+}
+
+#resetForm:hover {
+  background-color: #660066;
+}
+
+/* NUEVA SECCIÓN: Action Buttons Grid - Forzar visibilidad de TODOS los 8 botones */
+.action-buttons-container-mobile {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 10px !important;
+  padding: 15px !important;
+  background-color: rgba(30, 30, 30, 0.8) !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(0, 255, 255, 0.3) !important;
+  margin: 20px 0 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* FORZAR que TODOS los action buttons se muestren */
+#generarTicket,
+#agregarJugada,
+#wizardButton,
+#eliminarJugada,
+#resetForm,
+#pasteAmountsButton,
+#openDailyReportBtn,
+#btnOcrModalTrigger,
+#exportExcelBtn {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: static !important;
+  transform: none !important;
+}
+
+/* Todos los botones de acción con estilo uniforme */
+.action-buttons-container-mobile .btn,
+.action-buttons-container-mobile #generarTicket,
+.action-buttons-container-mobile #agregarJugada,
+.action-buttons-container-mobile #wizardButton,
+.action-buttons-container-mobile #eliminarJugada,
+.action-buttons-container-mobile #resetForm,
+.action-buttons-container-mobile #pasteAmountsButton,
+.action-buttons-container-mobile #openDailyReportBtn,
+.action-buttons-container-mobile #btnOcrModalTrigger,
+.action-buttons-container-mobile #exportExcelBtn {
+  aspect-ratio: 1 / 1 !important;
+  width: 100% !important;
+  min-height: 80px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  padding: 8px !important;
+  border-radius: 10px !important;
+  box-shadow: 0 5px #111 !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+  position: relative !important;
+  overflow: hidden !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Efecto hover y active como track buttons */
+.action-buttons-container-mobile .btn:hover,
+.action-buttons-container-mobile #generarTicket:hover,
+.action-buttons-container-mobile #agregarJugada:hover,
+.action-buttons-container-mobile #wizardButton:hover,
+.action-buttons-container-mobile #eliminarJugada:hover,
+.action-buttons-container-mobile #resetForm:hover,
+.action-buttons-container-mobile #pasteAmountsButton:hover,
+.action-buttons-container-mobile #openDailyReportBtn:hover,
+.action-buttons-container-mobile #btnOcrModalTrigger:hover,
+.action-buttons-container-mobile #exportExcelBtn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 7px #111 !important;
+}
+
+.action-buttons-container-mobile .btn:active,
+.action-buttons-container-mobile #generarTicket:active,
+.action-buttons-container-mobile #agregarJugada:active,
+.action-buttons-container-mobile #wizardButton:active,
+.action-buttons-container-mobile #eliminarJugada:active,
+.action-buttons-container-mobile #resetForm:active,
+.action-buttons-container-mobile #pasteAmountsButton:active,
+.action-buttons-container-mobile #openDailyReportBtn:active,
+.action-buttons-container-mobile #btnOcrModalTrigger:active,
+.action-buttons-container-mobile #exportExcelBtn:active {
+  transform: translateY(2px) !important;
+  box-shadow: 0 3px #111 !important;
+}
+
+/* Iconos más grandes */
+.action-buttons-container-mobile .btn i,
+.action-buttons-container-mobile #generarTicket i,
+.action-buttons-container-mobile #agregarJugada i,
+.action-buttons-container-mobile #wizardButton i,
+.action-buttons-container-mobile #eliminarJugada i,
+.action-buttons-container-mobile #resetForm i,
+.action-buttons-container-mobile #pasteAmountsButton i,
+.action-buttons-container-mobile #openDailyReportBtn i,
+.action-buttons-container-mobile #btnOcrModalTrigger i,
+.action-buttons-container-mobile #exportExcelBtn i {
+  font-size: 1.5rem !important;
+}
+
+/* Colores específicos manteniendo los originales */
+.action-buttons-container-mobile #agregarJugada {
+  background: linear-gradient(var(--color-neon-cian), #00a3a3) !important;
+  color: #000 !important;
+}
+
+.action-buttons-container-mobile #wizardButton {
+  background: linear-gradient(#00bfff, #0099cc) !important;
+  color: #000 !important;
+}
+
+.action-buttons-container-mobile #eliminarJugada {
+  background: linear-gradient(#ff0044, #cc0033) !important;
+  color: #fff !important;
+}
+
+.action-buttons-container-mobile #resetForm {
+  background: linear-gradient(#800080, #660066) !important;
+  color: #fff !important;
+}
+
+.action-buttons-container-mobile #pasteAmountsButton {
+  background: linear-gradient(#3a3a3a, #2a2a2a) !important;
+  color: var(--color-neon-cian) !important;
+  border: 1px solid var(--color-neon-cian) !important;
+}
+
+.action-buttons-container-mobile #openDailyReportBtn {
+  background: linear-gradient(#6c757d, #545b62) !important;
+  color: #fff !important;
+}
+
+.action-buttons-container-mobile #generarTicket {
+  background: linear-gradient(var(--color-neon-verde), #2fb11a) !important;
+  color: #000 !important;
+  animation: pulse 2s infinite !important;
+}
+
+.action-buttons-container-mobile #btnOcrModalTrigger {
+  background: linear-gradient(#ffcb00, #e0a300) !important;
+  color: #000 !important;
+}
+
+.action-buttons-container-mobile #exportExcelBtn {
+  background: linear-gradient(#1D6F42, #104C2B) !important;
+  color: #fff !important;
+}
+
+
+/* ACTION BUTTONS - Estructura idéntica a track buttons */
+.action-button-container {
+  display: inline-block;
+  width: 150px;
+  height: 150px;
+  margin: 0.5rem;
+  vertical-align: top;
+  position: relative;
+}
+
+.action-button {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  cursor: pointer;
+  user-select: none;
+  text-align: center;
+  color: #ffffff;
+  box-shadow: 0 5px #111;
+  border: 1px solid #444;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s;
+  overflow: hidden;
+  padding: 0.5rem;
+  text-decoration: none;
+}
+
+.action-button::before {
+  content: "";
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 0; height: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.4s, height 0.4s;
+  pointer-events: none;
+}
+
+.action-button:active::before {
+  width: 250px;
+  height: 250px;
+}
+
+.action-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px #111;
+}
+
+.action-button:active {
+  transform: translateY(2px);
+  box-shadow: 0 3px #111;
+}
+
+.action-button-name {
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 0.3rem;
+  line-height: 1.2;
+}
+
+.action-button i {
+  font-size: 1.5rem;
+  margin-bottom: 0.3rem;
+}
+
+/* Colores específicos para cada action button */
+#generarTicket.action-button {
+  background: linear-gradient(var(--color-neon-verde), #2fb11a);
+  color: #000;
+  animation: pulse 2s infinite;
+}
+
+#agregarJugada.action-button {
+  background: linear-gradient(var(--color-neon-cian), #00a3a3);
+  color: #000;
+}
+
+#wizardButton.action-button {
+  background: linear-gradient(#00bfff, #0099cc);
+  color: #000;
+}
+
+#eliminarJugada.action-button {
+  background: linear-gradient(#ff0044, #cc0033);
+  color: #fff;
+}
+
+#resetForm.action-button {
+  background: linear-gradient(#800080, #660066);
+  color: #fff;
+}
+
+#pasteAmountsButton.action-button {
+  background: linear-gradient(#3a3a3a, #2a2a2a);
+  color: var(--color-neon-cian);
+  border: 1px solid var(--color-neon-cian);
+}
+
+#openDailyReportBtn.action-button {
+  background: linear-gradient(#6c757d, #545b62);
+  color: #fff;
+}
+
+#btnOcrModalTrigger.action-button {
+  background: linear-gradient(#ffcb00, #e0a300);
+  color: #000;
+}
+
+#exportExcelBtn.action-button {
+  background: linear-gradient(#1D6F42, #104C2B);
+  color: #fff;
+}
+
+/* Total Section */
+.total-section {
+  font-size: 1.25rem; /* Reducido de 1.5rem */
+  font-weight: bold;
+  color: var(--color-neon-cian);
+  text-shadow: 0 0 8px var(--color-neon-cian);
+  text-align: center;
+  padding: 10px; /* Reducido de 15px */
+  background-color: rgba(0, 255, 255, 0.1);
+  border: 2px solid var(--color-neon-cian);
+  border-radius: 8px; /* Reducido de 10px para esquinas menos cuadradas */
+  margin: 10px 0; /* Reducido de 15px */
+}
+
+/* Acordeón de Tracks - MÁS COMPACTO */
+.accordion-item {
+  background-color: var(--container-bg);
+  border: 1px solid var(--color-neon-cian);
+  margin-bottom: 8px;
+  border-radius: 8px;
+}
+
+.accordion-button {
+  background-color: var(--container-bg);
+  color: var(--text-color);
+  border: none; 
+  font-weight: bold;
+  font-size: 1rem;
+  border-radius: 8px !important; 
+  transition: background-color 0.3s, color 0.3s;
+  padding: 10px 15px; /* Padding más compacto */
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: var(--color-neon-cian);
+  color: #000;
+  box-shadow: inset 0 -3px 0 rgba(0,0,0,.1);
+  border-bottom-left-radius: 0 !important; 
+  border-bottom-right-radius: 0 !important;
+}
+
+.accordion-button:hover {
+  background-color: #2a2a2a;
+  color: var(--color-neon-cian);
+}
+
+.accordion-button:focus {
+  box-shadow: 0 0 0 0.25rem rgba(0, 255, 255, 0.5);
+}
+
+.accordion-button::after {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+}
+
+.accordion-button:not(.collapsed)::after {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
+}
+
+.accordion-body {
+  background-color: #1e1e1e;
+  color: #ffffff;
+  padding: 10px; /* Padding más compacto */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px; /* Gap más pequeño */
+  border-radius: 0 0 8px 8px;
+  border: 1px solid var(--color-neon-cian); 
+  border-top: none; 
+}
+
+/* Track buttons with 3D effect like original */
+.track-button-container {
+  display: inline-block;
+  width: 150px;
+  height: 150px;
+  margin: 0.5rem;
+  vertical-align: top;
+  position: relative;
+}
+
+.track-checkbox {
+  display: none;
+}
+
+.track-button {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  cursor: pointer;
+  user-select: none;
+  text-align: center;
+  background: linear-gradient(#555, #333);
+  color: #ffffff;
+  box-shadow: 0 5px #111;
+  border: 1px solid #444;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s;
+  overflow: hidden;
+  padding: 0.5rem;
+}
+
+.track-button::before {
+  content: "";
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 0; height: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.4s, height 0.4s;
+  pointer-events: none;
+}
+
+.track-button:active::before {
+  width: 250px;
+  height: 250px;
+}
+
+.track-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px #111;
+  background: linear-gradient(#666, #444);
+}
+
+.track-button:active {
+  transform: translateY(2px);
+  box-shadow: 0 3px #111;
+}
+
+.track-checkbox:checked + .track-button {
+  background: linear-gradient(#ffd966, #d1a824);
+  color: #000;
+  box-shadow: 0 5px #666;
+  transform: none;
+}
+
+.track-checkbox:disabled + .track-button {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.track-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 0.4rem;
+}
+
+.cutoff-time {
+  font-size: 1rem;
+  color: #cccccc;
+}
+
+/* Tabla de Jugadas MEJORADA - Compacta y responsiva */
+#jugadasTable.glow-table {
+  border: 1px solid var(--color-neon-cian);
+  box-shadow: 0 0 10px var(--color-neon-cian);
+  table-layout: fixed; /* Importante para anchos consistentes */
+  width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+#jugadasTable.table-dark {
+  --bs-table-bg: var(--container-bg);
+  --bs-table-border-color: var(--color-neon-cian);
+  --bs-table-color: var(--text-color);
+}
+
+#jugadasTable th {
+  background-color: #1e1e1e;
+  color: var(--color-neon-cian);
+  text-shadow: 0 0 5px var(--color-neon-cian);
+  font-size: 0.85rem;
+  vertical-align: middle;
+  text-align: center;
+  padding: 6px 2px;
+  font-weight: 700;
+  border: 1px solid var(--color-neon-cian);
+}
+
+#jugadasTable td {
+  font-size: 0.9rem;
+  white-space: nowrap;
+  vertical-align: middle;
+  text-align: center;
+  padding: 3px 1px;
+  border: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+/* Definir anchos de columnas específicos - MÁS COMPACTOS */
+#jugadasTable th:nth-child(1),
+#jugadasTable td:nth-child(1) { width: 35px; } /* Checkbox */
+
+#jugadasTable th:nth-child(2),
+#jugadasTable td:nth-child(2) { width: 35px; } /* Número/Remove button */
+
+#jugadasTable th:nth-child(3),
+#jugadasTable td:nth-child(3) { width: 80px; } /* Bet Number */
+
+#jugadasTable th:nth-child(4),
+#jugadasTable td:nth-child(4) { width: 70px; } /* Game Mode */
+
+#jugadasTable th:nth-child(5),
+#jugadasTable td:nth-child(5),
+#jugadasTable th:nth-child(6),
+#jugadasTable td:nth-child(6),
+#jugadasTable th:nth-child(7),
+#jugadasTable td:nth-child(7) { width: 65px; } /* Straight, Box, Combo - Más compactos */
+
+#jugadasTable th:nth-child(8),
+#jugadasTable td:nth-child(8) { width: 75px; } /* Total */
+
+/* Inputs en la tabla principal - MÁS COMPACTOS */
+#jugadasTable .form-control {
+  background: #333333;
+  color: #fff;
+  border: 1px solid #555;
+  font-size: 0.8rem;
+  text-align: center;
+  transition: border-color 0.2s;
+  padding: 1px 2px;
+  width: 100%; /* Importante: ocupar todo el ancho de la celda */
+  border-radius: 4px;
+}
+
+#jugadasTable .form-control:focus {
+  border-color: var(--color-neon-cian);
+  outline: none;
+  box-shadow: 0 0 5px var(--color-neon-cian);
+}
+
+/* Botón de eliminar en tabla principal - ULTRA COMPACTO */
+#jugadasTable .btnRemovePlay {
+  background-color: #ff0044 !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 0 5px #ff0044;
+  transition: transform 0.2s;
+  font-size: 0.7rem !important;
+  padding: 1px 4px !important;
+  width: 30px !important;
+  height: 20px !important;
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 4px !important;
+}
+
+#jugadasTable .btnRemovePlay:hover {
+  background-color: #cc0033 !important;
+  transform: scale(1.05);
+}
+
+#jugadasTable .duplicado {
+  background-color: #ffff99 !important;
+  border: 2px solid #ffe600 !important;
+  color: #000 !important;
+}
+
+#jugadasTable .error-field {
+  background-color: var(--color-neon-morado) !important;
+  border: 2px solid var(--color-neon-cian) !important;
+}
+
+/* Invalid plays */
+#jugadasTable .invalid-play td {
+  background-color: rgba(128, 0, 128, 0.3) !important;
+  border-color: #800080 !important;
+}
+
+/* Total cell styling - LLENAR COMPLETAMENTE LA CELDA */
+#jugadasTable td.total-cell {
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  padding: 0 !important; /* Eliminar padding para que el botón llene todo */
+  position: relative;
+  border: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+#jugadasTable td.total-cell > .total-amount,
+#jugadasTable td.total-cell > button,
+#jugadasTable td.total-cell > .btn {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 8px 4px !important;
+  border: none !important;
+  background: transparent !important;
+  color: inherit !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 0.9rem !important;
+  font-weight: bold !important;
+  border-radius: 0 !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+}
+
+#jugadasTable td.total-cell:hover {
+  background-color: rgba(0, 255, 255, 0.2) !important;
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.3) !important;
+}
+
+#jugadasTable td.total-cell:hover > .total-amount,
+#jugadasTable td.total-cell:hover > button,
+#jugadasTable td.total-cell:hover > .btn {
+  background-color: rgba(0, 255, 255, 0.1) !important;
+}
+
+/* Modales - Matching original */
 .modal-content {
-    background-color: #0a0a0a; /* Fondo oscuro */
-    color: #ffffff; /* Texto blanco */
-    box-shadow: 0 0 20px var(--color-neon-cian);
+  background-color: #0a0a0a;
+  color: #ffffff;
+  box-shadow: 0 0 20px var(--color-neon-cian);
+  max-height: 90vh;
+  overflow: hidden;
+  border: 2px solid var(--color-neon-cian);
+  border-radius: 15px;
 }
 
-.modal-header, .modal-footer {
-    border-bottom: 1px solid var(--color-neon-cian);
-    border-top: 1px solid var(--color-neon-cian);
+.modal-header,
+.modal-footer {
+  border-bottom: 1px solid var(--color-neon-cian);
+  border-top: 1px solid var(--color-neon-cian);
+}
+
+.modal-header .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
 }
 
 .modal-title {
-    color: var(--color-neon-cian);
+  color: var(--color-neon-cian);
 }
 
-.btn-close-white {
-    filter: brightness(0) invert(1);
+.modal-body {
+  max-height: 70vh;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* QR Code */
-#qrcode {
-    margin: 0 auto;
+/* TICKET MODAL - Responsive y optimizado */
+#ticketModal .modal-dialog {
+  max-width: 95vw !important;
+  max-height: 95vh !important;
+  margin: 1rem auto !important;
 }
 
-/* Placeholder con límite de apuesta */
-input::placeholder {
-    color: var(--color-placeholder);
-    opacity: 1; /* Firefox */
+#ticketModal .modal-content {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #cccccc !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+  max-height: 95vh !important;
+  overflow-y: auto !important;
 }
 
-input:-ms-input-placeholder { /* Internet Explorer 10-11 */
-    color: var(--color-placeholder);
+#ticketModal .modal-header {
+  background-color: #f8f9fa !important;
+  color: #000000 !important;
+  border-bottom: 1px dotted #ccc !important;
+  padding: 0.75rem 1rem !important;
 }
 
-input::-ms-input-placeholder { /* Microsoft Edge */
-    color: var(--color-placeholder);
+#ticketModal .modal-footer {
+  background-color: #f8f9fa !important;
+  border-top: 1px dotted #ccc !important;
+  padding: 0.75rem 1rem !important;
+  flex-wrap: wrap !important;
+  gap: 0.5rem !important;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .container {
-        padding: 10px;
-    }
-
-    h2 {
-        font-size: 1.5em;
-    }
-
-    .btn {
-        padding: 8px 16px;
-        font-size: 16px;
-    }
-
-    .table-responsive {
-        overflow-x: auto;
-    }
-
-    .accordion-button {
-        font-size: 1em;
-    }
+#ticketModal .modal-title {
+  color: #000000 !important;
+  font-weight: 600 !important;
+  font-size: 1.1rem !important;
 }
 
-/* Estilos para impresión */
-@media print {
-    /* Ocultar todo el contenido por defecto */
-    body * {
-        visibility: hidden;
-    }
-
-    /* Mostrar solo el ticket */
-    #preTicket, #preTicket * {
-        visibility: visible;
-    }
-
-    /* Posicionar el ticket en la parte superior */
-    #preTicket {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-    }
-
-    #preTicket {
-        background-color: #0a0a0a; /* Fondo oscuro */
-        color: #ffffff; /* Texto blanco */
-        font-size: 12pt; /* Ajustar si requieres otro tamaño de fuente */
-    }
+#ticketModal .btn-close {
+  filter: none !important;
 }
 
-/* ============================= */
-/*         Sección Ticket        */
-/* ============================= */
-
+/* Contenido del ticket - Responsivo */
 #preTicket {
-    background-color: #0a0a0a; 
-    color: #ffffff;
-    padding: 20px;
-    border-radius: 10px;
-    /* NUEVO: Aseguramos que no se corte en pantallas pequeñas ni en la captura */
-    max-width: 100%; /* NUEVO */
-    overflow-x: auto; /* NUEVO */
-    overflow-y: visible; /* NUEVO */
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  padding: 15px !important;
+  font-family: 'Arial', sans-serif !important;
+  line-height: 1.3 !important;
+  border: 1px dotted #999 !important;
+  margin: 5px !important;
 }
 
 #preTicket h4 {
-    color: #00ffff;
-    text-shadow: 0 0 5px #00ffff;
+  color: #000000 !important;
+  font-weight: bold !important;
+  font-size: 1.1rem !important;
+  margin-bottom: 10px !important;
+  text-shadow: none !important;
+  text-align: center !important;
 }
 
-/* NUEVO: Asegurar tabla responsiva y evitar recortes */
-#preTicket table {
-    background-color: #1e1e1e;
-    width: 100%;        /* NUEVO: que ocupe todo el ancho */
-    table-layout: fixed;/* NUEVO: para controlar el overflow de celdas */
-    word-wrap: break-word; /* NUEVO */
+#preTicket p,
+#preTicket .ticket-number,
+#preTicket .transaction-date {
+  color: #000000 !important;
+  font-size: 0.85rem !important;
+  margin-bottom: 8px !important;
 }
 
-/* Ajustar celdas del ticket para evitar desbordes */
-#preTicket th, 
-#preTicket td {
-    border: 1px solid #00ffff;
-    color: #ffffff;
-    padding: 8px;        /* NUEVO: un poco más de espacio */
-    white-space: nowrap; /* NUEVO: si quieres elipsis en lugar de “salto de línea” */
-    overflow: hidden;    /* NUEVO: ocultar texto que exceda el ancho */
-    text-overflow: ellipsis; /* NUEVO: mostrar “...” si no cabe */
+#preTicket strong {
+  color: #000000 !important;
+  font-weight: bold !important;
 }
 
-/* Clase para resaltar campos duplicados */
-.duplicado {
-    background-color: #ffff99; /* Fondo amarillo claro */
-    border: 2px solid #ffeb3b; /* Borde amarillo más oscuro */
+/* Tabla del ticket - Líneas punteadas y responsiva */
+#preTicket .table {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 1px dotted #999 !important;
+  margin: 10px 0 !important;
+  font-size: 0.8rem !important;
 }
 
-/* Ocultar la hora límite para el track "Venezuela" */
-.cutoff-time[data-track='Venezuela'] {
-    color: var(--color-fondo);
+#preTicket .table th {
+  background-color: #f8f9fa !important;
+  color: #000000 !important;
+  border: 1px dotted #ccc !important;
+  font-weight: bold !important;
+  text-align: center !important;
+  padding: 4px 2px !important;
+  font-size: 0.75rem !important;
 }
 
-/* Mejora en móviles muy pequeños (<= 600px) para #preTicket */
-@media (max-width: 600px) {
-    #preTicket table {
-        font-size: 0.85rem;
-    }
-    #preTicket th, #preTicket td {
-        padding: 6px;
-    }
-    #qrcode {
-        width: 100px;
-        height: 100px;
-    }
+#preTicket .table td {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 1px dotted #ccc !important;
+  text-align: center !important;
+  padding: 3px 2px !important;
+  font-size: 0.8rem !important;
 }
 
+#preTicket .table thead th {
+  background-color: #e9ecef !important;
+  border-bottom: 1px dotted #999 !important;
+}
+
+/* Total section en el ticket - Más compacto */
+#preTicket .total-section {
+  background-color: #f8f9fa !important;
+  color: #000000 !important;
+  border: 1px dotted #999 !important;
+  text-shadow: none !important;
+  font-weight: bold !important;
+  font-size: 1rem !important;
+  margin: 10px 0 !important;
+  padding: 8px !important;
+  text-align: center !important;
+}
+
+/* QR Code y elementos finales - Más compactos */
+#preTicket .barcode {
+  margin: 10px 0 !important;
+  text-align: center !important;
+}
+
+#qrcode {
+  display: inline-block !important;
+  border: 1px dotted #999 !important;
+  padding: 5px !important;
+  background-color: #ffffff !important;
+}
+
+/* WIZARD MODAL - Responsivo mejorado */
+#wizardModal .modal-dialog {
+  max-width: 95vw !important;
+  max-height: 95vh !important;
+  margin: 1rem auto !important;
+}
+
+#wizardModal .modal-content {
+  max-height: 95vh !important;
+  overflow-y: auto !important;
+}
+
+#wizardModal .modal-header {
+  padding: 0.75rem 1rem !important;
+  border-bottom: 1px solid var(--color-neon-cian) !important;
+}
+
+#wizardModal .modal-body {
+  max-height: 70vh !important;
+  overflow-y: auto !important;
+  padding: 1rem !important;
+}
+
+#wizardModal .modal-footer {
+  padding: 0.75rem 1rem !important;
+  border-top: 1px solid var(--color-neon-cian) !important;
+}
+
+#wizardModal .form-label {
+  font-size: 0.85rem !important;
+}
+
+#wizardModal .form-control, #wizardModal .form-select {
+  font-size: 0.85rem !important;
+  padding: 0.25rem 0.5rem !important;
+}
+
+#wizardModal .btn {
+  padding: 0.25rem 0.5rem !important;
+  font-size: 0.85rem !important;
+}
+
+#wizardModal .table {
+  font-size: 0.8rem !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+}
+
+/* Anchos de columnas del Wizard */
+#wizardTable th:nth-child(1),
+#wizardTable td:nth-child(1) { width: 40px; } /* Remove button */
+
+#wizardTable th:nth-child(2),
+#wizardTable td:nth-child(2) { width: 80px; } /* Bet Number */
+
+#wizardTable th:nth-child(3),
+#wizardTable td:nth-child(3) { width: 90px; } /* Game Mode */
+
+#wizardTable th:nth-child(4),
+#wizardTable td:nth-child(4),
+#wizardTable th:nth-child(5),
+#wizardTable td:nth-child(5),
+#wizardTable th:nth-child(6),
+#wizardTable td:nth-child(6) { width: 60px; } /* Str, Box, Com */
+
+#wizardTable th:nth-child(7),
+#wizardTable td:nth-child(7) { width: 70px; } /* Total */
+
+/* Botón eliminar en Wizard - ULTRA COMPACTO */
+.removeWizardBtn {
+  background-color: #ff0044 !important;
+  color: #fff !important;
+  border: none !important;
+  font-size: 0.7rem !important;
+  padding: 0 !important;
+  width: 24px !important;
+  height: 20px !important;
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 3px !important;
+}
+
+.removeWizardBtn:hover {
+  background-color: #cc0033 !important;
+  transform: scale(1.1);
+}
+
+#wizardModal h6 {
+  color: #17a2b8;
+  margin-top: 15px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #17a2b8;
+  padding-bottom: 5px;
+}
+
+/* Lock buttons in Wizard */
+.lockBtn {
+  font-size: 1.2rem;
+  padding: 0.375rem 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lockBtn:hover {
+  background-color: #333;
+  transform: scale(1.05);
+}
+
+.lockBtn i {
+  vertical-align: middle;
+}
+
+/* BOTÓN DE TEMA - FIJO en posición absoluta (no flotante) */
+#themeToggleBtn { 
+  position: absolute !important; /* Cambiado de fixed a absolute */
+  top: 10px !important; 
+  left: 10px !important;
+  z-index: 1060 !important; 
+  padding: 8px 12px !important; 
+  font-size: 0.9rem !important; 
+  border-radius: 50% !important;
+  width: 45px !important;
+  height: 45px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3) !important;
+  background-color: #6c757d !important;
+  border: 1px solid #5a6268 !important;
+  color: #fff !important;
+}
+
+/* BOTÓN DE TEMA - Estados hover y activo */
+#themeToggleBtn:hover {
+  background-color: #5a6268 !important;
+  transform: scale(1.05) !important;
+  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.4) !important;
+}
+
+#themeToggleBtn:active {
+  transform: scale(0.95) !important;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Tutorial buttons - FIJO en posición absoluta (no flotante) */
+#tutorialButtonsContainer {
+  position: absolute !important; /* Cambiado de fixed a absolute */
+  top: 10px !important; 
+  right: 15px !important;
+  z-index: 1055 !important; 
+  display: flex !important;
+  gap: 8px !important; 
+}
+
+#tutorialButtonsContainer .btn-secondary {
+  background-color: rgba(108, 117, 125, 0.8); 
+  border-color: rgba(108, 117, 125, 1);
+  padding: 5px 10px; 
+  font-size: 0.8rem;
+  border-radius: 5px; 
+}
+
+#tutorialButtonsContainer .btn-secondary:hover {
+  background-color: rgba(84, 91, 98, 1);
+}
+
+/* Manual Section */
+#manualAccordion .accordion-button {
+  background-color: var(--container-bg);
+  color: var(--color-neon-cian);
+}
+
+#manualAccordion .accordion-button:not(.collapsed) {
+  background-color: var(--color-neon-cian);
+  color: var(--container-bg);
+}
+
+#manualAccordion .accordion-body {
+  background-color: #3a3a3a;
+  color: #f0f0f0;
+}
+
+#manualAccordion .accordion-body h4 {
+  color: #ffc107;
+}
+
+/* Intro.js styling */
+.introjs-tooltip {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  padding: 15px;
+  text-align: left;
+}
+
+.introjs-tooltiptext {
+  color: #000000 !important;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.introjs-button {
+  background-color: #007bff !important;
+  color: white !important;
+  border: none !important;
+  padding: 8px 12px !important;
+  border-radius: 4px !important;
+  text-shadow: none !important;
+  font-weight: bold !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.introjs-button:hover {
+  background-color: #0056b3 !important;
+}
+
+.introjs-prevbutton {
+  background-color: #6c757d !important;
+}
+
+.introjs-prevbutton:hover {
+  background-color: #545b62 !important;
+}
+
+.introjs-skipbutton {
+  color: #6c757d !important;
+  background-color: transparent !important;
+}
+
+.introjs-skipbutton:hover {
+  color: #343a40 !important;
+}
+
+.introjs-bullets ul li a {
+  background: #ccc !important;
+}
+
+.introjs-bullets ul li a.active {
+  background: #007bff !important;
+}
+
+.introjs-progress .introjs-progressbar {
+  background-color: #007bff !important;
+}
+
+/* Flatpickr Calendar */
+.flatpickr-calendar.open {
+  background: #222;
+  border: 1px solid #00FFFF;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+  color: #f0f0f0;
+}
+
+.flatpickr-calendar.open .flatpickr-innerContainer {
+  background: #222;
+}
+
+.flatpickr-calendar.open .flatpickr-months .flatpickr-month,
+.flatpickr-calendar.open .flatpickr-current-month .flatpickr-monthTitle {
+  color: #00FFFF;
+}
+
+.flatpickr-calendar.open .flatpickr-weekdays,
+.flatpickr-calendar.open .flatpickr-weekday {
+  color: #ccc;
+}
+
+.flatpickr-calendar.open .flatpickr-day {
+  color: #f0f0f0;
+}
+
+.flatpickr-calendar.open .flatpickr-day.selected,
+.flatpickr-calendar.open .flatpickr-day.startRange,
+.flatpickr-calendar.open .flatpickr-day.endRange,
+.flatpickr-calendar.open .flatpickr-day.selected.startRange,
+.flatpickr-calendar.open .flatpickr-day.selected.endRange,
+.flatpickr-calendar.open .flatpickr-day.startRange.endRange {
+  background: #007bff;
+  border-color: #007bff;
+  color: white;
+}
+
+.flatpickr-calendar.open .flatpickr-day.today {
+  border-color: #ffc107;
+  color: #ffc107;
+  background: transparent;
+  font-weight: bold;
+}
+
+.flatpickr-day.disabled {
+  color: #666;
+  cursor: not-allowed;
+}
+
+.flatpickr-days .flatpickr-day:nth-child(7n+1),
+.flatpickr-days .flatpickr-day:nth-child(7n) {
+  color: #ff8c00;
+}
+
+/* Drop zone */
+.drop-zone {
+  border: 2px dashed #00bfff;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  transition: background-color 0.3s;
+  cursor: pointer;
+  color: #777;
+}
+
+.drop-zone.dragover {
+  background-color: rgba(0, 191, 255, 0.1);
+  border-color: #00bfff;
+  color: #ccc;
+}
+
+/* Spinner */
+.spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.spinner > div {
+  width: 15px;
+  height: 15px;
+  background: var(--color-neon-cian);
+  margin: 5px;
+  border-radius: 50%;
+  animation: bounce 0.6s infinite alternate;
+}
+
+.spinner > div:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.spinner > div:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+  from { transform: translateY(0); }
+  to { transform: translateY(-10px); }
+}
+
+/* Modern spinner for OCR */
+.modern-spinner {
+  display: inline-block;
+  width: 50px;
+  height: 50px;
+  border: 6px solid rgba(0,0,0,0.1);
+  border-top: 6px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Progress bar for OCR */
+.progress-ocr-container {
+  background-color: #e9ecef;
+  border-radius: 4px;
+  height: 8px;
+  width: 100%;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.progress-ocr-bar {
+  height: 8px;
+  background-color: #28a745;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+/* OCR jugadas */
+#ocrJugadas div {
+  border: 1px solid #666;
+  padding: 10px;
+  margin-bottom: 10px;
+  background-color: #505050;
+  border-radius: 5px;
+}
+
+#ocrJugadas strong {
+  color: var(--color-neon-cian);
+}
+
+/* Light Mode Styles */
+body.light-mode {
+  --main-bg: #f3f0e3;
+  --text-color: #000;
+  --container-bg: #fbf9f0;
+  --border-color: #0066cc;
+  --glow-color: rgba(0, 102, 204, 0.3);
+  --glow-intense: rgba(0, 102, 204, 0.5);
+  --input-bg: #fff;
+  --input-text: #000;
+  --input-border: #ced4da;
+  --placeholder-color: #6c757d;
+  
+  background-color: var(--main-bg);
+  color: var(--text-color);
+}
+
+body.light-mode .container {
+  background-color: var(--container-bg);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+  border-color: var(--border-color);
+}
+
+body.light-mode h2,
+body.light-mode h4,
+body.light-mode h5,
+body.light-mode label,
+body.light-mode .form-label {
+  color: var(--text-color);
+}
+
+body.light-mode h6 {
+  color: var(--text-color);
+}
+
+body.light-mode h2 {
+  color: var(--border-color);
+  text-shadow: none;
+}
+
+body.light-mode #manualAccordion h4 {
+  color: var(--text-color);
+}
+
+body.light-mode .glow-input,
+body.light-mode .form-control,
+body.light-mode .form-select {
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border: 1px solid var(--input-border);
+  box-shadow: none;
+}
+
+body.light-mode .glow-input:focus,
+body.light-mode .form-control:focus,
+body.light-mode .form-select:focus {
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+body.light-mode .form-control::-webkit-input-placeholder { color: var(--placeholder-color); }
+body.light-mode .form-control::-moz-placeholder { color: var(--placeholder-color); opacity: 1; }
+body.light-mode .form-control:-ms-input-placeholder { color: var(--placeholder-color); }
+body.light-mode .form-control::-ms-input-placeholder { color: var(--placeholder-color); }
+body.light-mode .form-control::placeholder { color: var(--placeholder-color); }
+
+body.light-mode .btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+  box-shadow: none;
+}
+
+body.light-mode .btn-primary:hover {
+  background-color: #0056b3;
+  box-shadow: none;
+}
+
+body.light-mode .btn-info {
+  background-color: #17a2b8;
+  border-color: #17a2b8;
+  box-shadow: none;
+}
+
+body.light-mode .btn-warning {
+  background-color: #ffc107;
+  border-color: #ffc107;
+  color: #212529;
+  box-shadow: none;
+}
+
+body.light-mode .btn-danger {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  box-shadow: none;
+}
+
+body.light-mode .btn-success {
+  background-color: #28a745;
+  border-color: #28a745;
+  box-shadow: none;
+}
+
+body.light-mode .btn-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  box-shadow: none;
+}
+
+body.light-mode .accordion-item {
+  background-color: var(--container-bg);
+  border: 1px solid var(--border-color);
+}
+
+body.light-mode .accordion-button {
+  background-color: var(--container-bg);
+  color: var(--text-color);
+}
+
+body.light-mode .accordion-button:not(.collapsed) {
+  background-color: var(--border-color);
+  color: white;
+}
+
+body.light-mode .accordion-body {
+  background-color: var(--container-bg);
+}
+
+body.light-mode .track-button {
+  background-color: #e9ecef;
+  color: var(--text-color);
+  border: 2px solid #ccc;
+}
+
+body.light-mode .track-checkbox:checked + .track-button {
+  background-color: #ffc107;
+  border-color: #e0a800;
+  color: white;
+  box-shadow: 0 0 8px rgba(255, 193, 7, 0.5);
+}
+
+body.light-mode .track-button:hover:not(body.light-mode .track-checkbox:checked + .track-button) {
+  background-color: #ced4da;
+  border-color: #adb5bd;
+}
+
+body.light-mode .track-checkbox:checked + .track-button:hover {
+  background-color: #e0a800;
+}
+
+body.light-mode #jugadasTable.table-dark,
+body.light-mode .table {
+  --bs-table-bg: var(--container-bg, #fff);
+  --bs-table-border-color: var(--border-color, #dee2e6);
+  --bs-table-color: var(--text-color, #000);
+  color: var(--text-color, #000);
+}
+
+body.light-mode #jugadasTable thead th,
+body.light-mode .table thead th {
+  background-color: var(--input-bg, #e9ecef);
+  color: var(--text-color, #000);
+  border-bottom-width: 2px;
+  border-color: var(--border-color, #dee2e6);
+}
+
+body.light-mode #jugadasTable td.total-cell:hover {
+  background-color: rgba(0, 102, 204, 0.1);
+  box-shadow: 0 0 8px rgba(0, 102, 204, 0.2);
+}
+
+body.light-mode #manualAccordion .accordion-button {
+  background-color: var(--container-bg);
+  color: var(--text-color);
+}
+
+body.light-mode #manualAccordion .accordion-button:not(.collapsed) {
+  background-color: var(--border-color);
+  color: white;
+}
+
+body.light-mode #manualAccordion .accordion-body {
+  background-color: var(--container-bg);
+  color: var(--text-color);
+}
+
+body.light-mode .flatpickr-calendar.open {
+  background: var(--input-bg, #fff);
+  border: 1px solid var(--input-border, #ccc);
+  box-shadow: 0 0 8px rgba(0,0,0,0.1);
+  color: var(--text-color, #000);
+}
+
+body.light-mode .flatpickr-calendar.open .flatpickr-innerContainer {
+  background: var(--input-bg, #fff);
+}
+
+body.light-mode .flatpickr-calendar.open .flatpickr-months .flatpickr-month,
+body.light-mode .flatpickr-calendar.open .flatpickr-current-month .flatpickr-monthTitle {
+  color: var(--border-color, #0066cc);
+}
+
+body.light-mode .flatpickr-calendar.open .flatpickr-weekdays,
+body.light-mode .flatpickr-calendar.open .flatpickr-weekday {
+  color: #6c757d;
+}
+
+body.light-mode .flatpickr-calendar.open .flatpickr-day {
+  color: var(--text-color, #000);
+}
+
+body.light-mode .flatpickr-calendar.open .flatpickr-day.selected,
+body.light-mode .flatpickr-calendar.open .flatpickr-day.startRange,
+body.light-mode .flatpickr-calendar.open .flatpickr-day.endRange {
+  background: var(--border-color, #0066cc);
+  border-color: var(--border-color, #0066cc);
+  color: #fff;
+}
+
+body.light-mode .flatpickr-calendar.open .flatpickr-day.today {
+  border-color: #ffc107;
+  color: #212529;
+  background: #fff7e6;
+}
+
+body.light-mode .flatpickr-day.disabled {
+  color: #adb5bd;
+}
+
+/* Responsividad móvil para tickets */
+@media (max-width: 768px) {
+  #ticketModal .modal-dialog {
+    max-width: 98vw !important;
+    margin: 0.5rem auto !important;
+  }
+  
+  #preTicket {
+    padding: 8px !important;
+    margin: 2px !important;
+    font-size: 0.75rem !important;
+  }
+  
+  #preTicket h4 {
+    font-size: 0.95rem !important;
+    margin-bottom: 8px !important;
+  }
+  
+  #preTicket p,
+  #preTicket .ticket-number,
+  #preTicket .transaction-date {
+    font-size: 0.75rem !important;
+    margin-bottom: 5px !important;
+  }
+  
+  #preTicket .table {
+    font-size: 0.65rem !important;
+    margin: 8px 0 !important;
+  }
+  
+  #preTicket .table th {
+    padding: 2px 1px !important;
+    font-size: 0.6rem !important;
+  }
+  
+  #preTicket .table td {
+    padding: 2px 1px !important;
+    font-size: 0.65rem !important;
+  }
+  
+  #preTicket .total-section {
+    font-size: 0.85rem !important;
+    padding: 5px !important;
+    margin: 8px 0 !important;
+  }
+  
+  #qrcode {
+    padding: 3px !important;
+  }
+  
+  /* Wizard modal en móvil */
+  #wizardModal .modal-dialog {
+    max-width: 98vw !important;
+    margin: 0.5rem auto !important;
+  }
+  
+  #wizardModal .modal-body {
+    padding: 0.5rem !important;
+  }
+  
+  #wizardModal .form-control, 
+  #wizardModal .form-select {
+    font-size: 0.8rem !important;
+    padding: 0.2rem 0.4rem !important;
+  }
+  
+  #wizardModal .btn {
+    padding: 0.2rem 0.4rem !important;
+    font-size: 0.8rem !important;
+  }
+  
+  #wizardModal .table {
+    font-size: 0.7rem !important;
+  }
+  
+  #wizardModal .table th,
+  #wizardModal .table td {
+    padding: 2px 1px !important;
+  }
+}
+
+/* Optimización para impresión - Actualizada */
+@media print {
+  #ticketModal .modal-content {
+    box-shadow: none !important;
+    border: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  
+  #preTicket {
+    border: 1px dotted #999 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    padding: 10px !important;
+  }
+  
+  #preTicket .table {
+    border: 1px dotted #999 !important;
+  }
+  
+  #preTicket .table th,
+  #preTicket .table td {
+    border: 1px dotted #ccc !important;
+  }
+  
+  #preTicket .total-section {
+    border: 1px dotted #999 !important;
+  }
+  
+  #ticketModal .modal-header,
+  #ticketModal .modal-footer {
+    display: none !important;
+  }
+  
+  /* Asegurar que el texto sea legible en impresión */
+  #preTicket h4 {
+    font-size: 14pt !important;
+  }
+  
+  #preTicket p,
+  #preTicket .ticket-number,
+  #preTicket .transaction-date {
+    font-size: 10pt !important;
+  }
+  
+  #preTicket .table {
+    font-size: 9pt !important;
+  }
+  
+  #preTicket .total-section {
+    font-size: 12pt !important;
+  }
+}
+
+/* ===========================
+    MOBILE RESPONSIVE STYLES - COMPACTO Y OPTIMIZADO
+   =========================== */
+@media (max-width: 768px) {
+  .container {
+    padding: 8px;
+  }
+
+  h2 {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+  }
+
+  /* Tabla de jugadas en móvil - ULTRA COMPACTA */
+  #jugadasTable th,
+  #jugadasTable td {
+    font-size: 0.7rem;
+    padding: 2px 1px;
+  }
+
+  /* Anchos de columnas aún más compactos para móvil */
+  #jugadasTable th:nth-child(1),
+  #jugadasTable td:nth-child(1) { width: 30px; } /* Checkbox */
+
+  #jugadasTable th:nth-child(2),
+  #jugadasTable td:nth-child(2) { width: 30px; } /* Remove button */
+
+  #jugadasTable th:nth-child(3),
+  #jugadasTable td:nth-child(3) { width: 65px; } /* Bet */
+
+  #jugadasTable th:nth-child(4),
+  #jugadasTable td:nth-child(4) { width: 55px; } /* Mode */
+
+  #jugadasTable th:nth-child(5),
+  #jugadasTable td:nth-child(5),
+  #jugadasTable th:nth-child(6),
+  #jugadasTable td:nth-child(6),
+  #jugadasTable th:nth-child(7),
+  #jugadasTable td:nth-child(7) { width: 50px; } /* Str, Box, Com */
+
+  #jugadasTable th:nth-child(8),
+  #jugadasTable td:nth-child(8) { width: 55px; } /* Total */
+
+  #jugadasTable .form-control {
+    font-size: 0.7rem;
+    padding: 1px;
+  }
+
+  #jugadasTable .btnRemovePlay {
+    width: 25px !important;
+    height: 18px !important;
+    font-size: 0.6rem !important;
+    padding: 0 !important;
+  }
+
+  /* Acordeones más compactos en móvil */
+  .accordion-button {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+  }
+
+  .accordion-body {
+    padding: 8px;
+    gap: 6px;
+  }
+
+  /* Track buttons en móvil - MANTENER ORIGINAL 5 COLUMNAS */
+  .accordion-body {
+    display: grid; 
+    grid-template-columns: repeat(5, 1fr); 
+    gap: 6px; 
+    padding: 8px; 
+    justify-content: center; 
+  }
+
+  .track-button-container {
+    height: auto; 
+    perspective: none; 
+    display: contents; 
+  }
+
+  .track-button {
+    width: 100%; 
+    aspect-ratio: 1 / 1; 
+    min-height: auto; 
+    padding: 3px; 
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    
+    border-radius: 8px; 
+    background: var(--track-btn-bg-normal);
+    box-shadow: var(--track-btn-shadow-normal);
+    border: 1px solid var(--track-btn-border-normal, #444);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease; 
+    color: var(--input-text); 
+    overflow: hidden; 
+  }
+
+  .track-checkbox:checked + .track-button { 
+    background: var(--track-btn-bg-checked); 
+    color: var(--track-btn-text-checked);
+    border-color: var(--track-btn-border-checked, #c8a02e);
+    box-shadow: var(--track-btn-shadow-checked);
+    transform: translateY(1px); 
+  }
+  
+  .track-button:hover:not(.track-checkbox:checked + .track-button) { 
+    transform: translateY(-1px); 
+    box-shadow: var(--track-btn-shadow-hover);
+    background: var(--track-btn-bg-hover); 
+  }
+  
+  .track-button:active:not(.track-checkbox:checked + .track-button) { 
+    transform: translateY(0px); 
+    box-shadow: var(--track-btn-shadow-active);
+    background: var(--track-btn-bg-active);
+  }
+  
+  .track-checkbox:disabled + .track-button { 
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #444; 
+    border-color: #555;
+    box-shadow: none;
+  }
+
+  .track-name {
+    font-size: clamp(0.5rem, 1.6vw, 0.65rem); 
+    font-weight: 700;
+    margin-bottom: 1px; 
+    line-height: 1.1; 
+    word-break: break-word; 
+    text-align: center; 
+    overflow: hidden; 
+    display: -webkit-box;
+    -webkit-line-clamp: 2; 
+    -webkit-box-orient: vertical;
+  }
+  
+  .cutoff-time {
+    font-size: clamp(0.45rem, 1.4vw, 0.6rem); 
+    line-height: 1.1; 
+    text-align: center; 
+    color: #cccccc; 
+  }
+
+  /* ACTION BUTTONS en móvil - MISMA LÓGICA QUE TRACKS */
+  .action-button-container {
+    height: auto !important; 
+    perspective: none !important; 
+    display: contents !important;
+    width: auto !important;
+    margin: 0 !important;
+  }
+
+  .action-button {
+    width: 100% !important; 
+    height: auto !important;
+    aspect-ratio: 1 / 1 !important; 
+    min-height: auto !important;
+    padding: 3px !important; 
+    
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    
+    border-radius: 8px !important; 
+    box-shadow: 0 3px #111 !important;
+    border: 1px solid #444 !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease !important; 
+    overflow: hidden !important;
+    text-align: center !important;
+    font-size: 0.6rem !important;
+  }
+
+  .action-button:hover {
+    transform: translateY(-1px) !important; 
+    box-shadow: 0 4px #111 !important;
+  }
+  
+  .action-button:active {
+    transform: translateY(1px) !important; 
+    box-shadow: 0 2px #111 !important;
+  }
+
+  .action-button-name {
+    font-size: clamp(0.5rem, 1.6vw, 0.65rem) !important; 
+    font-weight: 700 !important;
+    margin-bottom: 1px !important; 
+    line-height: 1.1 !important; 
+    word-break: break-word !important; 
+    text-align: center !important; 
+    overflow: hidden !important; 
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important; 
+    -webkit-box-orient: vertical !important;
+  }
+  
+  .action-button i {
+    font-size: 1rem !important;
+    margin-bottom: 1px !important;
+  }
+
+  /* Total section en móvil */
+  .total-section {
+    font-size: 1.1rem;
+    padding: 10px;
+    margin: 10px 0;
+  }
+
+  /* Asegurar que no haya scroll horizontal */
+  body {
+    overflow-x: hidden;
+  }
+  
+  .container {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
