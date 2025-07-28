@@ -389,7 +389,7 @@ $(document).ready(function() {
                 console.error("Error al inicializar modal #modalOcr:", error);
             }
         } else {
-            // Modal #modalOcr not present; OCR init skipped.
+            console.error("Modal #modalOcr not found in HTML!");
         }
 
         const wizardModalElement = document.getElementById('wizardModal');
@@ -401,7 +401,7 @@ $(document).ready(function() {
                 console.error("Error al inicializar modal #wizardModal:", error);
             }
         } else {
-            // Modal #wizardModal not present; skipping initialization.
+            console.error("Modal #wizardModal not found in HTML!");
         }
         
         const ticketModalElement = document.getElementById('ticketModal');
@@ -1100,9 +1100,8 @@ $(document).ready(function() {
     $("#wizardButton").click(function() {
         console.log("Wizard button clicked");
         resetWizard();
-        if (wizardModalInstance) { wizardModalInstance.show(); }
-        else if (typeof ticketModalInstance !== "undefined" && ticketModalInstance) { ticketModalInstance.show(); }
-        else { console.info("Wizard modal not available; no fallback modal found."); }
+        if(wizardModalInstance) wizardModalInstance.show();
+        else console.error("Wizard modal not initialized");
     });
 
     $(".lockBtn").click(function() {
@@ -1251,12 +1250,12 @@ $(document).ready(function() {
 
     $("#wizardGenerateTicket").click(function() {
         $("#wizardAddAllToMain").trigger("click");
-        if (wizardModalInstance) { wizardModalInstance.hide(); }
+        if(wizardModalInstance) wizardModalInstance.hide();
         doGenerateTicket();
     });
 
     $("#wizardEditMainForm").click(function() {
-        if (wizardModalInstance) { wizardModalInstance.hide(); }
+        if(wizardModalInstance) wizardModalInstance.hide();
     });
 
     $("#exportPlaysButton").click(exportPlaysToCsv);
@@ -2224,7 +2223,7 @@ function setupThemeToggle() {
     const sunIcon = themeToggleBtn ? themeToggleBtn.querySelector('.bi-sun') : null;
 
     if (!themeToggleBtn || !moonIcon || !sunIcon) {
-        // Theme toggle elements not found; feature disabled silently.
+        console.error("Theme toggle elements not found.");
         return;
     }
 
@@ -2249,211 +2248,3 @@ function setupThemeToggle() {
 }
 
 console.log("End of scripts.js reached");
-
-
-/* =========================
- * Beast Reader Integration (Re-Add)
- * ========================= */
-(function () {
-  if (window.__BEAST_READER_PATCHED__) return;
-  window.__BEAST_READER_PATCHED__ = true;
-
-  const BEAST_READER_PROMPT = `UPER PROMPT PARA “BEAST READER” (agent Cline)
-(Incluye TODO el contexto de reglas, convenciones manuscritas y casos especiales para interpretar tickets de lotería)
-
-Eres Beast Reader, un agente OCR entrenado para leer boletos de lotería manuscritos (Peak 3, Win 4, Venezuela, Santo Domingo, Pulito, SingleAction) y convertir cada jugada en un JSON mínimo que mi frontend (scripts.js) pueda procesar. No determines ganadores ni calcules premios; solo extrae y normaliza la información.
-
-1. ESQUEMA DE SALIDA (JSON)
-Devuelve un array de objetos con solo estos campos:
-
-[
-  {
-    "fecha":    "YYYY-MM-DD",    // Fecha escrita o “hoy” si no hay
-    "track":    "New York Midday",
-    "numeros":  "123",           // bet number: 2–4 dígitos puros
-    "straight": 1.00,            // monto $ straight
-    "box":      0.50,            // monto $ box
-    "combo":    0.00,            // monto $ combo
-    "notas":    ""               // “ilegible”, “montoFueraDeRango”, etc.
-  }
-]
-No incluyas tipoJuego, modalidad, total ni ningún cálculo extra.
-
-No repitas información que el frontend calculará después.
-
-2. FECHA
-Si aparece (p.ej. “4-30-25”), convertir a YYYY-MM-DD solo si es hoy o posterior.
-Si no aparece, usar la fecha actual (formato YYYY-MM-DD).
-Nunca devolver fecha pasada.
-
-3. TRACKS / LOTERÍAS
-*INSTRUCCIÓN OBLIGATORIA para Tracks:* Escanea CUIDADOSAMENTE la sección superior/cabecera de la imagen buscando casillas marcadas (✔ o ☑) junto a los nombres de los tracks o abreviaturas escritas. *DEBES* usar la tabla de mapeo provista abajo para identificar el track principal marcado. Usa ese nombre de track en el campo "track" para TODAS las jugadas del ticket. Si hay varias marcas, prioriza NY o la más clara. Si NINGUNA marca es visible, y solo en ese caso, aplica la lógica de default (NY Midday/Evening según la hora del servidor).
-
-Mapea exactamente la casilla marcada (✔ o ☑) y abreviaturas manuscritas al nombre completo:
-
-Abreviatura	Track completo
-MIDDAY	New York Midday
-NYS	New York Night
-BK-DAY	Brooklyn Midday
-BK-TV	Brooklyn Night (TV)
-NY	New York Horses (single)
-NJ-DAY	New Jersey Midday
-NJ-NIGHT	New Jersey Evening
-CONN-DAY	Connecticut Midday
-CONN-NIGHT	Connecticut Evening
-FLA-MIDDAY	Florida Midday
-FLA-NIGHT	Florida Evening
-GEORGIA-…	Georgia Day/Eve
-PENN-…	Pennsylvania Day/Eve
-VENEZUELA	Venezuela (2 dígitos)
-STO DGO	Santo Domingo (RD)
-
-4. BET NUMBERS
-*REGLA CRÍTICA:* Si un número de apuesta tiene EXACTAMENTE 2 dígitos, *NUNCA* lo clasifiques como Peak 3. Debe ser Pulito, Venezuela o Santo Domingo según el contexto del track.
-Siempre 1–4 dígitos (0–9999).
-Nunca letras en “numeros”; si lees algo distinto, márcalo en notas:"ilegible".
-Permite X, -, + solo en Palé para separar parejas de dos dígitos (ej. "24-28").
-
-5. INTERPRETACIÓN DE MONTOS
-*REGLA CRÍTICA:* Lee el monto *EXACTAMENTE* como está escrito. *NO inventes decimales ni modifiques el valor.*
-5.1 Monto único → straight
-5.2 División manual → box
-5.3 “C” abreviatura → combo
-5.4 Límites de apuesta (inferencia de dólares vs. centavos)
-
-6. JUGADAS ESPECIALES
-6.1 Round-Down / Secuencias (0-9) — genera 10 jugadas si aplica (mismo monto straight).
-6.2 Palé (XX[sep]XX) — normaliza a "XX-XX" en salida. Monto según reglas 5.x.
-6.3 SingleAction (1 dígito).
-
-7. CONTEXTO Y VALIDACIÓN
-Usa total manuscrito para validar; aplica montos a múltiples jugadas cuando el manuscrito lo indique; nunca asumas letras como números.
-
-8. FLUJO DE PROCESO
-Preprocesamiento → Segmentación → OCR → Parseo → Salida.
-
-*REGLA CRÍTICA FINAL:* Prioriza la precisión absoluta. Si hay duda, usa "notas" o omite la jugada incierta.`;
-
-  const fmt2 = (v) => {
-    const n = (v === "" || v === null || v === undefined) ? NaN : Number(v);
-    return Number.isFinite(n) ? n.toFixed(2) : "-";
-  };
-  const toNumberOrZero = (v) => {
-    const n = Number(v);
-    return Number.isFinite(n) ? n : 0;
-  };
-  function normalizeOcrResponse(payload) {
-    const rawArray = Array.isArray(payload)
-      ? payload
-      : (Array.isArray(payload?.bets) ? payload.bets : []);
-    return rawArray.map(p => ({
-      fecha:    p.fecha ?? p.date ?? null,
-      track:    p.track ?? p.loteria ?? null,
-      numeros:  p.numeros ?? p.betNumber ?? "",
-      straight: toNumberOrZero(p.straight ?? p.straightAmount),
-      box:      toNumberOrZero(p.box ?? p.boxAmount),
-      combo:    toNumberOrZero(p.combo ?? p.comboAmount),
-      notas:    p.notas ?? p.notes ?? ""
-    })).filter(x => String(x.numeros || "").trim() !== "");
-  }
-  function mapBeastToLegacy(beast) {
-    let gm = null;
-    try {
-      if (typeof determineGameMode === "function") {
-        const tracks = (typeof getCurrentSelectedTracks === "function") ? getCurrentSelectedTracks() : [];
-        gm = determineGameMode(beast.numeros, tracks);
-      }
-    } catch(e) { console.warn("determineGameMode fallback:", e); }
-    return {
-      betNumber: beast.numeros || "",
-      straightAmount: beast.straight ?? 0,
-      boxAmount: beast.box ?? 0,
-      comboAmount: beast.combo ?? 0,
-      gameMode: gm
-    };
-  }
-
-  // Patch hooks if not present
-  if (typeof window.usarJugadaOCR !== "function") {
-    window.usarJugadaOCR = function(idx){
-      const arr = window.jugadasGlobalOCR || [];
-      const beast = arr[idx];
-      if (!beast) return;
-      const legacy = mapBeastToLegacy(beast);
-      if (typeof addMainRow === "function") addMainRow(legacy);
-    };
-  }
-  if (typeof window.handleCargarTodasLasJugadasClick !== "function") {
-    window.handleCargarTodasLasJugadasClick = function(){
-      const arr = window.jugadasGlobalOCR || [];
-      for (let i=0;i<arr.length;i++){
-        const legacy = mapBeastToLegacy(arr[i]);
-        if (typeof addMainRow === "function") addMainRow(legacy);
-      }
-      try {
-        const el = document.getElementById("modalOcr");
-        if (el && window.bootstrap && bootstrap.Modal) bootstrap.Modal.getOrCreateInstance(el).hide();
-      } catch(e){}
-    };
-  }
-
-  // Wrap procesarOCR if exists; otherwise define.
-  const originalProcesar = window.procesarOCR;
-  window.procesarOCR = async function() {
-    if (originalProcesar && originalProcesar.__beastWrapped) {
-      return originalProcesar();
-    }
-    try {
-      const fileInput = document.getElementById("ocrFile");
-      const file = (window.selectedFileGlobalOCR) || (fileInput ? fileInput.files[0] : null);
-      if (!file) { alert("Selecciona una imagen primero."); return; }
-      const base64data = await new Promise((resolve,reject)=>{
-        const r = new FileReader(); r.onload=()=>resolve(r.result); r.onerror=reject; r.readAsDataURL(file);
-      });
-      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "America/New_York";
-      const nowIso = new Date().toISOString();
-      const resp = await fetch("/api/interpret-ticket", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ photoDataUri: base64data, prompt: BEAST_READER_PROMPT, timezone: tz, nowIso })
-      });
-      if (!resp.ok) { throw new Error("Error del servidor: " + (await resp.text())); }
-      const interpreted = await resp.json();
-      const normalized = normalizeOcrResponse(interpreted);
-      window.jugadasGlobalOCR = normalized;
-      let html = `<h5>Jugadas Detectadas (${normalized.length}):</h5>`;
-      normalized.forEach((j, idx) => {
-        html += `
-          <div class="ocr-detected-play">
-            <table class="table table-sm table-bordered table-dark small-ocr-table">
-              <thead><tr><th>#</th><th>Bet</th><th>Str</th><th>Box</th><th>Com</th><th>Track</th><th>Fecha</th></tr></thead>
-              <tbody><tr>
-                <td>${idx + 1}</td>
-                <td>${j.numeros || "-"}</td>
-                <td>${fmt2(j.straight)}</td>
-                <td>${fmt2(j.box)}</td>
-                <td>${fmt2(j.combo)}</td>
-                <td>${j.track || "-"}</td>
-                <td>${j.fecha || "-"}</td>
-              </tr></tbody>
-            </table>
-            ${j.notas ? `<div class="text-warning small">Notas: ${j.notas}</div>` : ``}
-            <button class="btn btn-sm btn-info mt-1" type="button" onclick="usarJugadaOCR(${idx}); return false;">Usar esta Jugada</button>
-          </div>
-          <hr class="ocr-play-separator">`;
-      });
-      if (window.$) {
-        $("#ocrJugadas").html(normalized.length ? html : "<p>No se detectaron jugadas válidas en la imagen.</p>");
-        $("#btnCargarJugadas").prop("disabled", normalized.length === 0);
-      }
-    } catch (e) {
-      console.error("procesarOCR (Beast) error:", e);
-      if (window.$) {
-        $("#ocrJugadas").html(`<div class="text-danger">Error procesando OCR: ${String(e.message || e)}</div>`);
-        $("#btnCargarJugadas").prop("disabled", true);
-      }
-      alert("No se pudo interpretar el ticket.");
-    }
-  };
-  window.procesarOCR.__beastWrapped = true;
-})();
