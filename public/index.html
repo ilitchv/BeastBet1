@@ -14,41 +14,7 @@
     <!-- Custom CSS -->
     <link href="styles.css" rel="stylesheet">
 
-    <!-- Verificación de Autenticación y Rol del Usuario -->
-    <script>
-        // Ocultar el contenido hasta que se verifique la autenticación
-        document.documentElement.style.display = 'none';
-
-        // Verificar si el usuario está autenticado y obtener su rol
-        document.addEventListener('DOMContentLoaded', () => {
-            const token = localStorage.getItem('token');
-            const userRole = localStorage.getItem('userRole'); // Asegúrate de almacenar el rol del usuario en localStorage
-
-            // Asignar userRole a una variable global para que scripts.js pueda acceder a ella
-            window.userRole = userRole;
-
-            if (!token) {
-                alert('Debes iniciar sesión para acceder a esta página.');
-                window.location.href = 'login.html';
-            } else {
-                // Mostrar el contenido una vez verificado
-                document.documentElement.style.display = '';
-
-                // Hacer visible o no el botón de Cash App Pay según el rol
-                const cashAppContainer = document.getElementById('cashAppPayContainer');
-                const confirmarTicketContainer = document.getElementById('confirmarTicketContainer');
-                if (cashAppContainer) {
-                    if (userRole === 'user') {
-                        cashAppContainer.style.display = 'block';
-                        confirmarTicketContainer.style.display = 'none';
-                    } else {
-                        cashAppContainer.style.display = 'none';
-                        confirmarTicketContainer.style.display = 'block';
-                    }
-                }
-            }
-        });
-    </script>
+   
     
     <!-- SDK de Square Web Payments (Producción) -->
     <script src="https://web.squarecdn.com/v1/square.js"></script>
