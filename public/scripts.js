@@ -103,18 +103,45 @@ function normalizeInterpretedBets(raw) {
     if (!Array.isArray(raw)) return [];
     const norm = [];
 
+    // Heuristics: detect handwritten "Box" marks frequently emitted by OCR
+    // Accept symbols like: /, -, –, —, ÷, |, _, overline, and right-angle "L" / box-drawing L parts
+    const BOX_MARKERS = new Set([
+        '/', '-', '–', '—', '÷', '|', '_', '¯', '‾', '┘', '└', '┐', '┌', '✓', '✔', 'L', 'l'
+    ]);
+
+    function looksLikeBoxMark(rawVal) {
+        if (rawVal == null) return false;
+        let s = String(rawVal).normalize('NFKC').trim();
+        if (!s) return false;
+
+        // If it ends with an L or any box marker character
+        if (/[Ll]$/.test(s)) return true;
+        if (/[\/\-\u2013\u2014\u00F7\|_\u00AF\u203E\u2578-\u257F]$/.test(s)) return true; // includes some box chars
+
+        // If it contains a marker separated by whitespace or attached to the amount
+        if (/\b[\/\-\u2013\u2014\u00F7\|_\u00AF\u203E]\b/.test(s)) return true;
+        if (/\d+\s*[Ll]$/.test(s)) return true;
+        if (/\d+\s*[\/\-\u2013\u2014\u00F7\|_\u00AF\u203E]$/.test(s)) return true;
+
+        // Split into tokens and check any standalone marker
+        const tokens = s.split(/\s+/);
+        if (tokens.length > 1 && BOX_MARKERS.has(tokens[tokens.length - 1])) return true;
+
+        return false;
+    }
+
+    // Keep numeric parsing but do not lose trailing markers before evaluating them
     const toNum = (v) => {
         if (v === null || v === undefined) return null;
         if (typeof v === 'string') {
             const trimmed = v.trim();
             if (trimmed === '') return null;
-            // Accept "50c" or ".50" styles -> parse as float
             const cleaned = trimmed.replace(/[^0-9.]/g, '');
             if (cleaned === '') return null;
-            return isNaN(parseFloat(cleaned)) ? null : parseFloat(cleaned);
+            const parsed = parseFloat(cleaned);
+            return isNaN(parsed) ? null : parsed;
         }
         if (typeof v === 'number') {
-            // Treat 0 as "empty" for UI placement (leave column blank)
             return v === 0 ? null : v;
         }
         return null;
@@ -127,23 +154,37 @@ function normalizeInterpretedBets(raw) {
         let betNumber = item.betNumber || item.numeros || '';
         if (typeof betNumber !== 'string') betNumber = String(betNumber ?? '');
 
-        // Normalize hyphen separators for Palé like "12x34" -> "12-34"
+        // Normalize Palé like "12x34" / "12+34" -> "12-34"
         betNumber = betNumber.replace(/^(\d{2})[x\+](\d{2})$/i, '$1-$2');
 
-        let st = toNum(item.straightAmount ?? item.straight);
-        let bx = toNum(item.boxAmount ?? item.box);
-        let co = toNum(item.comboAmount ?? item.combo);
+        // Capture raw fields BEFORE numeric conversion so we can inspect symbols
+        const rawStraight = (item.straightAmount !== undefined ? item.straightAmount : item.straight);
+        const rawBox = (item.boxAmount !== undefined ? item.boxAmount : item.box);
+        const rawCombo = (item.comboAmount !== undefined ? item.comboAmount : item.combo);
 
-        // If legacy back-end was sending same value in all three,
-        // enforce a single target column by precedence: combo > box > straight.
-        const nonNull = [st, bx, co].filter(v => v !== null);
-        if (nonNull.length > 1) {
-            // Ambiguity: per spec, default to straight
-            bx = null;
-            co = null;
+        let st = toNum(rawStraight);
+        let bx = toNum(rawBox);
+        let co = toNum(rawCombo);
+
+        // NEW: if the "straight" raw token includes a Box marker and explicit Box is empty,
+        // interpret as "Straight + Box" (per user's sample where an L mark next to the amount means boxed too).
+        let boxAlso = false;
+        if ((st !== null) && (bx === null) && looksLikeBoxMark(rawStraight)) {
+            bx = st;
+            boxAlso = true;
         }
 
-        // Build normalized object in the shape the rest of the app expects.
+        // If legacy back-end was sending the same value in multiple columns, enforce exclusivity
+        // EXCEPT when we intentionally set Straight+Box via the boxAlso heuristic above.
+        const nonNull = [st, bx, co].filter(v => v !== null).length;
+        if (nonNull > 1) {
+            if (!(boxAlso && st !== null && bx !== null && co === null)) {
+                // Ambiguity without an explicit hint: default to Straight only (per rule 3.6)
+                bx = null;
+                co = null;
+            }
+        }
+
         const normalized = {
             betNumber: betNumber.trim(),
             gameMode: item.gameMode || null,
