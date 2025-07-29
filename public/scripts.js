@@ -97,122 +97,6 @@ function showOcrLoading() { $("#ocrLoadingSection").removeClass("d-none"); $("#o
 function updateOcrProgress(percentage, text) { $("#ocrProgressBar").css("width", percentage + "%"); $("#ocrProgressText").text(text); }
 function hideOcrLoading() { $("#ocrLoadingSection").addClass("d-none"); }
 
-
-// --- Normalization of OCR response (supports legacy and new schema) ---
-function normalizeInterpretedBets(raw) {
-    if (!Array.isArray(raw)) return [];
-    const norm = [];
-
-    // --- Box symbol detection helpers ---
-    const BOX_MARKERS = new Set([
-        '/', '-', '–', '—', '÷', '|', '_', '¯', '‾', '┘', '└', '┐', '┌', '✓', '✔', 'L', 'l'
-    ]);
-
-    function looksLikeBoxMark(rawVal) {
-        if (rawVal == null) return false;
-        let s = String(rawVal).normalize('NFKC').trim();
-        if (!s) return false;
-        if (/[Ll]$/.test(s)) return true;
-        if (/[\/\-\u2013\u2014\u00F7\|_\u00AF\u203E\u2578-\u257F]$/.test(s)) return true;
-        if (/\b[\/\-\u2013\u2014\u00F7\|_\u00AF\u203E]\b/.test(s)) return true;
-        if (/\d+\s*[Ll]$/.test(s)) return true;
-        if (/\d+\s*[\/\-\u2013\u2014\u00F7\|_\u00AF\u203E]$/.test(s)) return true;
-        const tokens = s.split(/\s+/);
-        if (tokens.length > 1 && BOX_MARKERS.has(tokens[tokens.length - 1])) return true;
-        return false;
-    }
-
-    // NEW: search across any string fields the backend may send
-    function gatherAllStrings(obj) {
-        let out = [];
-        try {
-            const stack = [obj];
-            const seen = new Set();
-            while (stack.length) {
-                const cur = stack.pop();
-                if (!cur || typeof cur !== 'object') continue;
-                if (seen.has(cur)) continue;
-                seen.add(cur);
-                for (const k in cur) {
-                    const v = cur[k];
-                    if (typeof v === 'string') out.push(v);
-                    else if (v && typeof v === 'object') stack.push(v);
-                }
-            }
-        } catch (e) { /* ignore */ }
-        return out.join(' ');
-    }
-
-    function contextHasBoxMarkNearAmount(context, amount) {
-        if (!context) return false;
-        const a = (typeof amount === 'number' && !isNaN(amount)) ? String(amount) : String(amount || '').trim();
-        if (!a) return false;
-        const s = String(context).normalize('NFKC');
-        // patterns where the amount is adjacent to a mark or an 'L'
-        const pat = new RegExp(String.raw`(?:\b${a}\s*[Ll]\b|\b[Ll]\s*${a}\b|\b${a}\s*[\/\-\u2013\u2014\u00F7\|_\u00AF\u203E]\b)`, 'u');
-        return pat.test(s);
-    }
-
-    const toNum = (v) => {
-        if (v === null || v === undefined) return null;
-        if (typeof v === 'string') {
-            const trimmed = v.trim();
-            if (trimmed === '') return null;
-            const cleaned = trimmed.replace(/[^0-9.]/g, '');
-            if (cleaned === '') return null;
-            const parsed = parseFloat(cleaned);
-            return isNaN(parsed) ? null : parsed;
-        }
-        if (typeof v === 'number') {
-            return v === 0 ? null : v;
-        }
-        return null;
-    };
-
-    for (const item of raw) {
-        let betNumber = item.betNumber || item.numeros || '';
-        if (typeof betNumber !== 'string') betNumber = String(betNumber ?? '');
-        betNumber = betNumber.replace(/^(\d{2})[x\+](\d{2})$/i, '$1-$2');
-
-        const rawStraight = (item.straightAmount !== undefined ? item.straightAmount : item.straight);
-        const rawBox = (item.boxAmount !== undefined ? item.boxAmount : item.box);
-        const rawCombo = (item.comboAmount !== undefined ? item.comboAmount : item.combo);
-
-        let st = toNum(rawStraight);
-        let bx = toNum(rawBox);
-        let co = toNum(rawCombo);
-
-        // Heuristic #1: symbol attached to straight field string
-        let boxAlso = false;
-        if ((st !== null) && (bx === null) && looksLikeBoxMark(rawStraight)) {
-            bx = st; boxAlso = true;
-        }
-
-        // Heuristic #2: if backend stripped symbol from numeric fields,
-        // scan any other string fields for "<amount>L" / "L <amount>" / "<amount>-" etc.
-        if ((st !== null) && (bx === null) && !boxAlso) {
-            const ctx = gatherAllStrings(item);
-            if (contextHasBoxMarkNearAmount(ctx, st)) {
-                bx = st; boxAlso = true;
-            }
-        }
-
-        // If multiple present and not our explicit Straight+Box case, collapse to Straight
-        const nonNull = [st, bx, co].filter(v => v !== null).length;
-        if (nonNull > 1 && !(boxAlso && st !== null && bx !== null && co === null)) {
-            bx = null; co = null;
-        }
-
-        norm.push({
-            betNumber: betNumber.trim(),
-            gameMode: item.gameMode || null,
-            straightAmount: st,
-            boxAmount: bx,
-            comboAmount: co
-        });
-    }
-    return norm;
-}
 async function procesarOCR() {
     console.log("procesarOCR function called");
     console.log("Current selectedFileGlobalOCR:", selectedFileGlobalOCR);
@@ -255,7 +139,7 @@ async function procesarOCR() {
 
             const interpretedBets = await response.json();
             console.log("Received interpretedBets:", interpretedBets);
-            jugadasGlobalOCR = normalizeInterpretedBets(interpretedBets); 
+            jugadasGlobalOCR = interpretedBets; 
 
             if (Array.isArray(jugadasGlobalOCR) && jugadasGlobalOCR.length > 0) {
                 let html = `<h5>Jugadas Detectadas (${jugadasGlobalOCR.length}):</h5>`;
@@ -267,7 +151,7 @@ async function procesarOCR() {
                           <tbody><tr>
                             <td>${idx + 1}</td>
                             <td>${j.betNumber || "-"}</td>
-                            <td>${(j.gameMode || determineGameMode(j.betNumber || j.numeros || '', getCurrentSelectedTracks()))}</td>
+                            <td>${j.gameMode || "-"}</td>
                             <td>${j.straightAmount !== null ? j.straightAmount.toFixed(2) : "-"}</td>
                             <td>${j.boxAmount !== null ? j.boxAmount.toFixed(2) : "-"}</td>
                             <td>${j.comboAmount !== null ? j.comboAmount.toFixed(2) : "-"}</td>
@@ -1606,19 +1490,6 @@ function addMainRow(bet = null) {
         
         const currentTracks = getCurrentSelectedTracks();
         gm_val = bet.gameMode || determineGameMode(bn_val, currentTracks);
-        // Ensure exclusive placement: only one of Straight/Box/Combo should be filled.
-        // If multiple are present, keep precedence combo > box > straight; blank the rest.
-        const _stNum = (st_val !== undefined && st_val !== null && st_val !== '') ? parseFloat(st_val) : null;
-        const _bxNum = (bx_val !== undefined && bx_val !== null && bx_val !== '') ? (
-            (typeof bx_val === 'string' && bx_val.includes(',')) ? bx_val : (isNaN(parseFloat(bx_val)) ? null : parseFloat(bx_val))
-        ) : null;
-        const _coNum = (co_val !== undefined && co_val !== null && co_val !== '') ? parseFloat(co_val) : null;
-
-        const nonEmptyCount = [ _stNum, _bxNum, _coNum ].filter(v => v !== null).length;
-        
-            // Relaxed exclusivity: trust normalized data, allow Straight+Box when both are present explicitly.
-
-
     }
 
     // CORRECTED: Ensure only one TD for total, and amount is wrapped in span.total-amount
