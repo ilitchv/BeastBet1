@@ -36,41 +36,24 @@ const InterpretLotteryTicketOutputSchema = z.array(BetSchema).describe('An array
 export type InterpretLotteryTicketOutput = z.infer<typeof InterpretLotteryTicketOutputSchema>;
 
 
+
+// Enforce exclusivity of wager types: prefer Box over Straight when both present; drop duplicated Combo.
+type Bet = { betNumber: string; gameMode: string; straightAmount: number|null; boxAmount: number|null; comboAmount: number|null; };
+function enforceExclusivity(bet: Bet): Bet {
+  let st = (typeof bet.straightAmount === 'number' && isFinite(bet.straightAmount) && bet.straightAmount>0) ? bet.straightAmount : null;
+  let bx = (typeof bet.boxAmount === 'number' && isFinite(bet.boxAmount) && bet.boxAmount>0) ? bet.boxAmount : null;
+  let co = (typeof bet.comboAmount === 'number' && isFinite(bet.comboAmount) && bet.comboAmount>0) ? bet.comboAmount : null;
+  if (co !== null && ((st !== null && co === st) || (bx !== null && co === bx))) co = null;
+  const count = [st,bx,co].filter(v=>v!==null).length;
+  if (count > 1){
+    if (bx !== null){ st = null; co = null; }
+    else if (st !== null){ bx = null; co = null; }
+    else { st = null; bx = null; }
+  }
+  return { ...bet, straightAmount: st, boxAmount: bx, comboAmount: co };
+}
 export async function interpretLotteryTicket(input: InterpretLotteryTicketInput): Promise<InterpretLotteryTicketOutput> {
   return interpretLotteryTicketFlow(input);
-}
-
-/** Extra guidance appended safely (no backticks inside template strings) */
-const OVERRIDES_TEXT = [
-  '---',
-  'REGLAS ADICIONALES (OVERRIDES, APLICAR ESTRICTAMENTE)',
-  '',
-  "- Box solo con símbolo claro de división: Interpreta box únicamente cuando veas símbolos inequívocos de división junto al monto: '/', '÷', '|¯', o una barra/doble raya horizontal (–, —, −) entre dos montos (ej.: '2.00 — .50').",
-  "- No uses un guion corto '-' como indicador de box si solo separa número y monto (p.ej. '11 - 6'). En ese caso es straight.",
-  "- Straight por defecto: si aparece un único monto junto al número sin símbolos de división ni 'C/c', clasifícalo como straight.",
-  "- Combo: solo asigna 'combo' cuando el monto esté seguido de 'C'/'c' (o la palabra 'Combo').",
-  "- Múltiples tipos en la misma jugada: permítelos solo si la línea contiene dos montos o notaciones distintas (p.ej. '1 /.50' o '1 C .50'); nunca dupliques el mismo monto en varios campos.",
-  "- Palé: no confundas el guion en 'XX-XX' con un símbolo de box.",
-  '---'
-].join('\n');
-
-/** Soft post-sanitizer:
- *  - Keeps multi-type when amounts truly differ.
- *  - Drops the common artifact where the same amount is mirrored into multiple fields.
- *  - Treats 0 as null.
- */
-function sanitizeBet<T extends { straightAmount: number|null; boxAmount: number|null; comboAmount: number|null }>(bet: T): T {
-  const toNumOrNull = (v: any) => (typeof v === 'number' && !isNaN(v) && v !== 0 ? v : null);
-  let s = toNumOrNull((bet as any).straightAmount);
-  let b = toNumOrNull((bet as any).boxAmount);
-  let c = toNumOrNull((bet as any).comboAmount);
-
-  // Drop duplicate fields with identical value (e.g., 2 mirrored into straight/box/combo)
-  if (s !== null && b !== null && s === b) b = null;
-  if (s !== null && c !== null && s === c) c = null;
-  if (b !== null && c !== null && b === c) c = null;
-
-  return { ...(bet as any), straightAmount: s, boxAmount: b, comboAmount: c };
 }
 
 const promptText = `Eres Beast Reader, un agente OCR altamente especializado en leer e interpretar boletos de lotería manuscritos para juegos como Peak 3, Win 4, y variantes como Pulito, Palé, Venezuela, Santo Domingo, y SingleAction.
@@ -114,23 +97,7 @@ REGLAS CLAVE PARA LA INTERPRETACIÓN:
 
 7.  **Prioridad:** La precisión en la extracción de los números y sus respectivos montos para los tipos correctos (straight, box, combo) es lo más importante.
 
-
-
-
----
-REGLAS ADICIONALES (OVERRIDES, APLICAR ESTRICTAMENTE)
-
-• **Box solo con símbolo claro de división**: Interpreta *box* únicamente cuando veas símbolos inequívocos de división junto al monto: **"/"**, **"÷"**, **"|¯"** o **una barra/doble raya horizontal** (—, – , ─) **entre dos montos** (ej.: `2.00 — .50`).
-  - **No** uses un guion corto `-` como indicador de box si solo separa número y monto (p.ej. `11 - 6`). En ese caso es **straight**.
-• **Straight por defecto**: Si aparece **un único monto** junto al número **sin** símbolos de división ni “C/c”, clasifícalo como **straight**.
-• **Combo**: Solo asigna `comboAmount` cuando el monto esté seguido de **“C”**/**“c”** (o la palabra “Combo”).
-• **Múltiples tipos en la misma jugada**: Si la línea contiene **dos montos** o notaciones distintas (p.ej. `1 / .50` o `1  C .50`), puedes devolver **más de un campo** no nulo para la **misma** jugada (p.ej., `straightAmount` y `boxAmount`). **No** dupliques el mismo monto en varios campos.
-• **Nunca rellenes los tres campos con el mismo monto**. Si hay duda, prioriza **straight** por defecto y añade una nota.
-• **Palé guard**: El guion dentro de un Palé `XX-XX` **no** es símbolo de box. El monto de Palé sigue las reglas anteriores.
 Procesa la siguiente imagen del ticket de lotería: {{media url=photoDataUri}}
-
-
-${OVERRIDES_TEXT}
 `;
 
 const prompt = ai.definePrompt({
@@ -164,20 +131,23 @@ const interpretLotteryTicketFlow = ai.defineFlow(
     }
 
     // Post-processing to ensure comboAmount is null if not explicitly a combo
-    const processedOutput = output.map((bet: any) => sanitizeBet({
-  betNumber: String((bet as any).betNumber ?? (bet as any).numeros ?? ""),
-  gameMode: String((bet as any).gameMode ?? (bet as any).mode ?? "Unknown"),
-  straightAmount: typeof (bet as any).straightAmount === 'number' ? (bet as any).straightAmount :
-                   (typeof (bet as any).straight === 'number' ? (bet as any).straight : null),
-  boxAmount:      typeof (bet as any).boxAmount === 'number' ? (bet as any).boxAmount :
-                   (typeof (bet as any).box === 'number' ? (bet as any).box : null),
-  comboAmount:    typeof (bet as any).comboAmount === 'number' ? (bet as any).comboAmount :
-                   (typeof (bet as any).combo === 'number' ? (bet as any).combo : null),
-}));
+    const processedOutput = output.map(bet => {
+      // Basic check: if comboAmount is present and identical to straightAmount,
+      // and boxAmount is null or zero, it might be a misinterpretation unless "combo" was explicitly stated.
+      // For now, we're relying heavily on the prompt for this.
+      // A more robust solution might involve the AI also returning a flag if "combo" keyword was seen.
+      return {
+        betNumber: String(bet.betNumber || ""),
+        gameMode: String(bet.gameMode || "Unknown"),
+        straightAmount: typeof bet.straightAmount === 'number' ? bet.straightAmount : null,
+        boxAmount: typeof bet.boxAmount === 'number' ? bet.boxAmount : null,
+        comboAmount: typeof bet.comboAmount === 'number' ? bet.comboAmount : null, // Ensure this is handled correctly by the prompt.
+      };
+    });
 
     // Consolidate bets if the model still splits them for the same betNumber
     const consolidatedBetsMap = new Map<string, Bet>();
-    processedOutput.forEach(bet => {
+    processedOutput.map(enforceExclusivity).forEach(bet => {
       const key = bet.betNumber;
       if (consolidatedBetsMap.has(key)) {
         const existingBet = consolidatedBetsMap.get(key)!;
@@ -193,7 +163,44 @@ const interpretLotteryTicketFlow = ai.defineFlow(
       }
     });
 
-    return Array.from(consolidatedBetsMap.values());
+    
+    // Final sanitization: enforce exclusivity (symbol-based intent) and drop duplicated combos.
+    const consolidated = Array.from(consolidatedBetsMap.values()).map(b => {
+      const st = (typeof b.straightAmount === 'number') ? b.straightAmount : null;
+      const bx = (typeof b.boxAmount === 'number') ? b.boxAmount : null;
+      const co = (typeof b.comboAmount === 'number') ? b.comboAmount : null;
+      let straight = st, box = bx, combo = co;
+
+      let count = [straight, box, combo].filter(v => v !== null).length;
+      if (count > 1) {
+        // Drop combo if it equals straight or box (likely hallucination)
+        if (combo !== null && ((straight !== null && combo === straight) || (box !== null && combo === box))) {
+          combo = null;
+        }
+        // Prefer Box over Straight when both present (symbol indicates Box; no symbol => Straight)
+        if (box !== null && straight !== null) {
+          straight = null;
+        }
+        // If still more than one (e.g., straight+combo), prefer Straight
+        count = [straight, box, combo].filter(v => v !== null).length;
+        if (count > 1) {
+          if (straight !== null && combo !== null) {
+            combo = null;
+          } else if (box !== null && combo !== null) {
+            combo = null; // keep box
+          } else {
+            // final fallback: keep first non-null deterministically
+            if (box !== null) { straight = null; combo = null; }
+            else if (straight !== null) { box = null; combo = null; }
+            else { straight = null; box = null; }
+          }
+        }
+      }
+
+      return { ...b, straightAmount: straight, boxAmount: box, comboAmount: combo };
+    });
+    return consolidated;
+
   }
 );
     
