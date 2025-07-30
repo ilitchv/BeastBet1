@@ -134,15 +134,35 @@ function normalizeInterpretedBets(raw) {
         let bx = toNum(item.boxAmount ?? item.box);
         let co = toNum(item.comboAmount ?? item.combo);
 
-        
-        // Allow multiple wager types (Straight + Box + Combo) to coexist.
-        // Only collapse a known legacy bug where ALL THREE are the same non-null value.
-        if (st !== null && bx !== null && co !== null && st === bx && bx === co) {
-            // Heuristic: treat as straight only (legacy triple-fill)
-            bx = null;
+        // Enforce exclusivity with precedence and anti-duplication heuristics:
+// - If the model filled multiple fields, prefer BOX over STRAIGHT when both are present.
+// - Drop COMBO if it duplicates another amount (likely hallucination) unless it's the only field.
+// - Final precedence: box > straight; combo only when it's the sole non-null.
+const nonNull = [st, bx, co].filter(v => v !== null);
+if (nonNull.length > 1) {
+    // Drop combo if it equals straight or box (very common bad output)
+    if (co !== null && ((st !== null && co === st) || (bx !== null && co === bx))) {
+        co = null;
+    }
+    // Prefer box over straight when both appear
+    if (bx !== null && st !== null) {
+        st = null;
+    }
+    // If still more than one (e.g., straight + combo), prefer straight and drop combo
+    const _count = [st, bx, co].filter(v => v !== null).length;
+    if (_count > 1) {
+        // Keep straight by default when competing with combo
+        if (st !== null && co !== null) {
             co = null;
         }
-
+        // If somehow still multiple, keep the first non-null deterministically
+        if ([st, bx, co].filter(v => v !== null).length > 1) {
+            if (bx !== null) { st = null; co = null; }
+            else if (st !== null) { bx = null; co = null; }
+            else { st = null; bx = null; }
+        }
+    }
+}
 
         // Build normalized object in the shape the rest of the app expects.
         const normalized = {
@@ -1549,7 +1569,36 @@ function addMainRow(bet = null) {
         
         const currentTracks = getCurrentSelectedTracks();
         gm_val = bet.gameMode || determineGameMode(bn_val, currentTracks);
-        
+        // Ensure exclusive placement: only one of Straight/Box/Combo should be filled.
+        // If multiple are present, keep precedence combo > box > straight; blank the rest.
+        const _stNum = (st_val !== undefined && st_val !== null && st_val !== '') ? parseFloat(st_val) : null;
+        const _bxNum = (bx_val !== undefined && bx_val !== null && bx_val !== '') ? (
+            (typeof bx_val === 'string' && bx_val.includes(',')) ? bx_val : (isNaN(parseFloat(bx_val)) ? null : parseFloat(bx_val))
+        ) : null;
+        const _coNum = (co_val !== undefined && co_val !== null && co_val !== '') ? parseFloat(co_val) : null;
+
+        const nonEmptyCount = [ _stNum, _bxNum, _coNum ].filter(v => v !== null).length;
+        if (nonEmptyCount > 1) {
+            // Apply exclusivity with precedence and heuristics:
+            // 1) Drop combo if it equals straight or box (likely hallucination)
+            if (_coNum !== null && ((_stNum !== null && _coNum === _stNum) || (_bxNum !== null && _coNum === _bxNum))) {
+                co_val = '';
+            }
+            // 2) Prefer BOX over STRAIGHT when both present
+            const _stNum2 = (st_val !== undefined && st_val !== null && st_val !== '') ? parseFloat(st_val) : null;
+            const _bxNum2 = (bx_val !== undefined && bx_val !== null && bx_val !== '') ? (
+                (typeof bx_val === 'string' && bx_val.includes(',')) ? null : (isNaN(parseFloat(bx_val)) ? null : parseFloat(bx_val))
+            ) : null;
+            const _coNum2 = (co_val !== undefined && co_val !== null && co_val !== '') ? parseFloat(co_val) : null;
+
+            if (_bxNum2 !== null && _stNum2 !== null) {
+                st_val = '';
+            }
+            // 3) If straight and combo remain, prefer straight
+            if (_stNum2 !== null && _coNum2 !== null && _bxNum2 === null) {
+                co_val = '';
+            }
+        }
 
     }
 
