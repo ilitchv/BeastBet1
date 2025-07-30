@@ -7,23 +7,6 @@ let ticketModalInstance = null;
 let jugadasGlobalOCR = [];
 let selectedFileGlobalOCR = null;
 
-/**
- * Build headers for /api/interpret-ticket.
- * For dev/testing you may set localStorage('OCR_API_KEY') or window.OCR_API_KEY.
- * If present, it's forwarded as 'x-api-key'. Also sends cookies via credentials: 'include'.
- */
-function buildApiHeaders() {
-    const headers = { 'Content-Type': 'application/json' };
-    try {
-        const localKey = (typeof localStorage !== 'undefined') ? localStorage.getItem('OCR_API_KEY') : null;
-        const windowKey = (typeof window !== 'undefined') ? (window.OCR_API_KEY || null) : null;
-        const key = localKey || windowKey;
-        if (key) headers['x-api-key'] = key;
-    } catch (e) {}
-    return headers;
-}
-
-
 // Global variable for Flatpickr instance
 let fpInstance = null;
 
@@ -115,81 +98,64 @@ function updateOcrProgress(percentage, text) { $("#ocrProgressBar").css("width",
 function hideOcrLoading() { $("#ocrLoadingSection").addClass("d-none"); }
 
 
-// ================= OCR Response Normalization =================
-// Convierte la respuesta del backend al formato de la UI
-// y aplica reglas para evitar duplicados Str/Box/Com por ambigüedad.
+// --- Normalization of OCR response (supports legacy and new schema) ---
 function normalizeInterpretedBets(raw) {
     if (!Array.isArray(raw)) return [];
+    const norm = [];
 
-    const toNumberOrNull = (v) => {
-        if (v === undefined || v === null) return null;
-        if (typeof v === 'number') return (isFinite(v) ? v : null);
-        const s = String(v).trim();
-        if (s === '' || s === '-') return null;
-        const cleaned = s.replace(/[$,]/g, '').replace(/c$/i, '');
-        const n = parseFloat(cleaned);
-        return isFinite(n) ? n : null;
+    const toNum = (v) => {
+        if (v === null || v === undefined) return null;
+        if (typeof v === 'string') {
+            const trimmed = v.trim();
+            if (trimmed === '') return null;
+            // Accept "50c" or ".50" styles -> parse as float
+            const cleaned = trimmed.replace(/[^0-9.]/g, '');
+            if (cleaned === '') return null;
+            return isNaN(parseFloat(cleaned)) ? null : parseFloat(cleaned);
+        }
+        if (typeof v === 'number') {
+            // Treat 0 as "empty" for UI placement (leave column blank)
+            return v === 0 ? null : v;
+        }
+        return null;
     };
 
-    const isBoxPositions = (v) => (typeof v === 'string' && v.includes(','));
+    for (const item of raw) {
+        // Accept both schemas:
+        // v1: { betNumber, straightAmount, boxAmount, comboAmount, gameMode? }
+        // v2: { numeros, straight, box, combo, notas? }
+        let betNumber = item.betNumber || item.numeros || '';
+        if (typeof betNumber !== 'string') betNumber = String(betNumber ?? '');
 
-    const normalizeOne = (item) => {
-        let betNumber = item.betNumber || item.numeros || item.number || item.bet || '';
-        if (typeof betNumber === 'string') {
-            betNumber = betNumber.trim().replace(/(\d{2})[x+](\d{2})/i, '$1-$2');
+        // Normalize hyphen separators for Palé like "12x34" -> "12-34"
+        betNumber = betNumber.replace(/^(\d{2})[x\+](\d{2})$/i, '$1-$2');
+
+        let st = toNum(item.straightAmount ?? item.straight);
+        let bx = toNum(item.boxAmount ?? item.box);
+        let co = toNum(item.comboAmount ?? item.combo);
+
+        
+        // Allow multiple wager types (Straight + Box + Combo) to coexist.
+        // Only collapse a known legacy bug where ALL THREE are the same non-null value.
+        if (st !== null && bx !== null && co !== null && st === bx && bx === co) {
+            // Heuristic: treat as straight only (legacy triple-fill)
+            bx = null;
+            co = null;
         }
 
-        const rawStraight = (Object.prototype.hasOwnProperty.call(item, 'straightAmount') ? item.straightAmount : item.straight);
-        const rawBox      = (Object.prototype.hasOwnProperty.call(item, 'boxAmount')      ? item.boxAmount      : item.box);
-        const rawCombo    = (Object.prototype.hasOwnProperty.call(item, 'comboAmount')    ? item.comboAmount    : item.combo);
 
-        const boxIsPositions = isBoxPositions(rawBox);
-        const straightAmount = toNumberOrNull(rawStraight);
-        let boxAmount = boxIsPositions ? String(rawBox) : toNumberOrNull(rawBox);
-        let comboAmount = toNumberOrNull(rawCombo);
-
-        // ---------- Reglas ----------
-        // Caso especial: los tres montos iguales y >0 => suponer "Straight + Box", sin Combo.
-        if (!boxIsPositions &&
-            straightAmount !== null && boxAmount !== null && comboAmount !== null &&
-            straightAmount > 0 && boxAmount > 0 && comboAmount > 0 &&
-            straightAmount === boxAmount && straightAmount === comboAmount) {
-            comboAmount = null;
-        } else {
-            // Si hay Combo > 0 => quitar Box numérico (no posiciones). Conservar STR si vino.
-            if (comboAmount && comboAmount > 0) {
-                if (!boxIsPositions) boxAmount = null;
-            }
-            // Si no hay Combo y STR==BOX numéricos (>0) => ambigüedad => dejar SOLO Straight.
-            if ((!comboAmount || comboAmount <= 0) && !boxIsPositions &&
-                straightAmount !== null && boxAmount !== null &&
-                straightAmount > 0 && boxAmount > 0 &&
-                straightAmount === boxAmount) {
-                boxAmount = null;
-            }
-        }
-
-        const norm = {
-            betNumber: String(betNumber || '').trim(),
-            gameMode: item.gameMode || '-',
-            straightAmount: (straightAmount && straightAmount > 0) ? straightAmount : null,
-            boxAmount: boxIsPositions ? String(rawBox) : ((boxAmount && boxAmount > 0) ? boxAmount : null),
-            comboAmount: (comboAmount && comboAmount > 0) ? comboAmount : null
+        // Build normalized object in the shape the rest of the app expects.
+        const normalized = {
+            betNumber: betNumber.trim(),
+            gameMode: item.gameMode || null,
+            straightAmount: st,
+            boxAmount: bx,
+            comboAmount: co
         };
-
-        try {
-            if (!norm.gameMode || norm.gameMode === '-') {
-                const currentTracks = (typeof getCurrentSelectedTracks === 'function') ? getCurrentSelectedTracks() : [];
-                norm.gameMode = determineGameMode(norm.betNumber, currentTracks);
-            }
-        } catch (e) { console.warn('Cannot determine mode in normalization', e); }
-
-        return norm;
-    };
-
-    return raw.map(normalizeOne);
+        norm.push(normalized);
+    }
+    return norm;
 }
-
 async function procesarOCR() {
     console.log("procesarOCR function called");
     console.log("Current selectedFileGlobalOCR:", selectedFileGlobalOCR);
@@ -210,7 +176,9 @@ async function procesarOCR() {
         updateOcrProgress(30, "Imagen leída, enviando a IA...");
         console.log("Sending request to /api/interpret-ticket");
         try {
-            const response = await fetch('/api/interpret-ticket', { method: 'POST', headers: buildApiHeaders(), credentials: 'include',
+            const response = await fetch('/api/interpret-ticket', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ photoDataUri: base64data })
             });
 
@@ -242,10 +210,10 @@ async function procesarOCR() {
                           <tbody><tr>
                             <td>${idx + 1}</td>
                             <td>${j.betNumber || "-"}</td>
-                            <td>${j.gameMode || "-"}</td>
-                            <td>${(j.straightAmount !== null && j.straightAmount > 0) ? Number(j.straightAmount).toFixed(2) : "-"}</td>
-                            <td>${(typeof j.boxAmount === "string" && j.boxAmount.includes(",")) ? j.boxAmount : ((j.boxAmount !== null && j.boxAmount > 0) ? Number(j.boxAmount).toFixed(2) : "-")}</td>
-                            <td>${(j.comboAmount !== null && j.comboAmount > 0) ? Number(j.comboAmount).toFixed(2) : "-"}</td>
+                            <td>${(j.gameMode || determineGameMode(j.betNumber || j.numeros || '', getCurrentSelectedTracks()))}</td>
+                            <td>${j.straightAmount !== null ? j.straightAmount.toFixed(2) : "-"}</td>
+                            <td>${j.boxAmount !== null ? j.boxAmount.toFixed(2) : "-"}</td>
+                            <td>${j.comboAmount !== null ? j.comboAmount.toFixed(2) : "-"}</td>
                           </tr></tbody>
                         </table>
                         <button class="btn btn-sm btn-info mt-1 mb-2" type="button" onclick="usarJugadaOCR(${idx}); return false;">
@@ -1578,36 +1546,11 @@ function addMainRow(bet = null) {
             bx_val = (bet.boxAmount !== null && bet.boxAmount !== undefined) ? String(bet.boxAmount) : "";
         }
         co_val = (bet.comboAmount !== null && bet.comboAmount !== undefined) ? String(bet.comboAmount) : "";
-        // --- Exclusividad de columnas en la inserción ---
-        // Si STR, BOX y COM son idénticos (>0) => preferir STR+BOX y limpiar COM.
-        if (st_val !== "" && bx_val !== "" && co_val !== "" &&
-            !(typeof bx_val === "string" && bx_val.includes(","))) {
-            const stNum = parseFloat(st_val);
-            const bxNum = parseFloat(bx_val);
-            const coNum = parseFloat(co_val);
-            if (!isNaN(stNum) && !isNaN(bxNum) && !isNaN(coNum) &&
-                stNum > 0 && bxNum > 0 && coNum > 0 &&
-                stNum === bxNum && stNum === coNum) {
-                co_val = "";
-            }
-        }
-        // Si hay combo -> quitar Box numérico (no posiciones)
-        if (co_val !== "" && !(typeof bx_val === "string" && bx_val.includes(","))) { bx_val = ""; }
-        // Si no hay combo y STR==BOX numéricos -> limpiar BOX (ambigüedad)
-        if (co_val === "" && st_val !== "" && bx_val !== "" &&
-            !(typeof bx_val === "string" && bx_val.includes(","))) {
-            const stNum2 = parseFloat(st_val);
-            const bxNum2 = parseFloat(bx_val);
-            if (!isNaN(stNum2) && !isNaN(bxNum2) && stNum2 > 0 && bxNum2 > 0 && stNum2 === bxNum2) { bx_val = ""; }
-        }
-        // Limpiar ceros
-        if (!isNaN(parseFloat(st_val)) && parseFloat(st_val) <= 0) st_val = "";
-        if (!(typeof bx_val === "string" && bx_val.includes(",")) && !isNaN(parseFloat(bx_val)) && parseFloat(bx_val) <= 0) bx_val = "";
-        if (!isNaN(parseFloat(co_val)) && parseFloat(co_val) <= 0) co_val = "";
-    
         
         const currentTracks = getCurrentSelectedTracks();
         gm_val = bet.gameMode || determineGameMode(bn_val, currentTracks);
+        
+
     }
 
     // CORRECTED: Ensure only one TD for total, and amount is wrapped in span.total-amount
