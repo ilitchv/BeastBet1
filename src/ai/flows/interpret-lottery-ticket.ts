@@ -40,6 +40,39 @@ export async function interpretLotteryTicket(input: InterpretLotteryTicketInput)
   return interpretLotteryTicketFlow(input);
 }
 
+/** Extra guidance appended safely (no backticks inside template strings) */
+const OVERRIDES_TEXT = [
+  '---',
+  'REGLAS ADICIONALES (OVERRIDES, APLICAR ESTRICTAMENTE)',
+  '',
+  "- Box solo con símbolo claro de división: Interpreta box únicamente cuando veas símbolos inequívocos de división junto al monto: '/', '÷', '|¯', o una barra/doble raya horizontal (–, —, −) entre dos montos (ej.: '2.00 — .50').",
+  "- No uses un guion corto '-' como indicador de box si solo separa número y monto (p.ej. '11 - 6'). En ese caso es straight.",
+  "- Straight por defecto: si aparece un único monto junto al número sin símbolos de división ni 'C/c', clasifícalo como straight.",
+  "- Combo: solo asigna 'combo' cuando el monto esté seguido de 'C'/'c' (o la palabra 'Combo').",
+  "- Múltiples tipos en la misma jugada: permítelos solo si la línea contiene dos montos o notaciones distintas (p.ej. '1 /.50' o '1 C .50'); nunca dupliques el mismo monto en varios campos.",
+  "- Palé: no confundas el guion en 'XX-XX' con un símbolo de box.",
+  '---'
+].join('\n');
+
+/** Soft post-sanitizer:
+ *  - Keeps multi-type when amounts truly differ.
+ *  - Drops the common artifact where the same amount is mirrored into multiple fields.
+ *  - Treats 0 as null.
+ */
+function sanitizeBet<T extends { straightAmount: number|null; boxAmount: number|null; comboAmount: number|null }>(bet: T): T {
+  const toNumOrNull = (v: any) => (typeof v === 'number' && !isNaN(v) && v !== 0 ? v : null);
+  let s = toNumOrNull((bet as any).straightAmount);
+  let b = toNumOrNull((bet as any).boxAmount);
+  let c = toNumOrNull((bet as any).comboAmount);
+
+  // Drop duplicate fields with identical value (e.g., 2 mirrored into straight/box/combo)
+  if (s !== null && b !== null && s === b) b = null;
+  if (s !== null && c !== null && s === c) c = null;
+  if (b !== null && c !== null && b === c) c = null;
+
+  return { ...(bet as any), straightAmount: s, boxAmount: b, comboAmount: c };
+}
+
 const promptText = `Eres Beast Reader, un agente OCR altamente especializado en leer e interpretar boletos de lotería manuscritos para juegos como Peak 3, Win 4, y variantes como Pulito, Palé, Venezuela, Santo Domingo, y SingleAction.
 Tu tarea es extraer CADA jugada individual del boleto y convertirla en un objeto JSON con los siguientes campos: "betNumber", "gameMode", "straightAmount", "boxAmount", "comboAmount".
 
@@ -95,6 +128,9 @@ REGLAS ADICIONALES (OVERRIDES, APLICAR ESTRICTAMENTE)
 • **Nunca rellenes los tres campos con el mismo monto**. Si hay duda, prioriza **straight** por defecto y añade una nota.
 • **Palé guard**: El guion dentro de un Palé `XX-XX` **no** es símbolo de box. El monto de Palé sigue las reglas anteriores.
 Procesa la siguiente imagen del ticket de lotería: {{media url=photoDataUri}}
+
+
+${OVERRIDES_TEXT}
 `;
 
 const prompt = ai.definePrompt({
@@ -128,19 +164,16 @@ const interpretLotteryTicketFlow = ai.defineFlow(
     }
 
     // Post-processing to ensure comboAmount is null if not explicitly a combo
-    const processedOutput = output.map(bet => {
-      // Basic check: if comboAmount is present and identical to straightAmount,
-      // and boxAmount is null or zero, it might be a misinterpretation unless "combo" was explicitly stated.
-      // For now, we're relying heavily on the prompt for this.
-      // A more robust solution might involve the AI also returning a flag if "combo" keyword was seen.
-      return {
-        betNumber: String(bet.betNumber || ""),
-        gameMode: String(bet.gameMode || "Unknown"),
-        straightAmount: typeof bet.straightAmount === 'number' ? bet.straightAmount : null,
-        boxAmount: typeof bet.boxAmount === 'number' ? bet.boxAmount : null,
-        comboAmount: typeof bet.comboAmount === 'number' ? bet.comboAmount : null, // Ensure this is handled correctly by the prompt.
-      };
-    });
+    const processedOutput = output.map((bet: any) => sanitizeBet({
+  betNumber: String((bet as any).betNumber ?? (bet as any).numeros ?? ""),
+  gameMode: String((bet as any).gameMode ?? (bet as any).mode ?? "Unknown"),
+  straightAmount: typeof (bet as any).straightAmount === 'number' ? (bet as any).straightAmount :
+                   (typeof (bet as any).straight === 'number' ? (bet as any).straight : null),
+  boxAmount:      typeof (bet as any).boxAmount === 'number' ? (bet as any).boxAmount :
+                   (typeof (bet as any).box === 'number' ? (bet as any).box : null),
+  comboAmount:    typeof (bet as any).comboAmount === 'number' ? (bet as any).comboAmount :
+                   (typeof (bet as any).combo === 'number' ? (bet as any).combo : null),
+}));
 
     // Consolidate bets if the model still splits them for the same betNumber
     const consolidatedBetsMap = new Map<string, Bet>();
