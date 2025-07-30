@@ -72,8 +72,6 @@ REGLAS CLAVE PARA LA INTERPRETACIÓN:
     *   Si un monto está claramente dividido (ej. 1 / .50 o 1 --- .50), el primer valor podría ser "straightAmount" y el segundo "boxAmount" si aplica al mismo número. O si es 2.75 / .25, el ".25" es para "boxAmount".
     *   **"comboAmount": MUY IMPORTANTE: Solo asigna un valor a "comboAmount" si ves explícitamente la letra "C", "Com", o la palabra "Combo" asociada a ESE monto para ESA jugada. Si no hay tal indicación, "comboAmount" DEBE SER \`null\` o no incluirse para esa jugada. No copies el valor de "straightAmount" o "boxAmount" a "comboAmount" a menos que esté indicado como combo.**
     *   Si un tipo de apuesta no aplica (ej. no hay apuesta "box" para un número), el valor del campo correspondiente debe ser \`null\`.
-    *   Para **Box**, acepta símbolos de división cercanos al monto: "/", "÷", "|", "¯", o **cualquier guion** ("-", "–", "—", "−") entre el número y el monto (por ejemplo: "11 - 6", "123 – .50"). **Normaliza todos los guiones a "-" mentalmente.** No confundas el guion de **Palé** ("XX-XX") con Box; Palé es exactamente dos dígitos + separador + dos dígitos.
-
 
 5.  **Agrupación de Jugadas:**
     *   Si una misma línea o número de apuesta tiene múltiples tipos de wager (ej. "123 $1 straight, $0.50 box"), DEBES crear un ÚNICO objeto JSON para "123" que contenga tanto "straightAmount: 1.00" como "boxAmount: 0.50". No crees objetos separados para el mismo "betNumber" si los wagers pertenecen a él.
@@ -149,7 +147,44 @@ const interpretLotteryTicketFlow = ai.defineFlow(
       }
     });
 
-    return Array.from(consolidatedBetsMap.values());
+    
+    // Final sanitization: enforce exclusivity (symbol-based intent) and drop duplicated combos.
+    const consolidated = Array.from(consolidatedBetsMap.values()).map(b => {
+      const st = (typeof b.straightAmount === 'number') ? b.straightAmount : null;
+      const bx = (typeof b.boxAmount === 'number') ? b.boxAmount : null;
+      const co = (typeof b.comboAmount === 'number') ? b.comboAmount : null;
+      let straight = st, box = bx, combo = co;
+
+      let count = [straight, box, combo].filter(v => v !== null).length;
+      if (count > 1) {
+        // Drop combo if it equals straight or box (likely hallucination)
+        if (combo !== null && ((straight !== null && combo === straight) || (box !== null && combo === box))) {
+          combo = null;
+        }
+        // Prefer Box over Straight when both present (symbol indicates Box; no symbol => Straight)
+        if (box !== null && straight !== null) {
+          straight = null;
+        }
+        // If still more than one (e.g., straight+combo), prefer Straight
+        count = [straight, box, combo].filter(v => v !== null).length;
+        if (count > 1) {
+          if (straight !== null && combo !== null) {
+            combo = null;
+          } else if (box !== null && combo !== null) {
+            combo = null; // keep box
+          } else {
+            // final fallback: keep first non-null deterministically
+            if (box !== null) { straight = null; combo = null; }
+            else if (straight !== null) { box = null; combo = null; }
+            else { straight = null; box = null; }
+          }
+        }
+      }
+
+      return { ...b, straightAmount: straight, boxAmount: box, comboAmount: combo };
+    });
+    return consolidated;
+
   }
 );
     
