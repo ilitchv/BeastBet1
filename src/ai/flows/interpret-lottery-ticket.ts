@@ -36,6 +36,22 @@ const InterpretLotteryTicketOutputSchema = z.array(BetSchema).describe('An array
 export type InterpretLotteryTicketOutput = z.infer<typeof InterpretLotteryTicketOutputSchema>;
 
 
+
+// Enforce exclusivity of wager types: prefer Box over Straight when both present; drop duplicated Combo.
+type Bet = { betNumber: string; gameMode: string; straightAmount: number|null; boxAmount: number|null; comboAmount: number|null; };
+function enforceExclusivity(bet: Bet): Bet {
+  let st = (typeof bet.straightAmount === 'number' && isFinite(bet.straightAmount) && bet.straightAmount>0) ? bet.straightAmount : null;
+  let bx = (typeof bet.boxAmount === 'number' && isFinite(bet.boxAmount) && bet.boxAmount>0) ? bet.boxAmount : null;
+  let co = (typeof bet.comboAmount === 'number' && isFinite(bet.comboAmount) && bet.comboAmount>0) ? bet.comboAmount : null;
+  if (co !== null && ((st !== null && co === st) || (bx !== null && co === bx))) co = null;
+  const count = [st,bx,co].filter(v=>v!==null).length;
+  if (count > 1){
+    if (bx !== null){ st = null; co = null; }
+    else if (st !== null){ bx = null; co = null; }
+    else { st = null; bx = null; }
+  }
+  return { ...bet, straightAmount: st, boxAmount: bx, comboAmount: co };
+}
 export async function interpretLotteryTicket(input: InterpretLotteryTicketInput): Promise<InterpretLotteryTicketOutput> {
   return interpretLotteryTicketFlow(input);
 }
@@ -131,7 +147,7 @@ const interpretLotteryTicketFlow = ai.defineFlow(
 
     // Consolidate bets if the model still splits them for the same betNumber
     const consolidatedBetsMap = new Map<string, Bet>();
-    processedOutput.forEach(bet => {
+    processedOutput.map(enforceExclusivity).forEach(bet => {
       const key = bet.betNumber;
       if (consolidatedBetsMap.has(key)) {
         const existingBet = consolidatedBetsMap.get(key)!;
