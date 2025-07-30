@@ -2358,3 +2358,62 @@ function setupThemeToggle() {
 }
 
 console.log("End of scripts.js reached");
+
+// --- BEGIN: Enforce exclusive wager type after normalization (patch) ---
+(function(){
+  function isNum(n){ return typeof n === 'number' && isFinite(n); }
+  function sanitizeBet(bet){
+    if (!bet) return bet;
+    let st = bet.straightAmount ?? bet.straight ?? null;
+    let bx = bet.boxAmount ?? bet.box ?? null;
+    let co = bet.comboAmount ?? bet.combo ?? null;
+    // parse strings
+    if (typeof st === 'string' && st.trim() !== '') st = parseFloat(st.replace(/,/g,''));
+    if (typeof bx === 'string' && bx.trim() !== '') bx = parseFloat(bx.replace(/,/g,''));
+    if (typeof co === 'string' && co.trim() !== '') co = parseFloat(co.replace(/,/g,''));
+    if (!isNum(st)) st = null;
+    if (!isNum(bx)) bx = null;
+    if (!isNum(co)) co = null;
+    // Treat zero as null
+    if (st === 0) st = null;
+    if (bx === 0) bx = null;
+    if (co === 0) co = null;
+    // If more than one present, drop duplicated combo, prefer Box over Straight
+    let vals = [st,bx,co].filter(v=>v!=null);
+    if (vals.length > 1){
+      if (co != null && ((st != null && co === st) || (bx != null && co === bx))) co = null;
+    }
+    vals = [st,bx,co].filter(v=>v!=null);
+    if (vals.length > 1){
+      if (bx != null){ st = null; co = null; }
+      else if (st != null){ bx = null; co = null; }
+      else { st = null; bx = null; } // keep combo only
+    }
+    // write back into both schema shapes
+    if ('straightAmount' in bet || 'boxAmount' in bet || 'comboAmount' in bet){
+      bet.straightAmount = st;
+      bet.boxAmount = bx;
+      bet.comboAmount = co;
+    }
+    if ('straight' in bet || 'box' in bet || 'combo' in bet){
+      bet.straight = st;
+      bet.box = bx;
+      bet.combo = co;
+    }
+    return bet;
+  }
+  if (typeof window !== 'undefined' && typeof normalizeInterpretedBets === 'function'){
+    const __oldNormalize = normalizeInterpretedBets;
+    normalizeInterpretedBets = function(raw){
+      try {
+        const arr = __oldNormalize(raw);
+        if (Array.isArray(arr)) return arr.map(sanitizeBet);
+        return arr;
+      } catch(e){
+        console.error('sanitize wrapper normalizeInterpretedBets error', e);
+        return __oldNormalize(raw);
+      }
+    }
+  }
+})();
+// --- END: Enforce exclusive wager type after normalization (patch) ---
