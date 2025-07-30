@@ -134,37 +134,7 @@ function normalizeInterpretedBets(raw) {
         let bx = toNum(item.boxAmount ?? item.box);
         let co = toNum(item.comboAmount ?? item.combo);
 
-        // Enforce exclusivity with precedence and anti-duplication heuristics:
-// - If the model filled multiple fields, prefer BOX over STRAIGHT when both are present.
-// - Drop COMBO if it duplicates another amount (likely hallucination) unless it's the only field.
-// - Final precedence: box > straight; combo only when it's the sole non-null.
-const nonNull = [st, bx, co].filter(v => v !== null);
-if (nonNull.length > 1) {
-    // Drop combo if it equals straight or box (very common bad output)
-    if (co !== null && ((st !== null && co === st) || (bx !== null && co === bx))) {
-        co = null;
-    }
-    // Prefer box over straight when both appear
-    if (bx !== null && st !== null) {
-        st = null;
-    }
-    // If still more than one (e.g., straight + combo), prefer straight and drop combo
-    const _count = [st, bx, co].filter(v => v !== null).length;
-    if (_count > 1) {
-        // Keep straight by default when competing with combo
-        if (st !== null && co !== null) {
-            co = null;
-        }
-        // If somehow still multiple, keep the first non-null deterministically
-        if ([st, bx, co].filter(v => v !== null).length > 1) {
-            if (bx !== null) { st = null; co = null; }
-            else if (st !== null) { bx = null; co = null; }
-            else { st = null; bx = null; }
-        }
-    }
-}
-
-        // Build normalized object in the shape the rest of the app expects.
+                // Build normalized object in the shape the rest of the app expects.
         const normalized = {
             betNumber: betNumber.trim(),
             gameMode: item.gameMode || null,
@@ -1575,32 +1545,7 @@ function addMainRow(bet = null) {
         const _bxNum = (bx_val !== undefined && bx_val !== null && bx_val !== '') ? (
             (typeof bx_val === 'string' && bx_val.includes(',')) ? bx_val : (isNaN(parseFloat(bx_val)) ? null : parseFloat(bx_val))
         ) : null;
-        const _coNum = (co_val !== undefined && co_val !== null && co_val !== '') ? parseFloat(co_val) : null;
-
-        const nonEmptyCount = [ _stNum, _bxNum, _coNum ].filter(v => v !== null).length;
-        if (nonEmptyCount > 1) {
-            // Apply exclusivity with precedence and heuristics:
-            // 1) Drop combo if it equals straight or box (likely hallucination)
-            if (_coNum !== null && ((_stNum !== null && _coNum === _stNum) || (_bxNum !== null && _coNum === _bxNum))) {
-                co_val = '';
             }
-            // 2) Prefer BOX over STRAIGHT when both present
-            const _stNum2 = (st_val !== undefined && st_val !== null && st_val !== '') ? parseFloat(st_val) : null;
-            const _bxNum2 = (bx_val !== undefined && bx_val !== null && bx_val !== '') ? (
-                (typeof bx_val === 'string' && bx_val.includes(',')) ? null : (isNaN(parseFloat(bx_val)) ? null : parseFloat(bx_val))
-            ) : null;
-            const _coNum2 = (co_val !== undefined && co_val !== null && co_val !== '') ? parseFloat(co_val) : null;
-
-            if (_bxNum2 !== null && _stNum2 !== null) {
-                st_val = '';
-            }
-            // 3) If straight and combo remain, prefer straight
-            if (_stNum2 !== null && _coNum2 !== null && _bxNum2 === null) {
-                co_val = '';
-            }
-        }
-
-    }
 
     // CORRECTED: Ensure only one TD for total, and amount is wrapped in span.total-amount
     const rowHTML = `
@@ -2358,62 +2303,3 @@ function setupThemeToggle() {
 }
 
 console.log("End of scripts.js reached");
-
-// --- BEGIN: Enforce exclusive wager type after normalization (patch) ---
-(function(){
-  function isNum(n){ return typeof n === 'number' && isFinite(n); }
-  function sanitizeBet(bet){
-    if (!bet) return bet;
-    let st = bet.straightAmount ?? bet.straight ?? null;
-    let bx = bet.boxAmount ?? bet.box ?? null;
-    let co = bet.comboAmount ?? bet.combo ?? null;
-    // parse strings
-    if (typeof st === 'string' && st.trim() !== '') st = parseFloat(st.replace(/,/g,''));
-    if (typeof bx === 'string' && bx.trim() !== '') bx = parseFloat(bx.replace(/,/g,''));
-    if (typeof co === 'string' && co.trim() !== '') co = parseFloat(co.replace(/,/g,''));
-    if (!isNum(st)) st = null;
-    if (!isNum(bx)) bx = null;
-    if (!isNum(co)) co = null;
-    // Treat zero as null
-    if (st === 0) st = null;
-    if (bx === 0) bx = null;
-    if (co === 0) co = null;
-    // If more than one present, drop duplicated combo, prefer Box over Straight
-    let vals = [st,bx,co].filter(v=>v!=null);
-    if (vals.length > 1){
-      if (co != null && ((st != null && co === st) || (bx != null && co === bx))) co = null;
-    }
-    vals = [st,bx,co].filter(v=>v!=null);
-    if (vals.length > 1){
-      if (bx != null){ st = null; co = null; }
-      else if (st != null){ bx = null; co = null; }
-      else { st = null; bx = null; } // keep combo only
-    }
-    // write back into both schema shapes
-    if ('straightAmount' in bet || 'boxAmount' in bet || 'comboAmount' in bet){
-      bet.straightAmount = st;
-      bet.boxAmount = bx;
-      bet.comboAmount = co;
-    }
-    if ('straight' in bet || 'box' in bet || 'combo' in bet){
-      bet.straight = st;
-      bet.box = bx;
-      bet.combo = co;
-    }
-    return bet;
-  }
-  if (typeof window !== 'undefined' && typeof normalizeInterpretedBets === 'function'){
-    const __oldNormalize = normalizeInterpretedBets;
-    normalizeInterpretedBets = function(raw){
-      try {
-        const arr = __oldNormalize(raw);
-        if (Array.isArray(arr)) return arr.map(sanitizeBet);
-        return arr;
-      } catch(e){
-        console.error('sanitize wrapper normalizeInterpretedBets error', e);
-        return __oldNormalize(raw);
-      }
-    }
-  }
-})();
-// --- END: Enforce exclusive wager type after normalization (patch) ---
