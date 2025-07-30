@@ -72,6 +72,8 @@ REGLAS CLAVE PARA LA INTERPRETACIÓN:
     *   Si un monto está claramente dividido (ej. 1 / .50 o 1 --- .50), el primer valor podría ser "straightAmount" y el segundo "boxAmount" si aplica al mismo número. O si es 2.75 / .25, el ".25" es para "boxAmount".
     *   **"comboAmount": MUY IMPORTANTE: Solo asigna un valor a "comboAmount" si ves explícitamente la letra "C", "Com", o la palabra "Combo" asociada a ESE monto para ESA jugada. Si no hay tal indicación, "comboAmount" DEBE SER \`null\` o no incluirse para esa jugada. No copies el valor de "straightAmount" o "boxAmount" a "comboAmount" a menos que esté indicado como combo.**
     *   Si un tipo de apuesta no aplica (ej. no hay apuesta "box" para un número), el valor del campo correspondiente debe ser \`null\`.
+    *   Para **Box**, acepta símbolos de división cercanos al monto: "/", "÷", "|", "¯", o **cualquier guion** ("-", "–", "—", "−") entre el número y el monto (por ejemplo: "11 - 6", "123 – .50"). **Normaliza todos los guiones a "-" mentalmente.** No confundas el guion de **Palé** ("XX-XX") con Box; Palé es exactamente dos dígitos + separador + dos dígitos.
+
 
 5.  **Agrupación de Jugadas:**
     *   Si una misma línea o número de apuesta tiene múltiples tipos de wager (ej. "123 $1 straight, $0.50 box"), DEBES crear un ÚNICO objeto JSON para "123" que contenga tanto "straightAmount: 1.00" como "boxAmount: 0.50". No crees objetos separados para el mismo "betNumber" si los wagers pertenecen a él.
