@@ -7,6 +7,26 @@ let ticketModalInstance = null;
 let jugadasGlobalOCR = [];
 let selectedFileGlobalOCR = null;
 
+/**
+ * Build headers for API calls to our backend.
+ * - Always sends JSON.
+ * - If user has stored an API key in localStorage('OCR_API_KEY') or window.OCR_API_KEY,
+ *   we forward it in 'x-api-key' so the backend can use it when calling providers.
+ */
+function buildApiHeaders() {
+    const headers = { 'Content-Type': 'application/json' };
+    try {
+        const localKey = (typeof localStorage !== 'undefined') ? localStorage.getItem('OCR_API_KEY') : null;
+        const windowKey = (typeof window !== 'undefined') ? (window.OCR_API_KEY || null) : null;
+        const key = localKey || windowKey;
+        if (key) headers['x-api-key'] = key;
+    } catch (e) {
+        // ignore storage errors
+    }
+    return headers;
+}
+
+
 // Global variable for Flatpickr instance
 let fpInstance = null;
 
@@ -188,9 +208,7 @@ async function procesarOCR() {
         updateOcrProgress(30, "Imagen leída, enviando a IA...");
         console.log("Sending request to /api/interpret-ticket");
         try {
-            const response = await fetch('/api/interpret-ticket', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            const response = await fetch('/api/interpret-ticket', { method: 'POST', headers: buildApiHeaders(), credentials: 'include',
                 body: JSON.stringify({ photoDataUri: base64data })
             });
 
