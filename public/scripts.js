@@ -97,6 +97,77 @@ function showOcrLoading() { $("#ocrLoadingSection").removeClass("d-none"); $("#o
 function updateOcrProgress(percentage, text) { $("#ocrProgressBar").css("width", percentage + "%"); $("#ocrProgressText").text(text); }
 function hideOcrLoading() { $("#ocrLoadingSection").addClass("d-none"); }
 
+
+// ================= OCR Response Normalization =================
+// Adapta la respuesta del backend (antigua o nueva) al formato que usa la UI.
+// También aplica reglas de exclusividad para evitar "triple fill" (Str/Box/Com).
+function normalizeInterpretedBets(raw) {
+    if (!Array.isArray(raw)) return [];
+
+    const toNumberOrNull = (v) => {
+        if (v === undefined || v === null) return null;
+        if (typeof v === 'number') return (isFinite(v) ? v : null);
+        const s = String(v).trim();
+        if (s === '' || s === '-') return null;
+        // Soporta '$3', '3', '.50', '50c'
+        const cleaned = s.replace(/[$,]/g, '').replace(/c$/i, '');
+        const n = parseFloat(cleaned);
+        return isFinite(n) ? n : null;
+    };
+
+    const isBoxPositions = (v) => (typeof v === 'string' && v.includes(','));
+
+    const normalizeOne = (item) => {
+        // Variantes de nombre de campo para el número
+        let betNumber = item.betNumber || item.numeros || item.number || item.bet || '';
+        if (typeof betNumber === 'string') {
+            betNumber = betNumber.trim();
+            // Normaliza Palé '12x34' / '12+34' a '12-34'
+            betNumber = betNumber.replace(/(\d{2})[x+](\d{2})/i, '$1-$2');
+        }
+
+        // Montos en ambos esquemas
+        const rawStraight = (Object.prototype.hasOwnProperty.call(item, 'straightAmount') ? item.straightAmount : item.straight);
+        const rawBox      = (Object.prototype.hasOwnProperty.call(item, 'boxAmount')      ? item.boxAmount      : item.box);
+        const rawCombo    = (Object.prototype.hasOwnProperty.call(item, 'comboAmount')    ? item.comboAmount    : item.combo);
+
+        const boxIsPositions = isBoxPositions(rawBox);
+        const straightAmount = toNumberOrNull(rawStraight);
+        let boxAmount = boxIsPositions ? String(rawBox) : toNumberOrNull(rawBox);
+        let comboAmount = toNumberOrNull(rawCombo);
+
+        // Si los tres montos vienen iguales y > 0, tratamos como duplicado OCR:
+        // mantener STRAIGHT + BOX y poner COMBO en 0.
+        if (!boxIsPositions &&
+            straightAmount !== null && boxAmount !== null && comboAmount !== null &&
+            straightAmount > 0 && boxAmount > 0 && comboAmount > 0 &&
+            straightAmount === boxAmount && straightAmount === comboAmount) {
+            comboAmount = 0;
+        }
+
+        const norm = {
+            betNumber: String(betNumber || '').trim(),
+            gameMode: item.gameMode || '-',
+            straightAmount: (straightAmount && straightAmount > 0) ? straightAmount : null,
+            boxAmount: boxIsPositions ? String(rawBox) : ((boxAmount && boxAmount > 0) ? boxAmount : null),
+            comboAmount: (comboAmount && comboAmount > 0) ? comboAmount : null
+        };
+
+        // Derivar modo si no viene
+        try {
+            if (!norm.gameMode || norm.gameMode === '-') {
+                const currentTracks = (typeof getCurrentSelectedTracks === 'function') ? getCurrentSelectedTracks() : [];
+                norm.gameMode = determineGameMode(norm.betNumber, currentTracks);
+            }
+        } catch (e) {
+            console.warn('Cannot determine game mode during normalization:', e);
+        }
+        return norm;
+    };
+
+    return raw.map(normalizeOne);
+}
+
 async function procesarOCR() {
     console.log("procesarOCR function called");
     console.log("Current selectedFileGlobalOCR:", selectedFileGlobalOCR);
@@ -139,7 +210,7 @@ async function procesarOCR() {
 
             const interpretedBets = await response.json();
             console.log("Received interpretedBets:", interpretedBets);
-            jugadasGlobalOCR = interpretedBets; 
+            jugadasGlobalOCR = normalizeInterpretedBets(interpretedBets); 
 
             if (Array.isArray(jugadasGlobalOCR) && jugadasGlobalOCR.length > 0) {
                 let html = `<h5>Jugadas Detectadas (${jugadasGlobalOCR.length}):</h5>`;
@@ -152,9 +223,9 @@ async function procesarOCR() {
                             <td>${idx + 1}</td>
                             <td>${j.betNumber || "-"}</td>
                             <td>${j.gameMode || "-"}</td>
-                            <td>${j.straightAmount !== null ? j.straightAmount.toFixed(2) : "-"}</td>
-                            <td>${j.boxAmount !== null ? j.boxAmount.toFixed(2) : "-"}</td>
-                            <td>${j.comboAmount !== null ? j.comboAmount.toFixed(2) : "-"}</td>
+                            <td>${(j.straightAmount !== null && j.straightAmount > 0) ? Number(j.straightAmount).toFixed(2) : "-"}</td>
+                            <td>${(typeof j.boxAmount === "string" && j.boxAmount.includes(",")) ? j.boxAmount : ((j.boxAmount !== null && j.boxAmount > 0) ? Number(j.boxAmount).toFixed(2) : "-")}</td>
+                            <td>${(j.comboAmount !== null && j.comboAmount > 0) ? Number(j.comboAmount).toFixed(2) : "-"}</td>
                           </tr></tbody>
                         </table>
                         <button class="btn btn-sm btn-info mt-1 mb-2" type="button" onclick="usarJugadaOCR(${idx}); return false;">
@@ -1487,6 +1558,23 @@ function addMainRow(bet = null) {
             bx_val = (bet.boxAmount !== null && bet.boxAmount !== undefined) ? String(bet.boxAmount) : "";
         }
         co_val = (bet.comboAmount !== null && bet.comboAmount !== undefined) ? String(bet.comboAmount) : "";
+        // --- Exclusividad de columnas en la inserción ---
+        // Si STR, BOX y COM vienen iguales (>0), dejar STR+BOX y limpiar COM.
+        if (st_val !== "" && bx_val !== "" && co_val !== "") {
+            const stNum = parseFloat(st_val);
+            const bxNum = (typeof bx_val === "string" && bx_val.includes(",")) ? NaN : parseFloat(bx_val);
+            const coNum = parseFloat(co_val);
+            if (!isNaN(stNum) && !isNaN(bxNum) && !isNaN(coNum) &&
+                stNum > 0 && bxNum > 0 && coNum > 0 &&
+                stNum === bxNum && stNum === coNum) {
+                co_val = "";
+            }
+        }
+        // Limpiar ceros para que queden celdas vacías
+        if (!isNaN(parseFloat(st_val)) && parseFloat(st_val) <= 0) st_val = "";
+        if (!(typeof bx_val === "string" && bx_val.includes(",")) && !isNaN(parseFloat(bx_val)) && parseFloat(bx_val) <= 0) bx_val = "";
+        if (!isNaN(parseFloat(co_val)) && parseFloat(co_val) <= 0) co_val = "";
+    
         
         const currentTracks = getCurrentSelectedTracks();
         gm_val = bet.gameMode || determineGameMode(bn_val, currentTracks);
