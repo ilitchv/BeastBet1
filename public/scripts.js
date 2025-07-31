@@ -35,6 +35,164 @@ const cutoffTimes = {
 };
 
 
+// === BEGIN: OCR context helpers (track/date from API) ===
+const TRACK_SYNONYMS = {
+  "New York Midday": "New York Mid Day",
+  "New York Mid Day": "New York Mid Day",
+  "MIDDAY": "New York Mid Day",
+  "NYS": "New York Evening",
+  "New York Night": "New York Evening",
+  "New York Evening": "New York Evening",
+  "BK-DAY": "Brooklyn Midday",
+  "Brooklyn Midday": "Brooklyn Midday",
+  "BK-TV": "Brooklyn Evening",
+  "Brooklyn Night (TV)": "Brooklyn Evening",
+  "Brooklyn Evening": "Brooklyn Evening",
+  "Front Midday": "Front Midday",
+  "Front Evening": "Front Evening",
+  "NJ-DAY": "New Jersey Mid Day",
+  "New Jersey Midday": "New Jersey Mid Day",
+  "New Jersey Mid Day": "New Jersey Mid Day",
+  "NJ-NIGHT": "New Jersey Evening",
+  "New Jersey Evening": "New Jersey Evening",
+  "CONN-DAY": "Connecticut Mid Day",
+  "Connecticut Midday": "Connecticut Mid Day",
+  "Connecticut Mid Day": "Connecticut Mid Day",
+  "CONN-NIGHT": "Connecticut Evening",
+  "Connecticut Evening": "Connecticut Evening",
+  "FLA-MIDDAY": "Florida Mid Day",
+  "Florida Midday": "Florida Mid Day",
+  "Florida Mid Day": "Florida Mid Day",
+  "FLA-NIGHT": "Florida Evening",
+  "Florida Evening": "Florida Evening",
+  "GEORGIA-DAY": "Georgia Mid Day",
+  "Georgia Midday": "Georgia Mid Day",
+  "Georgia Mid Day": "Georgia Mid Day",
+  "GEORGIA-EVE": "Georgia Evening",
+  "Georgia Evening": "Georgia Evening",
+  "Georgia Night": "Georgia Night",
+  "PENN-AM": "Pensilvania AM",
+  "Pensilvania AM": "Pensilvania AM",
+  "PENN-PM": "Pensilvania PM",
+  "Pensilvania PM": "Pensilvania PM",
+  "New York Horses (single)": "New York Horses",
+  "NY": "New York Horses",
+  "New York Horses": "New York Horses",
+  "VENEZUELA": "Venezuela",
+  "Venezuela": "Venezuela",
+  // Santo Domingo family are per-draw; we won't force-select one unless it matches a checkbox value exactly.
+  "STO DGO": "Santo Domingo"
+};
+
+function normalizeUiTrackName(name) {
+  if (!name) return null;
+  const trimmed = String(name).trim();
+  if (TRACK_SYNONYMS[trimmed]) return TRACK_SYNONYMS[trimmed];
+  // Try relaxed normalization: remove multiple spaces, case-insensitive compare
+  const relaxed = trimmed.toLowerCase().replace(/\s+/g, ' ').replace(/midday/g,'mid day');
+  for (const k of Object.keys(TRACK_SYNONYMS)) {
+    const v = TRACK_SYNONYMS[k];
+    const vv = v.toLowerCase().replace(/\s+/g, ' ');
+    if (vv === relaxed) return v;
+  }
+  return trimmed;
+}
+
+function extractOcrContext(apiArray) {
+  if (!Array.isArray(apiArray) || apiArray.length === 0) return null;
+  // choose the first item that has fecha or track
+  for (const it of apiArray) {
+    if (it && (it.fecha || it.track)) {
+      return {
+        fecha: it.fecha || null,
+        track: it.track || null
+      };
+    }
+  }
+  return null;
+}
+
+function trySelectTrackFromName(apiTrackName) {
+  if (!apiTrackName) return false;
+  const uiName = normalizeUiTrackName(apiTrackName);
+  // Try by exact value first
+  let matched = false;
+  $(".track-checkbox").each(function(){
+    const val = $(this).val();
+    if (val === uiName) {
+      $(this).prop("checked", true);
+      matched = true;
+    }
+  });
+  if (matched) return true;
+  // Try by relaxed comparison
+  const relaxedUi = (uiName||'').toLowerCase().replace(/\s+/g,' ').trim();
+  $(".track-checkbox").each(function(){
+    const val = ($(this).val()||'').toLowerCase().replace(/\s+/g,' ').trim();
+    if (val === relaxedUi) {
+      $(this).prop("checked", true);
+      matched = true;
+    }
+  });
+  if (matched) return true;
+
+  // Last resort: handle New York Midday/Evening by ID
+  if (/new york.*mid.?day/i.test(uiName) && $("#trackNYMidDay").length) {
+    $("#trackNYMidDay").prop("checked", true);
+    return true;
+  }
+  if (/new york.*(evening|night)/i.test(uiName) && $("#trackNYEvening").length) {
+    $("#trackNYEvening").prop("checked", true);
+    return true;
+  }
+  if (/venezuela/i.test(uiName) && $("#trackVenezuela").length) {
+    $("#trackVenezuela").prop("checked", true);
+    return true;
+  }
+  console.warn("No matching track checkbox for API track:", apiTrackName, "normalized to", uiName);
+  return false;
+}
+
+function parseApiDateYMD(ymd) {
+  if (!ymd) return null;
+  // Expect YYYY-MM-DD
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd.trim());
+  if (!m) return null;
+  const [_, y, mo, d] = m;
+  const dt = new Date(Number(y), Number(mo)-1, Number(d));
+  return isNaN(dt.getTime()) ? null : dt;
+}
+
+function applyOcrContextFromBets(apiArray) {
+  const ctx = extractOcrContext(apiArray);
+  if (!ctx) return;
+  // 1) Select track if provided
+  if (ctx.track) {
+    isUpdatingProgrammatically = true;
+    $(".track-checkbox").prop("checked", false); // clear first
+    trySelectTrackFromName(ctx.track);
+    isUpdatingProgrammatically = false;
+    updateSelectedTracksAndTotal();
+  }
+  // 2) Set date if provided
+  if (ctx.fecha && typeof fpInstance !== 'undefined' && fpInstance) {
+    const dt = parseApiDateYMD(ctx.fecha);
+    if (dt) {
+      try {
+        fpInstance.setDate([dt], true); // trigger change
+      } catch (e) {
+        console.warn("Could not set Flatpickr date from API:", ctx.fecha, e);
+      }
+    }
+  }
+  // store for later display
+  window.lastOcrContext = ctx;
+}
+// === END: OCR context helpers (track/date from API) ===
+
+
+
+
 // --- OCR Modal Functions ---
 function abrirModalOCR() {
     console.log("abrirModalOCR function called");
@@ -218,10 +376,18 @@ async function procesarOCR() {
 
             const interpretedBets = await response.json();
             console.log("Received interpretedBets:", interpretedBets);
-            jugadasGlobalOCR = normalizeInterpretedBets(interpretedBets); 
+            
+            // Apply track/date context from API
+            try { applyOcrContextFromBets(interpretedBets); } catch (e) { console.warn('applyOcrContextFromBets failed', e); }
+jugadasGlobalOCR = normalizeInterpretedBets(interpretedBets); 
 
             if (Array.isArray(jugadasGlobalOCR) && jugadasGlobalOCR.length > 0) {
-                let html = `<h5>Jugadas Detectadas (${jugadasGlobalOCR.length}):</h5>`;
+                let ctx = (typeof window!=='undefined' && window.lastOcrContext) ? window.lastOcrContext : null;
+                let header = '';
+                if (ctx && (ctx.track || ctx.fecha)) {
+                    header = `<div class="alert alert-secondary small mb-2">Track detectado: <strong>${ctx.track||'-'}</strong> • Fecha: <strong>${ctx.fecha||'-'}</strong></div>`;
+                }
+                let html = `${header}<h5>Jugadas Detectadas (${jugadasGlobalOCR.length}):</h5>`;
                 jugadasGlobalOCR.forEach((j, idx) => {
                     html += `
                       <div class="ocr-detected-play">
