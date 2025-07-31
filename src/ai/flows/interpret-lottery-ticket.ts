@@ -1,5 +1,3 @@
-'use server';
-
 /**
  * Deterministic OCR → Parser for lottery tickets.
  * - If `ocrText` is provided, uses it.
@@ -10,8 +8,8 @@
 
 import { z } from 'genkit';
 
-// ---- Input/Output Schemas ----
-export const InterpretLotteryTicketInputSchema = z.object({
+// ---- Input schema (internal only; NOT exported at runtime) ----
+const InterpretLotteryTicketInputSchema = z.object({
   ocrText: z.string().optional(),
   photoDataUri: z.string().optional(),     // data URL base64
   serverNowISO: z.string().optional(),     // for NY default track
@@ -19,9 +17,9 @@ export const InterpretLotteryTicketInputSchema = z.object({
   bodyHint: z.string().optional(),
   footerHint: z.string().optional(),
 });
-export type InterpretLotteryTicketInput = z.infer<typeof InterpretLotteryTicketInputSchema>;
 
-export const ParsedBetSchema = z.object({
+// ---- Output validation (internal) ----
+const ParsedBetSchema = z.object({
   fecha: z.string(),
   track: z.string(),
   numeros: z.string(),
@@ -30,10 +28,7 @@ export const ParsedBetSchema = z.object({
   combo: z.number(),
   notas: z.string(),
 });
-export type ParsedBet = z.infer<typeof ParsedBetSchema>;
-
-export const InterpretLotteryTicketOutputSchema = z.array(ParsedBetSchema);
-export type InterpretLotteryTicketOutput = z.infer<typeof InterpretLotteryTicketOutputSchema>;
+const InterpretLotteryTicketOutputSchema = z.array(ParsedBetSchema);
 
 // ---- Track map & helpers ----
 const TRACK_MAP: Record<string, string> = {
@@ -80,7 +75,6 @@ function linesOf(text?: string): string[] {
 
 // Date parsing (Section 2)
 function parseDateCandidate(s: string, today: Date): string | null {
-  // Accept patterns like 4-30-25, 04/30/2025, 2025-04-30
   const mdy = s.match(/\b(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})\b/);
   const ymd = s.match(/\b(20\d{2})[\/\-](\d{1,2})[\/\-](\d{1,2})\b/);
   let candidate: Date | null = null;
@@ -91,10 +85,10 @@ function parseDateCandidate(s: string, today: Date): string | null {
     const d = parseInt(ymd[3], 10);
     candidate = new Date(y, m - 1, d);
   } else if (mdy) {
-    let [ , mm, dd, yy ] = mdy;
+    let [, mm, dd, yy] = mdy;
     let y = parseInt(yy, 10);
     if (y < 100) y += 2000;
-    candidate = new Date(parseInt(y.toString(), 10), parseInt(mm, 10) - 1, parseInt(dd, 10));
+    candidate = new Date(y, parseInt(mm, 10) - 1, parseInt(dd, 10));
   }
 
   if (!candidate) return null;
@@ -110,7 +104,7 @@ function detectTrack(headerText: string, fallbackDate: Date): string {
   const header = headerText.toUpperCase();
   const headerLines = linesOf(headerText);
 
-  // First pass: lines with a checkmark and a known abbreviation
+  // First pass: checkmarks + known abbreviation
   for (const ln of headerLines) {
     if (!CHECKMARKS.test(ln)) continue;
     for (const key of Object.keys(TRACK_MAP)) {
@@ -118,12 +112,12 @@ function detectTrack(headerText: string, fallbackDate: Date): string {
     }
   }
 
-  // Second pass: plain abbreviation without checkmark but clearly present
+  // Second pass: plain abbreviation present
   for (const key of Object.keys(TRACK_MAP)) {
     if (header.includes(key)) return TRACK_MAP[key];
   }
 
-  // Special “GEORGIA-… / PENN-…” inference:
+  // Special inference
   if (header.includes('GEORGIA')) {
     if (header.includes('EVE') || header.includes('NIGHT')) return TRACK_MAP['GEORGIA-EVE'];
     return TRACK_MAP['GEORGIA-DAY'];
@@ -139,7 +133,7 @@ function detectTrack(headerText: string, fallbackDate: Date): string {
 
 // Game caps (Section 5.4)
 function capsFor(numeros: string): { straight: number; box: number; combo: number } {
-  const isPale = /^\d{2}[-]\d{2}$/.test(numeros);
+  const isPale = /^\d{2}-\d{2}$/.test(numeros);
   const len = isPale ? 2 : numeros.replace(/[^0-9]/g, '').length;
 
   if (isPale || len === 2) return { straight: 100, box: 100, combo: 100 };
@@ -182,7 +176,6 @@ function parseAmountToken(tok: string): number | null {
 
 // Decide $ vs cents if ambiguous and cap-aware (Section 5.4)
 function adjustByCaps(value: number, cap: number): number {
-  // If value is an integer with no decimal and exceeds cap, fall back to cents (e.g., 50 -> 0.50)
   if (value > cap) {
     const centsCandidate = +(value / 100).toFixed(2);
     if (centsCandidate <= cap) return centsCandidate;
@@ -234,34 +227,27 @@ function normalizePale(s: string): string | null {
   return `${m[1]}-${m[2]}`;
 }
 
-// SingleAction (Section 6.3)
-function isSingleAction(s: string): boolean {
-  const m = s.match(/^\d$/);
-  return !!m;
-}
-
-// Parse a body line into { numeros[], amountHints }
+// ---- Parse a body line ----
 type LineParse = {
   bets: { numeros: string; source: string }[];
   amounts: { straight?: number; box?: number; combo?: number; hasDivision?: boolean; raw?: string }[];
-  broadcastToAll?: boolean; // "to all" hint
+  broadcastToAll?: boolean;
 };
 
-// Detect division markers on a line: "/", "÷", long bar/dash variations
 function parseBodyLine(line: string): LineParse {
   const out: LineParse = { bets: [], amounts: [] };
 
   const hasToAll = /\bto\s+all\b/i.test(line);
   if (hasToAll) out.broadcastToAll = true;
 
-  // Collect Palé first
+  // Palé first
   const paleMatches = line.match(/\b\d{2}\s*[xX+\-]\s*\d{2}\b/g) ?? [];
   for (const pm of paleMatches) {
     const n = normalizePale(pm);
     if (n) out.bets.push({ numeros: n, source: pm });
   }
 
-  // Remove Palé snippets to avoid double-counting digits below
+  // Remove Palé to avoid double counting
   let rest = line;
   for (const pm of paleMatches) rest = rest.replace(pm, ' ');
 
@@ -274,22 +260,17 @@ function parseBodyLine(line: string): LineParse {
     if (expanded) {
       for (const e of expanded) out.bets.push({ numeros: e, source: `${a}-${b}` });
     } else {
-      // Mark a synthetic "bet" with notas later
       out.bets.push({ numeros: a, source: 'rangoNoExpandido' });
     }
   }
   rest = rest.replace(rangeRegex, ' ');
 
-  // Remaining standalone numbers (1–4 digits)
+  // Standalone numbers (1–4 digits)
   const numRegex = /\b\d{1,4}\b/g;
   const nums = rest.match(numRegex) ?? [];
-  for (const n of nums) {
-    out.bets.push({ numeros: n, source: n });
-  }
+  for (const n of nums) out.bets.push({ numeros: n, source: n });
 
-  // Amounts on this line: look for patterns like "2.75", "50c", ".50", "$3", and also "amount / amount"
-  // We'll record raw amounts and resolve exclusivity per bet later.
-  // Detect combos with trailing "C"
+  // Amounts on line
   const comboRe = /\b(\$?\d+(?:\.\d+)?|\.\d+|\d+\s*[cC])\s*[cC]\b/g;
   let cm: RegExpExecArray | null;
   while ((cm = comboRe.exec(line))) {
@@ -297,7 +278,6 @@ function parseBodyLine(line: string): LineParse {
     if (val !== null) out.amounts.push({ combo: val, raw: cm[0] });
   }
 
-  // Division/box: "... / .25" or "— 0.25"
   const divRe = /\b(\$?\d+(?:\.\d+)?|\.\d+|\d+\s*[cC])\s*(?:[\/÷]|—|–|-|\|\¯)\s*(\$?\d+(?:\.\d+)?|\.\d+|\d+\s*[cC])\b/g;
   let dm: RegExpExecArray | null;
   while ((dm = divRe.exec(line))) {
@@ -305,12 +285,10 @@ function parseBodyLine(line: string): LineParse {
     if (right !== null) out.amounts.push({ box: right, hasDivision: true, raw: dm[0] });
   }
 
-  // Plain amounts (straight), but exclude ones already captured as combo or division
   const amtRe = /\b(\$?\d+(?:\.\d+)?|\.\d+|\d+\s*[cC])\b(?!\s*[cC])/g;
   let am: RegExpExecArray | null;
   while ((am = amtRe.exec(line))) {
     const token = am[0];
-    // Skip if this token is within a division or combo we already recorded
     if (/\b[cC]\b/.test(line.slice(am.index, am.index + token.length + 2))) continue;
     const val = parseAmountToken(token);
     if (val !== null) out.amounts.push({ straight: val, raw: token });
@@ -319,53 +297,47 @@ function parseBodyLine(line: string): LineParse {
   return out;
 }
 
-// Enforce exclusivity & caps; never invent decimals
-function resolveAmounts(numeros: string, lineAmounts: LineParse['amounts']): { straight: number; box: number; combo: number; notas: string } {
-  const caps = capsFor(numeros);
+function capsForNumeros(n: string) {
+  const isPale = /^\d{2}-\d{2}$/.test(n);
+  const len = isPale ? 2 : n.replace(/[^0-9]/g, '').length;
+  if (isPale || len === 2) return { straight: 100, box: 100, combo: 100 };
+  if (len === 1) return { straight: 600, box: 0, combo: 0 };
+  if (len === 4) return { straight: 10, box: 62, combo: 10 };
+  return { straight: 35, box: 105, combo: 35 };
+}
+
+function resolveAmounts(
+  numeros: string,
+  amts: LineParse['amounts']
+): { straight: number; box: number; combo: number; notas: string } {
+  const caps = capsForNumeros(numeros);
   let straight: number | null = null;
   let box: number | null = null;
   let combo: number | null = null;
-  let notas: string[] = [];
 
-  // Prefer combo if explicitly marked with "C"
-  const comboHit = lineAmounts.find(a => typeof a.combo === 'number');
+  const comboHit = amts.find(a => typeof a.combo === 'number');
   if (comboHit) combo = adjustByCaps(comboHit.combo!, caps.combo);
 
-  // Prefer box if any division marker present (Section 5.2)
-  const boxHit = lineAmounts.find(a => a.hasDivision && typeof a.box === 'number');
+  const boxHit = amts.find(a => a.hasDivision && typeof a.box === 'number');
   if (boxHit) {
     box = adjustByCaps(boxHit.box!, caps.box);
-    straight = null; // exclusivity
-    combo = null;
-    return { straight: 0, box: box ?? 0, combo: 0, notas: clean(notas.join(';')) };
+    return { straight: 0, box: box ?? 0, combo: 0, notas: '' };
   }
 
-  // If no box and no combo, look for straight
   if (combo === null) {
-    const stHit = lineAmounts.find(a => typeof a.straight === 'number');
+    const stHit = amts.find(a => typeof a.straight === 'number');
     if (stHit) straight = adjustByCaps(stHit.straight!, caps.straight);
   }
-
-  return {
-    straight: straight ?? 0,
-    box: box ?? 0,
-    combo: combo ?? 0,
-    notas: clean(notas.join(';')),
-  };
+  return { straight: straight ?? 0, box: box ?? 0, combo: combo ?? 0, notas: '' };
 }
 
-// Final validator on numeros (2-digit rule, letters, etc.)
-function validateNumeros(numeros: string): { ok: boolean; normalized?: string; notas?: string } {
-  // Palé OK
+function validateNumeros(numeros: string) {
   if (/^\d{2}-\d{2}$/.test(numeros)) return { ok: true, normalized: numeros };
-
-  // Only digits allowed (1–4), never letters
   if (!/^\d{1,4}$/.test(numeros)) return { ok: false, notas: 'ilegible' };
-
   return { ok: true, normalized: numeros };
 }
 
-// ---- OCR via Google Cloud Vision (optional) ----
+// ---- OCR via Google Cloud Vision (dynamic import) ----
 async function runVisionOcrFromDataUrl(photoDataUri?: string): Promise<string> {
   if (!photoDataUri) return '';
   try {
@@ -373,9 +345,8 @@ async function runVisionOcrFromDataUrl(photoDataUri?: string): Promise<string> {
     const b64 = commaIdx >= 0 ? photoDataUri.slice(commaIdx + 1) : photoDataUri;
     const buffer = Buffer.from(b64, 'base64');
 
-    // Lazy import to avoid ESM/CJS headaches in Next.js/Node builds
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const vision = require('@google-cloud/vision') as typeof import('@google-cloud/vision');
+    // Dynamic import to avoid ESM/CJS friction
+    const vision = await import('@google-cloud/vision');
     const client = new vision.ImageAnnotatorClient();
     const [result] = await client.documentTextDetection({ image: { content: buffer } });
     const text = result?.fullTextAnnotation?.text ?? '';
@@ -387,22 +358,24 @@ async function runVisionOcrFromDataUrl(photoDataUri?: string): Promise<string> {
   }
 }
 
-// ---- Main ----
-export async function interpretLotteryTicket(input: InterpretLotteryTicketInput): Promise<InterpretLotteryTicketOutput> {
-  // Validate input
+// ---- The only export (async function) ----
+export async function interpretLotteryTicket(input: unknown): Promise<
+  Array<{ fecha: string; track: string; numeros: string; straight: number; box: number; combo: number; notas: string }>
+> {
   const parsed = InterpretLotteryTicketInputSchema.safeParse(input);
   if (!parsed.success) {
     console.error('[interpretLotteryTicket] Invalid input:', parsed.error);
     return [];
   }
+  const i = parsed.data;
 
-  const now = nowFrom(input.serverNowISO);
+  const now = nowFrom(i.serverNowISO);
   const todayYmd = yyyyMmDd(now);
 
   // Resolve OCR text
-  let ocrText = (input.ocrText ?? '').trim();
-  if (!ocrText && input.photoDataUri) {
-    ocrText = await runVisionOcrFromDataUrl(input.photoDataUri);
+  let ocrText = (i.ocrText ?? '').trim();
+  if (!ocrText && i.photoDataUri) {
+    ocrText = await runVisionOcrFromDataUrl(i.photoDataUri);
   }
   if (!ocrText) {
     console.warn('[interpretLotteryTicket] Empty OCR text; returning []');
@@ -410,11 +383,11 @@ export async function interpretLotteryTicket(input: InterpretLotteryTicketInput)
   }
 
   // Build raw text, allow optional header/body/footer hints
-  const rawText = clean([input.headerHint, input.bodyHint, input.footerHint, ocrText].filter(Boolean).join('\n'));
+  const rawText = clean([i.headerHint, i.bodyHint, i.footerHint, ocrText].filter(Boolean).join('\n'));
   const allLines = linesOf(rawText);
-  const headerLines = linesOf(input.headerHint ?? allLines.slice(0, Math.max(1, Math.floor(allLines.length * 0.25))).join('\n'));
-  const footerLines = linesOf(input.footerHint ?? allLines.slice(Math.floor(allLines.length * 0.75)).join('\n'));
-  const bodyLines = linesOf(input.bodyHint ?? allLines.join('\n'));
+  const headerLines = linesOf(i.headerHint ?? allLines.slice(0, Math.max(1, Math.floor(allLines.length * 0.25))).join('\n'));
+  const footerLines = linesOf(i.footerHint ?? allLines.slice(Math.floor(allLines.length * 0.75)).join('\n'));
+  const bodyLines = linesOf(i.bodyHint ?? allLines.join('\n'));
 
   // Track & date
   const track = detectTrack(headerLines.join('\n'), now);
@@ -423,7 +396,7 @@ export async function interpretLotteryTicket(input: InterpretLotteryTicketInput)
   const dateFound = parseDateCandidate(footerJoined, now);
   if (dateFound) fecha = dateFound;
 
-  const out: ParsedBet[] = [];
+  const out: Array<{ fecha: string; track: string; numeros: string; straight: number; box: number; combo: number; notas: string }> = [];
   let broadcastAmounts: LineParse['amounts'] | null = null;
 
   for (const rawLine of bodyLines) {
@@ -435,7 +408,7 @@ export async function interpretLotteryTicket(input: InterpretLotteryTicketInput)
 
     if (parsedLine.broadcastToAll) {
       broadcastAmounts = parsedLine.amounts.length ? parsedLine.amounts : broadcastAmounts;
-      continue; // this line is a directive
+      continue; // directive line
     }
 
     const effectiveAmounts = parsedLine.amounts.length ? parsedLine.amounts : (broadcastAmounts ?? []);
@@ -454,19 +427,12 @@ export async function interpretLotteryTicket(input: InterpretLotteryTicketInput)
       // Resolve amounts with exclusivity & caps
       const { straight, box, combo, notas } = resolveAmounts(numeros, effectiveAmounts);
 
-      out.push({
-        fecha,
-        track,
-        numeros,
-        straight,
-        box,
-        combo,
-        notas,
-      });
+      out.push({ fecha, track, numeros, straight, box, combo, notas });
     }
   }
 
   console.log('[interpretLotteryTicket] Parsed bets:', out.length);
+
   try {
     return InterpretLotteryTicketOutputSchema.parse(out);
   } catch (e) {
