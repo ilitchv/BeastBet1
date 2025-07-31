@@ -1,42 +1,27 @@
 'use server';
 
 /**
- * Replacement: interprets OCR text from a handwritten lottery ticket and returns an array of bets
- * that matches the exact schema required by the frontend.
- *
- * Output shape per item:
- * {
- *   fecha:   "YYYY-MM-DD",
- *   track:   "New York Midday" | ... (see mapping),
- *   numeros: "123" | "10-30" | "7",
- *   straight: number,
- *   box:      number,
- *   combo:    number,
- *   notas:    string
- * }
+ * Deterministic OCR → Parser for lottery tickets.
+ * - If `ocrText` is provided, uses it.
+ * - Else, if `photoDataUri` is provided, runs Google Cloud Vision `documentTextDetection`.
+ * - Parses per the user's rulebook and returns an array of:
+ *   { fecha, track, numeros, straight, box, combo, notas }
  */
 
 import { z } from 'genkit';
 
-// --------- Input / Output Types ---------
-const InterpretLotteryTicketInputSchema = z.object({
-  // Provide OCR text directly if you already ran OCR upstream.
+// ---- Input/Output Schemas ----
+export const InterpretLotteryTicketInputSchema = z.object({
   ocrText: z.string().optional(),
-
-  // If you still pass image here, keep it optional; this function does not OCR by itself.
-  photoDataUri: z.string().optional(),
-
-  // For NY Midday/Evening default; if not provided we use Date.now().
-  serverNowISO: z.string().optional(),
-
-  // (Optional) You can pass header/body/footer text blocks if you segment OCR externally.
-  headerHint: z.string().optional(),
+  photoDataUri: z.string().optional(),     // data URL base64
+  serverNowISO: z.string().optional(),     // for NY default track
+  headerHint: z.string().optional(),       // optional segmentation hints
   bodyHint: z.string().optional(),
   footerHint: z.string().optional(),
 });
 export type InterpretLotteryTicketInput = z.infer<typeof InterpretLotteryTicketInputSchema>;
 
-const ParsedBetSchema = z.object({
+export const ParsedBetSchema = z.object({
   fecha: z.string(),
   track: z.string(),
   numeros: z.string(),
@@ -47,10 +32,10 @@ const ParsedBetSchema = z.object({
 });
 export type ParsedBet = z.infer<typeof ParsedBetSchema>;
 
-const InterpretLotteryTicketOutputSchema = z.array(ParsedBetSchema);
+export const InterpretLotteryTicketOutputSchema = z.array(ParsedBetSchema);
 export type InterpretLotteryTicketOutput = z.infer<typeof InterpretLotteryTicketOutputSchema>;
 
-// --------- Track Mapping (Section 3) ---------
+// ---- Track map & helpers ----
 const TRACK_MAP: Record<string, string> = {
   'MIDDAY': 'New York Midday',
   'NYS': 'New York Night',
@@ -63,8 +48,6 @@ const TRACK_MAP: Record<string, string> = {
   'CONN-NIGHT': 'Connecticut Evening',
   'FLA-MIDDAY': 'Florida Midday',
   'FLA-NIGHT': 'Florida Evening',
-  // We’ll normalize GEORGIA/PENN to Day/Eve if OCR has suffixes:
-  // e.g., "GEORGIA-DAY", "GEORGIA-EVE", "PENN-DAY", "PENN-EVE"
   'GEORGIA-DAY': 'Georgia Day',
   'GEORGIA-EVE': 'Georgia Eve',
   'PENN-DAY': 'Pennsylvania Day',
@@ -75,33 +58,22 @@ const TRACK_MAP: Record<string, string> = {
 
 const CHECKMARKS = /[✔✓☑xX]/;
 
-// --------- Helpers ---------
-const DIGITS = /^\d+$/;
-const PALE_SEP = /[xX+\-]/;               // input separators
-const PALE_NORMALIZE_SEP = '-';            // output separator
-const RANGE_SEP = /\b(?:to|a)\b|–|—|–|-|→/i;
-
 function nowFrom(serverNowISO?: string): Date {
   return serverNowISO ? new Date(serverNowISO) : new Date();
 }
-
 function yyyyMmDd(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
 }
-
 function defaultNYTrackByTime(d: Date): string {
   const hour = d.getHours();
-  // <15:00 → Midday; else Evening/Night
   return hour < 15 ? 'New York Midday' : 'New York Night';
 }
-
 function clean(s: string): string {
   return s.replace(/\s+/g, ' ').trim();
 }
-
 function linesOf(text?: string): string[] {
   return (text ?? '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
 }
@@ -136,7 +108,6 @@ function parseDateCandidate(s: string, today: Date): string | null {
 // Track detection (Section 3)
 function detectTrack(headerText: string, fallbackDate: Date): string {
   const header = headerText.toUpperCase();
-  // Prefer explicit checkmarked lines
   const headerLines = linesOf(headerText);
 
   // First pass: lines with a checkmark and a known abbreviation
@@ -260,7 +231,7 @@ function expandRoundDown(a: string, b: string): string[] | null {
 function normalizePale(s: string): string | null {
   const m = s.match(/^\s*(\d{2})\s*[xX+\-]\s*(\d{2})\s*$/);
   if (!m) return null;
-  return `${m[1]}${PALE_NORMALIZE_SEP}${m[2]}`;
+  return `${m[1]}-${m[2]}`;
 }
 
 // SingleAction (Section 6.3)
@@ -277,8 +248,6 @@ type LineParse = {
 };
 
 // Detect division markers on a line: "/", "÷", long bar/dash variations
-const DIV_MARK = /[\/÷]|(?:\|\¯)|(?:—|–|-)\s*/;
-
 function parseBodyLine(line: string): LineParse {
   const out: LineParse = { bets: [], amounts: [] };
 
@@ -315,7 +284,6 @@ function parseBodyLine(line: string): LineParse {
   const numRegex = /\b\d{1,4}\b/g;
   const nums = rest.match(numRegex) ?? [];
   for (const n of nums) {
-    // Do not create a Palé accidentally (already handled above)
     out.bets.push({ numeros: n, source: n });
   }
 
@@ -338,15 +306,12 @@ function parseBodyLine(line: string): LineParse {
   }
 
   // Plain amounts (straight), but exclude ones already captured as combo or division
-  // We’ll collect all amounts and decide per-bet later.
   const amtRe = /\b(\$?\d+(?:\.\d+)?|\.\d+|\d+\s*[cC])\b(?!\s*[cC])/g;
   let am: RegExpExecArray | null;
   while ((am = amtRe.exec(line))) {
-    // Skip if this token is within a division or combo we already recorded
     const token = am[0];
-    if (comboRe.lastIndex && line.slice(am.index, am.index + token.length + 2).match(/\b[cC]\b/)) continue;
-    // Rough filter: if token is part of a "X / Y" span, it's already handled
-    // (This is heuristic; exclusivity is enforced later anyway)
+    // Skip if this token is within a division or combo we already recorded
+    if (/\b[cC]\b/.test(line.slice(am.index, am.index + token.length + 2))) continue;
     const val = parseAmountToken(token);
     if (val !== null) out.amounts.push({ straight: val, raw: token });
   }
@@ -354,8 +319,7 @@ function parseBodyLine(line: string): LineParse {
   return out;
 }
 
-// Enforce exclusivity per your spec (box > straight; combo exclusive when "C")
-// and adjust by caps
+// Enforce exclusivity & caps; never invent decimals
 function resolveAmounts(numeros: string, lineAmounts: LineParse['amounts']): { straight: number; box: number; combo: number; notas: string } {
   const caps = capsFor(numeros);
   let straight: number | null = null;
@@ -373,7 +337,7 @@ function resolveAmounts(numeros: string, lineAmounts: LineParse['amounts']): { s
     box = adjustByCaps(boxHit.box!, caps.box);
     straight = null; // exclusivity
     combo = null;
-    return { straight: 0, box: box ?? 0, combo: 0, notas: notas.join(';') };
+    return { straight: 0, box: box ?? 0, combo: 0, notas: clean(notas.join(';')) };
   }
 
   // If no box and no combo, look for straight
@@ -382,7 +346,6 @@ function resolveAmounts(numeros: string, lineAmounts: LineParse['amounts']): { s
     if (stHit) straight = adjustByCaps(stHit.straight!, caps.straight);
   }
 
-  // Normalize to numbers with zeroes
   return {
     straight: straight ?? 0,
     box: box ?? 0,
@@ -392,78 +355,96 @@ function resolveAmounts(numeros: string, lineAmounts: LineParse['amounts']): { s
 }
 
 // Final validator on numeros (2-digit rule, letters, etc.)
-function validateNumeros(numeros: string, track: string): { ok: boolean; normalized?: string; notas?: string } {
+function validateNumeros(numeros: string): { ok: boolean; normalized?: string; notas?: string } {
   // Palé OK
   if (/^\d{2}-\d{2}$/.test(numeros)) return { ok: true, normalized: numeros };
 
   // Only digits allowed (1–4), never letters
   if (!/^\d{1,4}$/.test(numeros)) return { ok: false, notas: 'ilegible' };
 
-  // 2-digit numbers must NOT be treated as Peak 3 (we don’t tag game mode anyway; this is informational)
-  // We simply allow them; frontend knows the context.
-
-  // Pad to original digit length (we keep as-is)
   return { ok: true, normalized: numeros };
+}
+
+// ---- OCR via Google Cloud Vision (optional) ----
+async function runVisionOcrFromDataUrl(photoDataUri?: string): Promise<string> {
+  if (!photoDataUri) return '';
+  try {
+    const commaIdx = photoDataUri.indexOf(',');
+    const b64 = commaIdx >= 0 ? photoDataUri.slice(commaIdx + 1) : photoDataUri;
+    const buffer = Buffer.from(b64, 'base64');
+
+    // Lazy import to avoid ESM/CJS headaches in Next.js/Node builds
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const vision = require('@google-cloud/vision') as typeof import('@google-cloud/vision');
+    const client = new vision.ImageAnnotatorClient();
+    const [result] = await client.documentTextDetection({ image: { content: buffer } });
+    const text = result?.fullTextAnnotation?.text ?? '';
+    console.log('[interpretLotteryTicket] OCR chars:', text.length);
+    return text;
+  } catch (err) {
+    console.error('[interpretLotteryTicket] Vision OCR failed:', err);
+    return '';
+  }
 }
 
 // ---- Main ----
 export async function interpretLotteryTicket(input: InterpretLotteryTicketInput): Promise<InterpretLotteryTicketOutput> {
+  // Validate input
   const parsed = InterpretLotteryTicketInputSchema.safeParse(input);
-  if (!parsed.success) throw new Error(`Invalid input: ${parsed.error.message}`);
+  if (!parsed.success) {
+    console.error('[interpretLotteryTicket] Invalid input:', parsed.error);
+    return [];
+  }
 
   const now = nowFrom(input.serverNowISO);
   const todayYmd = yyyyMmDd(now);
 
-  // OCR text: prefer bodyHint+headerHint+footerHint if provided
-  const rawText = clean(
-    [input.headerHint, input.bodyHint, input.footerHint, input.ocrText]
-      .filter(Boolean)
-      .join('\n')
-  );
+  // Resolve OCR text
+  let ocrText = (input.ocrText ?? '').trim();
+  if (!ocrText && input.photoDataUri) {
+    ocrText = await runVisionOcrFromDataUrl(input.photoDataUri);
+  }
+  if (!ocrText) {
+    console.warn('[interpretLotteryTicket] Empty OCR text; returning []');
+    return [];
+  }
 
+  // Build raw text, allow optional header/body/footer hints
+  const rawText = clean([input.headerHint, input.bodyHint, input.footerHint, ocrText].filter(Boolean).join('\n'));
   const allLines = linesOf(rawText);
-  const headerLines: string[] = linesOf(input.headerHint ?? allLines.slice(0, Math.max(1, Math.floor(allLines.length * 0.25))).join('\n'));
-  const footerLines: string[] = linesOf(input.footerHint ?? allLines.slice(Math.floor(allLines.length * 0.75)).join('\n'));
-  const bodyLines: string[] = linesOf(input.bodyHint ?? allLines.join('\n'));
+  const headerLines = linesOf(input.headerHint ?? allLines.slice(0, Math.max(1, Math.floor(allLines.length * 0.25))).join('\n'));
+  const footerLines = linesOf(input.footerHint ?? allLines.slice(Math.floor(allLines.length * 0.75)).join('\n'));
+  const bodyLines = linesOf(input.bodyHint ?? allLines.join('\n'));
 
-  // Detect track from header (Section 3)
+  // Track & date
   const track = detectTrack(headerLines.join('\n'), now);
-
-  // Detect date from footer; ensure never past (Section 2)
   let fecha = todayYmd;
   const footerJoined = footerLines.join(' ');
   const dateFound = parseDateCandidate(footerJoined, now);
   if (dateFound) fecha = dateFound;
 
   const out: ParsedBet[] = [];
-
-  // Keep a broadcast amount (apply to all subsequent bets until overridden), driven by "to all"
   let broadcastAmounts: LineParse['amounts'] | null = null;
 
   for (const rawLine of bodyLines) {
     if (!rawLine) continue;
     const line = clean(rawLine);
-
-    // Skip pure header/footer noise
     if (/TOTAL|SUBTOTAL|BALANCE/i.test(line)) continue;
 
     const parsedLine = parseBodyLine(line);
 
-    // Set or clear broadcast
     if (parsedLine.broadcastToAll) {
       broadcastAmounts = parsedLine.amounts.length ? parsedLine.amounts : broadcastAmounts;
-      continue; // the "to all" line may only carry directive
+      continue; // this line is a directive
     }
 
-    // If no local amounts, but there is an active broadcast, use it
     const effectiveAmounts = parsedLine.amounts.length ? parsedLine.amounts : (broadcastAmounts ?? []);
 
     for (const bet of parsedLine.bets) {
       let numeros = bet.numeros;
 
-      // Normalize Palé already handled.
       // Validate/normalize numeros
-      const v = validateNumeros(numeros, track);
+      const v = validateNumeros(numeros);
       if (!v.ok) {
         out.push({ fecha, track, numeros, straight: 0, box: 0, combo: 0, notas: v.notas ?? 'ilegible' });
         continue;
@@ -473,8 +454,6 @@ export async function interpretLotteryTicket(input: InterpretLotteryTicketInput)
       // Resolve amounts with exclusivity & caps
       const { straight, box, combo, notas } = resolveAmounts(numeros, effectiveAmounts);
 
-      // If we have no amount at all, we still emit the bet with zeros (frontend may handle defaulting),
-      // unless the number is clearly illegible (already filtered).
       out.push({
         fecha,
         track,
@@ -487,45 +466,11 @@ export async function interpretLotteryTicket(input: InterpretLotteryTicketInput)
     }
   }
 
-  // Final pass: ensure output matches schema exactly and never includes past date
-  const result = out.map(b => ({
-    fecha,
-    track: b.track,
-    numeros: b.numeros,
-    straight: b.straight ?? 0,
-    box: b.box ?? 0,
-    combo: b.combo ?? 0,
-    notas: b.notas ?? '',
-  }));
-
-  return InterpretLotteryTicketOutputSchema.parse(result);
+  console.log('[interpretLotteryTicket] Parsed bets:', out.length);
+  try {
+    return InterpretLotteryTicketOutputSchema.parse(out);
+  } catch (e) {
+    console.error('[interpretLotteryTicket] Output validation failed:', e);
+    return [];
+  }
 }
-
-/* -----------------------------
- * Quick self-check examples (you can remove after testing)
- * -----------------------------
- *
- * 1) Palé straight:
- *   "05x55 - 1"  -> numeros:"05-55", straight:1, box:0, combo:0
- *
- * 2) Palé box:
- *   "24+28 / 50c" -> numeros:"24-28", straight:0, box:0.50, combo:0
- *
- * 3) Palé combo:
- *   "10-30 2 C" -> numeros:"10-30", combo:2, straight:0, box:0
- *
- * 4) Round-down:
- *   "033 - 933  $1" -> expands to 10 bets: 033,133,...,933 each straight:1
- *
- * 5) 2-digit never Pick 3:
- *   "24  3" -> numeros:"24", straight:3 (kept as 2-digit game)
- *
- * 6) SingleAction:
- *   "7  5" -> numeros:"7", straight:5
- *
- * 7) Division overrides straight:
- *   "123 2.75 / .25" -> numeros:"123", box:0.25, straight:0
- *
- * 8) Date:
- *   Footer "4-30-25" on 2025-07-31 -> ignore (past) → fecha=today; only accept today or future.
- */
