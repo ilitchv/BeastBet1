@@ -69,9 +69,8 @@ Nunca devolver fecha pasada.
 
 2a. MAPEO POR COLUMNAS (DOMINA SOBRE MARCAS DE TEXTO)
 - Si un monto está escrito en la columna titulada “Com” o “Combo”, trátalo como COMBO aunque no haya una “C/Com” al final.
-- Si un monto está bajo la columna “Box” (o hay el símbolo de división “/”), trátalo como BOX.
+- Si un monto está bajo la columna “Box” (o hay el símbolo de división “/”), o tiene un símbolo de dos lineas al lado del numero, trátalo como BOX.
 - Si un monto está bajo la columna “Str”, “Pulito” o “Straight”, trátalo como STRAIGHT.
-- Solo un tipo por número/renlgón. Si aparecen varios, conserva exactamente uno con la precedencia: COMBO > BOX > STRAIGHT.
 - Para los tipos NO aplicables, devuelve **null** (no uses 0).
 
 3. TRACKS / LOTERÍAS
