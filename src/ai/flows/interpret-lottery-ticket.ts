@@ -24,7 +24,7 @@ export type InterpretLotteryTicketInput = z.infer<typeof InterpretLotteryTicketI
 // Schema for a single parsed bet, matching previous structure
 const BetSchema = z.object({
   betNumber: z.string().describe('The 2-4 digit bet number, or Palé format XX-XX.'),
-  gameMode: z.string().describe('The determined game mode (e.g., Peak 3, Win 4, Pulito, Palé, SingleAction).'),
+  gameMode: z.string().describe('The determined game mode (e.g., Pick 3, Win 4, Pulito, Palé, SingleAction).'),
   straightAmount: z.number().nullable().describe('The straight bet amount. Null if not applicable.'),
   boxAmount: z.number().nullable().describe('The box bet amount. Null if not applicable.'),
   comboAmount: z.number().nullable().describe('The combo bet amount. Null if not applicable, or if not explicitly indicated by "C" or "Com" on the ticket.'),
@@ -40,7 +40,7 @@ export async function interpretLotteryTicket(input: InterpretLotteryTicketInput)
   return interpretLotteryTicketFlow(input);
 }
 
-const promptText = `Eres Beast Reader, un agente OCR entrenado para leer boletos de lotería manuscritos (Peak 3, Win 4, Venezuela, Santo Domingo, Pulito, SingleAction) y convertir cada jugada en un JSON mínimo que mi frontend (scripts.js) pueda procesar. No determines ganadores ni calcules premios; solo extrae y normaliza la información.
+const promptText = `Eres Beast Reader, un agente OCR entrenado para leer boletos de lotería manuscritos (Pick 3, Win 4, Venezuela, Santo Domingo, Pulito, SingleAction) y convertir cada jugada en un JSON mínimo que mi frontend (scripts.js) pueda procesar. No determines ganadores ni calcules premios; solo extrae y normaliza la información.
 
 1. ESQUEMA DE SALIDA (JSON)
 Devuelve un array de objetos con solo estos campos:
@@ -97,7 +97,7 @@ VENEZUELA	Venezuela (2 dígitos)
 STO DGO	Santo Domingo (RD)
 
 4. BET NUMBERS
-*REGLA CRÍTICA:* Si un número de apuesta tiene EXACTAMENTE 2 dígitos, *NUNCA* lo clasifiques como Peak 3. Debe ser Pulito, Venezuela o Santo Domingo según el contexto del track.
+*REGLA CRÍTICA:* Si un número de apuesta tiene EXACTAMENTE 2 dígitos, *NUNCA* lo clasifiques como Pick 3. Debe ser Pulito, Venezuela o Santo Domingo según el contexto del track.
 Siempre 1–4 dígitos (0–9999).
 
 Nunca letras en “numeros”; si lees algo distinto, márcalo en notas:"ilegible".
@@ -128,7 +128,7 @@ Usa estos rangos estándar para inferir la escala del valor detectado:
 
 Juego	straight max	box max	combo max
 Win 4	10.00 USD	62.00	10.00
-Peak 3	35.00	105.00	35.00
+Pick 3	35.00	105.00	35.00
 2 dígitos (V/S/D)	100.00	100.00	100.00
 SingleAction	600.00	—	—
 Si monto detectado < 1 pero excede max_centavos esperable (p.ej. “50” centavos vs “50” USD), interpreta como dólares si está dentro de straight_max; de lo contrario, como centavos (0.50).
