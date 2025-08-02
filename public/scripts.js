@@ -113,10 +113,7 @@ function normalizeInterpretedBets(raw) {
             if (cleaned === '') return null;
             return isNaN(parseFloat(cleaned)) ? null : parseFloat(cleaned);
         }
-        if (typeof v === 'number') {
-            // Treat 0 as "empty" for UI placement (leave column blank)
-            return v === 0 ? null : v;
-        }
+        if (typeof v === 'number') { return v; }
         return null;
     };
 
@@ -138,7 +135,7 @@ function normalizeInterpretedBets(raw) {
         // enforce a single target column by precedence: combo > box > straight.
         const nonNull = [st, bx, co].filter(v => v !== null);
         if (nonNull.length > 1) {
-            // Resolve ambiguity by precedence: combo > box > straight
+            // Resolve by precedence: combo > box > straight
             if (co !== null) { st = null; bx = null; }
             else if (bx !== null) { st = null; co = null; }
             else { bx = null; co = null; }
@@ -1548,7 +1545,7 @@ function addMainRow(bet = null) {
         co_val = (bet.comboAmount !== null && bet.comboAmount !== undefined) ? String(bet.comboAmount) : "";
         
         const currentTracks = getCurrentSelectedTracks();
-        gm_val = bet.gameMode || determineGameMode(bn_val, currentTracks);
+        gm_val = determineGameMode(bn_val, currentTracks);
         // Ensure exclusive placement: only one of Straight/Box/Combo should be filled.
         // If multiple are present, keep precedence combo > box > straight; blank the rest.
         const _stNum = (st_val !== undefined && st_val !== null && st_val !== '') ? parseFloat(st_val) : null;
@@ -1559,7 +1556,7 @@ function addMainRow(bet = null) {
 
         const nonEmptyCount = [ _stNum, _bxNum, _coNum ].filter(v => v !== null).length;
         if (nonEmptyCount > 1) {
-            // Resolve ambiguity by precedence: combo > box > straight
+            // Resolve by precedence: combo > box > straight
             if (_coNum !== null) { st_val = ''; bx_val = ''; }
             else if (_bxNum !== null) { st_val = ''; co_val = ''; }
             else { bx_val = ''; co_val = ''; }
