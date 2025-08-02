@@ -240,7 +240,19 @@ const interpretLotteryTicketFlow = ai.defineFlow(
       }
     });
 
-    return Array.from(consolidatedBetsMap.values());
+    const consolidated = Array.from(consolidatedBetsMap.values()).map(b => {
+      const hasCo = b.comboAmount != null;
+      const hasBx = b.boxAmount != null;
+      const hasSt = b.straightAmount != null;
+      const count = (hasCo?1:0) + (hasBx?1:0) + (hasSt?1:0);
+      if (count > 1) {
+        if (hasCo) { b.straightAmount = null; b.boxAmount = null; }
+        else if (hasBx) { b.straightAmount = null; b.comboAmount = null; }
+        else { b.boxAmount = null; b.comboAmount = null; }
+      }
+      return b;
+    });
+    return consolidated;
   }
 );
     
