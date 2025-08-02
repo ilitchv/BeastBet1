@@ -138,9 +138,10 @@ function normalizeInterpretedBets(raw) {
         // enforce a single target column by precedence: combo > box > straight.
         const nonNull = [st, bx, co].filter(v => v !== null);
         if (nonNull.length > 1) {
-            // Ambiguity: per spec, default to straight
-            bx = null;
-            co = null;
+            // Resolve ambiguity by precedence: combo > box > straight
+            if (co !== null) { st = null; bx = null; }
+            else if (bx !== null) { st = null; co = null; }
+            else { bx = null; co = null; }
         }
 
         // Build normalized object in the shape the rest of the app expects.
@@ -1558,9 +1559,10 @@ function addMainRow(bet = null) {
 
         const nonEmptyCount = [ _stNum, _bxNum, _coNum ].filter(v => v !== null).length;
         if (nonEmptyCount > 1) {
-            // Ambiguous: keep Straight, blank Box/Combo
-            bx_val = '';
-            co_val = '';
+            // Resolve ambiguity by precedence: combo > box > straight
+            if (_coNum !== null) { st_val = ''; bx_val = ''; }
+            else if (_bxNum !== null) { st_val = ''; co_val = ''; }
+            else { bx_val = ''; co_val = ''; }
         }
 
     }
