@@ -67,6 +67,13 @@ Si no aparece, usar la fecha actual (formato YYYY-MM-DD).
 
 Nunca devolver fecha pasada.
 
+2a. MAPEO POR COLUMNAS (DOMINA SOBRE MARCAS DE TEXTO)
+- Si un monto está escrito en la columna titulada “Com” o “Combo”, trátalo como COMBO aunque no haya una “C/Com” al final.
+- Si un monto está bajo la columna “Box” (o hay el símbolo de división “/”), trátalo como BOX.
+- Si un monto está bajo la columna “Str”, “Pulito” o “Straight”, trátalo como STRAIGHT.
+- Solo un tipo por número/renlgón. Si aparecen varios, conserva exactamente uno con la precedencia: COMBO > BOX > STRAIGHT.
+- Para los tipos NO aplicables, devuelve **null** (no uses 0).
+
 3. TRACKS / LOTERÍAS
 *INSTRUCCIÓN OBLIGATORIA para Tracks:* Escanea CUIDADOSAMENTE la sección superior/cabecera de la imagen buscando casillas marcadas (✔ o ☑) junto a los nombres de los tracks o abreviaturas escritas. *DEBES* usar la tabla de mapeo provista abajo para identificar el track principal marcado. Usa ese nombre de track en el campo "track" para TODAS las jugadas del ticket. Si hay varias marcas, prioriza NY o la más clara. Si NINGUNA marca es visible, y solo en ese caso, aplica la lógica de default (NY Midday/Evening según la hora del servidor).
 
@@ -208,19 +215,24 @@ const interpretLotteryTicketFlow = ai.defineFlow(
     }
 
     // Post-processing to ensure comboAmount is null if not explicitly a combo
-    const processedOutput = output.map(bet => {
-      // Basic check: if comboAmount is present and identical to straightAmount,
-      // and boxAmount is null or zero, it might be a misinterpretation unless "combo" was explicitly stated.
-      // For now, we're relying heavily on the prompt for this.
-      // A more robust solution might involve the AI also returning a flag if "combo" keyword was seen.
-      return {
-        betNumber: String(bet.betNumber || ""),
-        gameMode: String(bet.gameMode || "Unknown"),
-        straightAmount: typeof bet.straightAmount === 'number' ? bet.straightAmount : null,
-        boxAmount: typeof bet.boxAmount === 'number' ? bet.boxAmount : null,
-        comboAmount: typeof bet.comboAmount === 'number' ? bet.comboAmount : null, // Ensure this is handled correctly by the prompt.
-      };
-    });
+    const processedOutput = output.map((bet) => {
+  const st = typeof bet.straightAmount === 'number' ? bet.straightAmount : null;
+  const bx = typeof bet.boxAmount === 'number' ? bet.boxAmount : null;
+  const co = typeof bet.comboAmount === 'number' ? bet.comboAmount : null;
+
+  // Convert “0 means not present” to null so the UI doesn’t see spurious zeros
+  const straightAmount = st === 0 ? null : st;
+  const boxAmount = bx === 0 ? null : bx;
+  const comboAmount = co === 0 ? null : co;
+
+  return {
+    betNumber: String(bet.betNumber || ""),
+    gameMode: String(bet.gameMode || "Unknown"),
+    straightAmount,
+    boxAmount,
+    comboAmount,
+  };
+});
 
     // Consolidate bets if the model still splits them for the same betNumber
     const consolidatedBetsMap = new Map<string, Bet>();
