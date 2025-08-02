@@ -103,20 +103,21 @@ function normalizeInterpretedBets(raw) {
     if (!Array.isArray(raw)) return [];
     const norm = [];
 
-    const toNum = (v) => {
-        if (v === null || v === undefined) return null;
-        if (typeof v === 'string') {
-            const trimmed = v.trim();
-            if (trimmed === '') return null;
-            // Accept "50c" or ".50" styles -> parse as float
-            const cleaned = trimmed.replace(/[^0-9.]/g, '');
-            if (cleaned === '') return null;
-            return isNaN(parseFloat(cleaned)) ? null : parseFloat(cleaned);
-        }
-        if (typeof v === 'number') { return v; }
-        return null;
-    };
-
+   const toNum = (v) => {
+  if (v === null || v === undefined) return null;
+  if (typeof v === 'string') {
+    const trimmed = v.trim();
+    if (trimmed === '') return null;
+    const cleaned = trimmed.replace(/[^0-9.]/g, '');
+    if (cleaned === '') return null;
+    return isNaN(parseFloat(cleaned)) ? null : parseFloat(cleaned);
+  }
+  if (typeof v === 'number') { 
+    // keep numeric 0; don't treat it as "empty"
+    return v; 
+  }
+  return null;
+};
     for (const item of raw) {
         // Accept both schemas:
         // v1: { betNumber, straightAmount, boxAmount, comboAmount, gameMode? }
@@ -134,12 +135,12 @@ function normalizeInterpretedBets(raw) {
         // If legacy back-end was sending same value in all three,
         // enforce a single target column by precedence: combo > box > straight.
         const nonNull = [st, bx, co].filter(v => v !== null);
-        if (nonNull.length > 1) {
-            // Resolve by precedence: combo > box > straight
-            if (co !== null) { st = null; bx = null; }
-            else if (bx !== null) { st = null; co = null; }
-            else { bx = null; co = null; }
-        }
+if (nonNull.length > 1) {
+  // Resolve by precedence: combo > box > straight
+  if (co !== null) { st = null; bx = null; }
+  else if (bx !== null) { st = null; co = null; }
+  else { bx = null; co = null; }
+}
 
         // Build normalized object in the shape the rest of the app expects.
         const normalized = {
@@ -1554,13 +1555,13 @@ function addMainRow(bet = null) {
         ) : null;
         const _coNum = (co_val !== undefined && co_val !== null && co_val !== '') ? parseFloat(co_val) : null;
 
-        const nonEmptyCount = [ _stNum, _bxNum, _coNum ].filter(v => v !== null).length;
-        if (nonEmptyCount > 1) {
-            // Resolve by precedence: combo > box > straight
-            if (_coNum !== null) { st_val = ''; bx_val = ''; }
-            else if (_bxNum !== null) { st_val = ''; co_val = ''; }
-            else { bx_val = ''; co_val = ''; }
-        }
+        const nonEmptyCount = [_stNum, _bxNum, _coNum].filter(v => v !== null).length;
+if (nonEmptyCount > 1) {
+  // Resolve by precedence: combo > box > straight
+  if (_coNum !== null) { st_val = ''; bx_val = ''; }
+  else if (_bxNum !== null) { st_val = ''; co_val = ''; }
+  else { bx_val = ''; co_val = ''; }
+}
 
     }
 
