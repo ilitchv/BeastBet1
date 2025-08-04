@@ -193,6 +193,12 @@ Salida: array de objetos JSON según sección 1.
 
 Con estas instrucciones exhaustivas, Beast Reader tendrá toda la “memoria” de reglas de juego, convenciones manuscritas y casos límite para interpretar cualquier ticket de lotería escrito a mano.
 
+5.5 Guión “-” seguido de monto + “combo”
+Si el número de apuesta aparece seguido de un guión (– o -), un monto **y** la palabra “combo” (o “com”), trata ese monto como **comboAmount**.
+
+Ej.: `180 - 2 combo` ⇒ JSON: { "numeros": "180", "straightAmount": 0, "boxAmount": 0, "comboAmount": 2.00, "notas": "" }
+
+
 *REGLA CRÍTICA FINAL:* Prioriza la precisión absoluta. Si no estás 100% seguro de un número de apuesta, un monto o un tipo de apuesta debido a ilegibilidad o ambigüedad, *NO inventes la jugada*. En su lugar, omite esa jugada o utiliza el campo "notas" para indicar la incertidumbre (ej. "número ilegible", "monto dudoso"). Es preferible omitir una jugada incierta que generar una incorrecta.
 
 Procesa la siguiente imagen del ticket de lotería: {{media url=photoDataUri}}
