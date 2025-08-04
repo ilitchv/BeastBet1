@@ -22,13 +22,28 @@ const InterpretLotteryTicketInputSchema = z.object({
 export type InterpretLotteryTicketInput = z.infer<typeof InterpretLotteryTicketInputSchema>;
 
 // Schema for a single parsed bet, matching previous structure
+const Amount = z.coerce.number().nullable();
+
+// Accept both legacy short keys (straight/box/combo) and normalized ...Amount keys, then normalize.
 const BetSchema = z.object({
   betNumber: z.string().describe('The 2-4 digit bet number, or Palé format XX-XX.'),
   gameMode: z.string().describe('The determined game mode (e.g., Pick 3, Win 4, Pulito, Palé, SingleAction).'),
-  straightAmount: z.number().nullable().describe('The straight bet amount. Null if not applicable.'),
-  boxAmount: z.number().nullable().describe('The box bet amount. Null if not applicable.'),
-  comboAmount: z.number().nullable().describe('The combo bet amount. Null if not applicable, or if not explicitly indicated by "C" or "Com" on the ticket.'),
-});
+  // Normalized keys (preferred)
+  straightAmount: Amount.optional().describe('The straight bet amount. Null if not applicable.'),
+  boxAmount: Amount.optional().describe('The box bet amount. Null if not applicable.'),
+  comboAmount: Amount.optional().describe('The combo bet amount. Null if not explicitly indicated by "C" or "Com" on the ticket.'),
+  // Legacy short keys (tolerated)
+  straight: Amount.optional(),
+  box: Amount.optional(),
+  combo: Amount.optional(),
+}).transform(b => ({
+  betNumber: b.betNumber,
+  gameMode: b.gameMode,
+  straightAmount: b.straightAmount ?? b.straight ?? null,
+  boxAmount:      b.boxAmount      ?? b.box      ?? null,
+  comboAmount:    b.comboAmount    ?? b.combo    ?? null,
+}));
+
 export type Bet = z.infer<typeof BetSchema>;
 
 
@@ -50,9 +65,9 @@ Devuelve un array de objetos con solo estos campos:
     "fecha":    "YYYY-MM-DD",    // Fecha escrita o “hoy” si no hay
     "track":    "New York Midday",
     "numeros":  "123",           // bet number: 2–4 dígitos puros
-    "straight": 1.00,            // monto $ straight
-    "box":      0.50,            // monto $ box
-    "combo":    0.00,            // monto $ combo
+    "straightAmount": 1.00,            // monto $ straight
+    "boxAmount":      0.50,            // monto $ box
+    "comboAmount":    0.00,            // monto $ combo
     "notas":    ""               // “ilegible”, “montoFueraDeRango”, etc.
   }
 ]
@@ -107,20 +122,20 @@ Permite X, -, + solo en Palé para separar parejas de dos dígitos (ej. "24-28")
 *REGLA CRÍTICA:* Lee el monto *EXACTAMENTE* como está escrito. *NO inventes decimales ni modifiques el valor.*
 5.1 Monto único → straight
 *REGLA:* Si un monto aparece junto a un número de apuesta *sin* un símbolo de división (ver 5.2) ni la abreviatura "C" (ver 5.3), se interpreta como apuesta *straight*. El monto detectado va al campo "straight". Los campos "box" y "combo" deben ser 0.
-Ej. Si ves '$3' o '3 pesos' junto a un número, el JSON debe ser "straight": 3.00, "box": 0, "combo": 0.
-Ej. Si ves '50c' o '.50' junto a un número, debe ser "straight": 0.50, "box": 0, "combo": 0.
-Ej. 2.75 junto a un número ⇒ "straight":2.75, "box":0, "combo":0
+Ej. Si ves '$3' o '3 pesos' junto a un número, el JSON debe ser "straightAmount": 3.00, "boxAmount": 0, "comboAmount": 0.
+Ej. Si ves '50c' o '.50' junto a un número, debe ser "straightAmount": 0.50, "boxAmount": 0, "comboAmount": 0.
+Ej. 2.75 junto a un número ⇒ "straightAmount":2.75, "boxAmount":0, "comboAmount":0
 
 5.2 División manual → box
 *REGLA CRÍTICA:* Si un monto aparece junto a un número de apuesta *y está CLARAMENTE seguido o encerrado por* un símbolo de división manuscrito (como “barra horizontal”, “/”, “÷”, o el símbolo clásico |¯ ), se interpreta como apuesta *box*. El monto detectado va al campo "box". Los campos "straight" y "combo" deben ser 0.
 Ej. 2.75 ─ 0.25 o 2.75 / .25 o 2.75 |¯0.25 junto a un número ⇒
-"straight":0, "box":0.25, "combo":0
+"straightAmount":0, "boxAmount":0.25, "comboAmount":0
 
 Importante: Busca activamente estos símbolos de división. La presencia de cualquiera de estos símbolos junto a un monto indica que es una apuesta *box. Si no hay símbolo de división ni "C", es **straight* (ver 5.1).
 
 5.3 “C” abreviatura → combo
 Si tras el monto hay una C mayúscula o subrayada (p.ej. 5 C):
-"combo":5.00, "straight":0, "box":0
+"comboAmount":5.00, "straightAmount":0, "boxAmount":0
 
 5.4 Límites de apuesta (inferencia de dólares vs. centavos)
 Usa estos rangos estándar para inferir la escala del valor detectado:
@@ -137,9 +152,9 @@ Si monto detectado < 1 pero excede max_centavos esperable (p.ej. “50” centav
 Detecta rangos indicados por dos números separados por raya, "to", flecha, etc. (p.ej., "033-933", "120 to 129").
 Regla de Expansión: Compara los dígitos en la misma posición entre el número inicial y final. Si un dígito va de '0' en el inicio a '9' en el final, ESE dígito es el que debe incrementarse de 0 a 9 para generar las 10 jugadas. Los otros dígitos permanecen constantes como en el número inicial.
 Genera las 10 jugadas resultantes (incluyendo la inicial y la final si encajan en el patrón 0-9) con el mismo monto straight asociado al rango.
-Ej. "033 - 933" con $1: El primer dígito va de 0 a 9. Genera: "033", "133", "233", "333", "433", "533", "633", "733", "833", "933", cada una con "straight": 1.00.
-Ej. "120 to 129" con $0.50: El último dígito va de 0 a 9. Genera: "120", "121", "122", "123", "124", "125", "126", "127", "128", "129", cada una con "straight": 0.50.
-Ej. "000 - 999" con $0.25: Los tres dígitos van de 0 a 9. Genera: "000", "111", "222", "333", "444", "555", "666", "777", "888", "999", cada una con "straight": 0.25.
+Ej. "033 - 933" con $1: El primer dígito va de 0 a 9. Genera: "033", "133", "233", "333", "433", "533", "633", "733", "833", "933", cada una con "straightAmount": 1.00.
+Ej. "120 to 129" con $0.50: El último dígito va de 0 a 9. Genera: "120", "121", "122", "123", "124", "125", "126", "127", "128", "129", cada una con "straightAmount": 0.50.
+Ej. "000 - 999" con $0.25: Los tres dígitos van de 0 a 9. Genera: "000", "111", "222", "333", "444", "555", "666", "777", "888", "999", cada una con "straightAmount": 0.25.
 Si el rango no sigue un patrón claro de 0-9 en alguna posición, no lo expandas y anótalo en "notas".
 
 6.2 Palé (Formato: XX[sep]XX - Monto)
@@ -147,9 +162,9 @@ Si el rango no sigue un patrón claro de 0-9 en alguna posición, no lo expandas
 *Normalización:* El campo numeros en el JSON debe ser un *string* único "XX-XX" (siempre usa guion como separador en la salida).
 *Monto:* El monto que sigue a la jugada Palé (ej. 05x55 - 1) se asigna siguiendo las reglas generales de la Sección 5. Normalmente irá a straight si no hay otros símbolos. **No asumas que el monto de Palé va a box por defecto.**
 *Ejemplo de Interpretación:*
-- Entrada: 05x55 - 1 ⇒ JSON: { "numeros": "05-55", "straight": 1.00, "box": 0, "combo": 0, "notas": "" }
-- Entrada: 24+28 / 50c ⇒ JSON: { "numeros": "24-28", "straight": 0, "box": 0.50, "combo": 0, "notas": "" }
-- Entrada: 10-30 2 C ⇒ JSON: { "numeros": "10-30", "straight": 0, "box": 0, "combo": 2.00, "notas": "" }
+- Entrada: 05x55 - 1 ⇒ JSON: { "numeros": "05-55", "straightAmount": 1.00, "boxAmount": 0, "comboAmount": 0, "notas": "" }
+- Entrada: 24+28 / 50c ⇒ JSON: { "numeros": "24-28", "straightAmount": 0, "boxAmount": 0.50, "comboAmount": 0, "notas": "" }
+- Entrada: 10-30 2 C ⇒ JSON: { "numeros": "10-30", "straightAmount": 0, "boxAmount": 0, "comboAmount": 2.00, "notas": "" }
 
 *Importante:* No confundas la segunda pareja de dígitos del Palé con un monto. Busca el monto después de la estructura completa "XX[sep]XX".
 
@@ -158,9 +173,9 @@ Detecta apuestas de 1 dígito (0–9), usadas en New York Horses o pulsito:
 
 {
   "numeros":"7",
-  "straight":5.00,
-  "box":0,
-  "combo":0
+  "straightAmount":5.00,
+  "boxAmount":0,
+  "comboAmount":0
 }
 
 7. CONTEXTO Y VALIDACIÓN
@@ -215,9 +230,17 @@ const interpretLotteryTicketFlow = ai.defineFlow(
 
     // Post-processing to ensure comboAmount is null if not explicitly a combo
     const processedOutput = output.map((bet) => {
-  const st = typeof bet.straightAmount === 'number' ? bet.straightAmount : null;
-  const bx = typeof bet.boxAmount === 'number' ? bet.boxAmount : null;
-  const co = typeof bet.comboAmount === 'number' ? bet.comboAmount : null;
+  const toNum = (v: any): number|null => {
+    if (v === null || v === undefined) return null;
+    if (typeof v === 'number' && Number.isFinite(v)) return v;
+    if (typeof v === 'string' && v.trim() !== '' && !isNaN(Number(v))) return Number(v);
+    return null;
+  };
+
+  // Support both normalized and legacy keys (in case earlier schema versions leak through)
+  const st = toNum((bet as any).straightAmount ?? (bet as any).straight);
+  const bx = toNum((bet as any).boxAmount ?? (bet as any).box);
+  const co = toNum((bet as any).comboAmount ?? (bet as any).combo);
 
   // Convert “0 means not present” to null so the UI doesn’t see spurious zeros
   const straightAmount = st === 0 ? null : st;
@@ -225,8 +248,7 @@ const interpretLotteryTicketFlow = ai.defineFlow(
   const comboAmount = co === 0 ? null : co;
 
   return {
-    betNumber: String(bet.betNumber || ""),
-    gameMode: String(bet.gameMode || "Unknown"),
+    ...bet,
     straightAmount,
     boxAmount,
     comboAmount,
@@ -236,7 +258,7 @@ const interpretLotteryTicketFlow = ai.defineFlow(
     // Consolidate bets if the model still splits them for the same betNumber
     const consolidatedBetsMap = new Map<string, Bet>();
     processedOutput.forEach(bet => {
-      const key = bet.betNumber;
+      const key = `${bet.betNumber}|${bet.gameMode}`;
       if (consolidatedBetsMap.has(key)) {
         const existingBet = consolidatedBetsMap.get(key)!;
         existingBet.straightAmount = existingBet.straightAmount ?? bet.straightAmount;
@@ -252,13 +274,16 @@ const interpretLotteryTicketFlow = ai.defineFlow(
     });
 
     const consolidated = Array.from(consolidatedBetsMap.values()).map(b => {
-      const hasCo = b.comboAmount != null;
-      const hasBx = b.boxAmount != null;
-      const hasSt = b.straightAmount != null;
+      const EPS = 0.001;
+      const nz = (v: number | null | undefined) => v != null && Math.abs(v) >= EPS;
+      const hasCo = nz(b.comboAmount);
+      const hasBx = nz(b.boxAmount);
+      const hasSt = nz(b.straightAmount);
       const count = (hasCo?1:0) + (hasBx?1:0) + (hasSt?1:0);
       if (count > 1) {
-        if (hasCo) { b.straightAmount = null; b.boxAmount = null; }
-        else if (hasBx) { b.straightAmount = null; b.comboAmount = null; }
+        // Prefer combo > box > straight when multiple are materially non-zero
+        if (hasCo) { b.boxAmount = null; b.straightAmount = null; }
+        else if (hasBx) { b.comboAmount = null; b.straightAmount = null; }
         else { b.boxAmount = null; b.comboAmount = null; }
       }
       return b;
