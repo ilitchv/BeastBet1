@@ -22,6 +22,22 @@ window.copiedAmounts = {};
 // re-rendering (helps preserve the QR code).
 let latestTicketDataUrl = null;
 let latestTicketBlob = null;
+let latestQrDataUrl = null;
+
+function dataUrlToBlob(dataUrl) {
+    if (!dataUrl) return null;
+    const parts = dataUrl.split(',');
+    if (parts.length < 2) return null;
+    const mimeMatch = parts[0].match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : 'image/png';
+    const binary = atob(parts[1]);
+    const len = binary.length;
+    const buffer = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        buffer[i] = binary.charCodeAt(i);
+    }
+    return new Blob([buffer], { type: mime });
+}
 
 // Cutoff times (remains unchanged)
 const cutoffTimes = {
@@ -751,6 +767,33 @@ $(document).ready(function() {
                 });
                 qrCodeGenerated = true;
                 console.log("QR Code generated successfully");
+
+                const qrContainer = document.getElementById("qrcode");
+                let qrDataUrl = null;
+                if (qrContainer) {
+                    const qrCanvas = qrContainer.querySelector("canvas");
+                    if (qrCanvas) {
+                        qrDataUrl = qrCanvas.toDataURL("image/png");
+                    } else {
+                        const existingImg = qrContainer.querySelector("img");
+                        if (existingImg && existingImg.src && existingImg.src.startsWith("data:")) {
+                            qrDataUrl = existingImg.src;
+                        }
+                    }
+                }
+
+                if (qrContainer && qrDataUrl) {
+                    latestQrDataUrl = qrDataUrl;
+                    qrContainer.innerHTML = "";
+                    const qrImg = document.createElement("img");
+                    qrImg.src = latestQrDataUrl;
+                    qrImg.alt = `Código QR del ticket ${uniqueTicket}`;
+                    qrImg.width = 128;
+                    qrImg.height = 128;
+                    qrImg.style.display = "block";
+                    qrImg.style.margin = "0 auto";
+                    qrContainer.appendChild(qrImg);
+                }
             } catch (error) {
                 console.error("Error generating QR Code:", error);
             }
@@ -829,90 +872,36 @@ $(document).ready(function() {
                     // CORRECCIÓN QR: Limpiar completamente el área del QR y regenerar
                     const qrInClone = clonedDoc.getElementById("qrcode");
                     if (qrInClone) {
-                        // Limpiar cualquier superposición o fondo
                         qrInClone.style.visibility = 'visible';
                         qrInClone.style.opacity = '1';
                         qrInClone.style.display = 'block';
                         qrInClone.style.width = '128px';
                         qrInClone.style.height = '128px';
-                        qrInClone.style.backgroundColor = 'transparent'; // Fondo transparente
+                        qrInClone.style.backgroundColor = 'transparent';
                         qrInClone.style.position = 'relative';
                         qrInClone.style.zIndex = '1000';
                         qrInClone.style.overflow = 'visible';
                         qrInClone.style.border = 'none';
                         qrInClone.style.padding = '10px';
                         qrInClone.style.margin = '10px auto 30px auto';
-                        
-                        // Buscar y limpiar elementos QR
-                        const qrCanvas = qrInClone.querySelector('canvas');
+
                         const qrImg = qrInClone.querySelector('img');
-                        const qrTable = qrInClone.querySelector('table');
-                        
-                        // Limpiar cualquier elemento hijo que pueda estar superpuesto
-                        const allChildren = qrInClone.querySelectorAll('*');
-                        allChildren.forEach(child => {
-                            child.style.backgroundColor = 'transparent';
-                            child.style.position = 'static';
-                            child.style.zIndex = 'auto';
-                            child.style.border = 'none';
-                            child.style.outline = 'none';
-                            child.style.boxShadow = 'none';
-                        });
-                        
-                        if (qrCanvas) {
-                            qrCanvas.style.visibility = 'visible';
-                            qrCanvas.style.opacity = '1';
-                            qrCanvas.style.display = 'block';
-                            qrCanvas.style.backgroundColor = 'transparent';
-                            qrCanvas.style.position = 'static';
-                            qrCanvas.style.zIndex = '1001';
-                            qrCanvas.style.width = '128px'; // Mantener dimensión exacta
-                            qrCanvas.style.height = '128px'; // Mantener dimensión exacta
-                            qrCanvas.style.maxWidth = '128px';
-                            qrCanvas.style.maxHeight = '128px';
-                            console.log("QR Canvas limpiado y configurado");
-                        }
-                        
                         if (qrImg) {
+                            if (latestQrDataUrl) {
+                                qrImg.src = latestQrDataUrl;
+                            }
                             qrImg.style.visibility = 'visible';
                             qrImg.style.opacity = '1';
                             qrImg.style.display = 'block';
                             qrImg.style.backgroundColor = 'transparent';
                             qrImg.style.position = 'static';
                             qrImg.style.zIndex = '1001';
-                            qrImg.style.width = '128px'; // Mantener dimensión exacta
-                            qrImg.style.height = '128px'; // Mantener dimensión exacta
+                            qrImg.style.width = '128px';
+                            qrImg.style.height = '128px';
                             qrImg.style.maxWidth = '128px';
                             qrImg.style.maxHeight = '128px';
-                            console.log("QR Image limpiado y configurado");
+                            console.log("QR Image configurado en clon de descarga");
                         }
-                        
-                        if (qrTable) {
-                            qrTable.style.visibility = 'visible';
-                            qrTable.style.opacity = '1';
-                            qrTable.style.display = 'block';
-                            qrTable.style.backgroundColor = 'transparent';
-                            qrTable.style.position = 'static';
-                            qrTable.style.zIndex = '1001';
-                            qrTable.style.borderCollapse = 'collapse';
-                            qrTable.style.width = '128px'; // Mantener dimensión exacta
-                            qrTable.style.height = '128px'; // Mantener dimensión exacta
-                            qrTable.style.maxWidth = '128px';
-                            qrTable.style.maxHeight = '128px';
-                            
-                            // Limpiar celdas de la tabla QR
-                            const qrCells = qrTable.querySelectorAll('td');
-                            qrCells.forEach(cell => {
-                                cell.style.backgroundColor = 'transparent';
-                                cell.style.border = 'none';
-                                cell.style.padding = '0';
-                                cell.style.margin = '0';
-                            });
-                            
-                            console.log("QR Table limpiado y configurado");
-                        }
-                        
-                        console.log("QR completamente limpiado y procesado");
                     } else {
                         console.error("QR Code element no encontrado en clon para descarga");
                     }
@@ -991,11 +980,13 @@ $(document).ready(function() {
                 if (latestTicketBlob) {
                     shareBlob = latestTicketBlob;
                 } else if (latestTicketDataUrl) {
-                    const response = await fetch(latestTicketDataUrl);
-                    shareBlob = await response.blob();
+                    shareBlob = dataUrlToBlob(latestTicketDataUrl);
                 }
 
                 if (shareBlob) {
+                    if (!latestTicketBlob) {
+                        latestTicketBlob = shareBlob;
+                    }
                     const file = new File([shareBlob], 'ticket.png', { type: 'image/png' });
                     if (!navigator.canShare || navigator.canShare({ files: [file] })) {
                         await navigator.share({
@@ -1068,27 +1059,20 @@ $(document).ready(function() {
                             qrInClone.style.display = 'block';
                             qrInClone.style.backgroundColor = 'transparent';
                             qrInClone.style.margin = '10px auto 30px auto';
-                            
-                            const qrCanvas = qrInClone.querySelector('canvas');
+
                             const qrImg = qrInClone.querySelector('img');
-                            const qrTable = qrInClone.querySelector('table');
-                            
-                            if (qrCanvas) {
-                                qrCanvas.style.visibility = 'visible';
-                                qrCanvas.style.opacity = '1';
-                                qrCanvas.style.display = 'block';
-                            }
-                            
                             if (qrImg) {
+                                if (latestQrDataUrl) {
+                                    qrImg.src = latestQrDataUrl;
+                                }
                                 qrImg.style.visibility = 'visible';
                                 qrImg.style.opacity = '1';
                                 qrImg.style.display = 'block';
-                            }
-                            
-                            if (qrTable) {
-                                qrTable.style.visibility = 'visible';
-                                qrTable.style.opacity = '1';
-                                qrTable.style.display = 'block';
+                                qrImg.style.backgroundColor = 'transparent';
+                                qrImg.style.width = '128px';
+                                qrImg.style.height = '128px';
+                                qrImg.style.maxWidth = '128px';
+                                qrImg.style.maxHeight = '128px';
                             }
                         }
                     }
@@ -1110,6 +1094,9 @@ $(document).ready(function() {
                 
                 canvas.toBlob(async function(blob) {
                     if (blob && blob.size > 0) {
+                        latestTicketBlob = blob;
+                        const dataUrl = canvas.toDataURL('image/png', 1.0);
+                        latestTicketDataUrl = dataUrl;
                         const file = new File([blob], 'ticket.png', {type: 'image/png'});
                         await navigator.share({
                             files: [file],
