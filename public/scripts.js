@@ -46,7 +46,9 @@ async function renderTicketQr(uniqueTicket) {
         console.error("QR target container not found");
         return null;
     }
-qrTarget.innerHTML = "";
+
+    // Do NOT reset latestQrDataUrl here to avoid race conditions
+    qrTarget.innerHTML = "";
 
     if (typeof QRCode === 'undefined') {
         console.error("QRCode library not loaded");
@@ -151,7 +153,6 @@ function prepareQrInClone(doc) {
     img.style.margin = "10px auto 30px auto";
     qrInClone.appendChild(img);
 }
-
 
 // Cutoff times (remains unchanged)
 const cutoffTimes = {
