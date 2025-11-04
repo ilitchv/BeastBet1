@@ -47,7 +47,7 @@ async function renderTicketQr(uniqueTicket) {
         return null;
     }
 
-    // Do NOT reset latestQrDataUrl here to avoid race conditions
+    // NO reset of latestQrDataUrl here to avoid races
     qrTarget.innerHTML = "";
 
     if (typeof QRCode === 'undefined') {
@@ -55,6 +55,7 @@ async function renderTicketQr(uniqueTicket) {
         return null;
     }
 
+    // Off-screen container
     const offscreenContainer = document.createElement("div");
     offscreenContainer.style.position = "absolute";
     offscreenContainer.style.left = "-9999px";
@@ -64,7 +65,6 @@ async function renderTicketQr(uniqueTicket) {
     document.body.appendChild(offscreenContainer);
 
     try {
-        offscreenContainer.innerHTML = "";
         new QRCode(offscreenContainer, {
             text: uniqueTicket,
             width: 128,
@@ -74,33 +74,35 @@ async function renderTicketQr(uniqueTicket) {
             correctLevel: QRCode.CorrectLevel.M
         });
 
-        const dataUrl = await waitForQrDataUrl(offscreenContainer);
-        if (!dataUrl) {
-            throw new Error("QR canvas not generated in time");
-        }
-
-        latestQrDataUrl = dataUrl;
-
-        const qrImg = document.createElement("img");
-        qrImg.src = dataUrl;
-        qrImg.alt = `Código QR del ticket ${uniqueTicket}`;
-        qrImg.width = 128;
-        qrImg.height = 128;
-        qrImg.style.display = "block";
-        qrImg.style.margin = "0 auto";
-        qrImg.dataset.ticketCode = uniqueTicket;
-
-        qrTarget.replaceChildren(qrImg);
-        return dataUrl;
+        return waitForQrDataUrl(offscreenContainer, 3000).then((dataUrl) => {
+            if (!dataUrl) throw new Error("QR canvas not generated in time");
+            latestQrDataUrl = dataUrl;
+            const qrImg = document.createElement("img");
+            qrImg.src = dataUrl;
+            qrImg.alt = `Código QR del ticket ${uniqueTicket}`;
+            qrImg.style.setProperty("width", "128px", "important");
+            qrImg.style.setProperty("height", "128px", "important");
+            qrImg.style.setProperty("transform", "none", "important");
+            qrImg.style.display = "block";
+            qrImg.style.margin = "0 auto";
+            qrImg.style.backgroundColor = "#fff";
+            qrImg.dataset.ticketCode = uniqueTicket;
+            qrTarget.replaceChildren(qrImg);
+            return dataUrl;
+        }).catch((err) => {
+            console.error("Error generating QR Code:", err);
+            return null;
+        }).finally(() => {
+            offscreenContainer.remove();
+        });
     } catch (error) {
         console.error("Error generating QR Code:", error);
-        return null;
-    } finally {
         offscreenContainer.remove();
+        return null;
     }
 }
 
-function waitForQrDataUrl(container, timeout = 2000) {
+function waitForQrDataUrl(container, timeout = 3000) {
     return new Promise((resolve) => {
         const start = Date.now();
 
@@ -108,7 +110,8 @@ function waitForQrDataUrl(container, timeout = 2000) {
             const canvas = container.querySelector("canvas");
             if (canvas) {
                 try {
-                    canvas.setAttribute("data-html2canvas-ignore","true");
+                    // Ensure html2canvas ignores this offscreen canvas
+                    canvas.setAttribute("data-html2canvas-ignore", "true");
                     const dataUrl = canvas.toDataURL("image/png");
                     if (dataUrl) {
                         resolve(dataUrl);
@@ -118,22 +121,13 @@ function waitForQrDataUrl(container, timeout = 2000) {
                     console.error("Error extracting QR canvas data URL:", error);
                 }
             }
-
-            const img = container.querySelector("img");
-            if (img && img.src && img.src.startsWith("data:")) {
-                resolve(img.src);
-                return;
-            }
-
             if (Date.now() - start > timeout) {
                 resolve(null);
                 return;
             }
-
             requestAnimationFrame(tryResolve);
         }
-
-        requestAnimationFrame(tryResolve);
+        tryResolve();
     });
 }
 
@@ -141,16 +135,34 @@ function prepareQrInClone(doc) {
     if (!doc) return;
     const qrInClone = doc.getElementById("qrcode");
     if (!qrInClone) return;
+
     qrInClone.innerHTML = "";
+
     if (!latestQrDataUrl) {
         throw new Error("QR not ready: latestQrDataUrl is empty");
     }
+
     const img = doc.createElement("img");
     img.src = latestQrDataUrl;
     img.alt = "Código QR del ticket";
-    img.width = 128; img.height = 128;
+    img.style.setProperty("width", "128px", "important");
+    img.style.setProperty("height", "128px", "important");
+    img.style.setProperty("max-width", "128px", "important");
+    img.style.setProperty("max-height", "128px", "important");
+    img.style.setProperty("transform", "none", "important");
     img.style.display = "block";
     img.style.margin = "10px auto 30px auto";
+    img.style.backgroundColor = "#fff";
+
+    qrInClone.style.setProperty("width", "128px", "important");
+    qrInClone.style.setProperty("height", "128px", "important");
+    qrInClone.style.setProperty("overflow", "hidden", "important");
+    qrInClone.style.setProperty("transform", "none", "important");
+    qrInClone.style.margin = "10px auto 30px auto";
+    qrInClone.style.padding = "10px";
+    qrInClone.style.backgroundColor = "transparent";
+    qrInClone.style.border = "none";
+
     qrInClone.appendChild(img);
 }
 
