@@ -46,9 +46,7 @@ async function renderTicketQr(uniqueTicket) {
         console.error("QR target container not found");
         return null;
     }
-
-    latestQrDataUrl = null;
-    qrTarget.innerHTML = "";
+qrTarget.innerHTML = "";
 
     if (typeof QRCode === 'undefined') {
         console.error("QRCode library not loaded");
@@ -108,6 +106,7 @@ function waitForQrDataUrl(container, timeout = 2000) {
             const canvas = container.querySelector("canvas");
             if (canvas) {
                 try {
+                    canvas.setAttribute("data-html2canvas-ignore","true");
                     const dataUrl = canvas.toDataURL("image/png");
                     if (dataUrl) {
                         resolve(dataUrl);
@@ -138,65 +137,21 @@ function waitForQrDataUrl(container, timeout = 2000) {
 
 function prepareQrInClone(doc) {
     if (!doc) return;
-
     const qrInClone = doc.getElementById("qrcode");
     if (!qrInClone) return;
-
-    let dataUrl = latestQrDataUrl;
-    if (!dataUrl) {
-        const liveImg = document.querySelector("#qrcode img");
-        if (liveImg && liveImg.src && liveImg.src.startsWith("data:")) {
-            dataUrl = liveImg.src;
-            latestQrDataUrl = dataUrl;
-        } else {
-            const liveCanvas = document.querySelector("#qrcode canvas");
-            if (liveCanvas) {
-                try {
-                    dataUrl = liveCanvas.toDataURL("image/png");
-                    latestQrDataUrl = dataUrl;
-                } catch (error) {
-                    console.error("Error regenerating QR data URL from canvas:", error);
-                }
-            }
-        }
-    }
-
     qrInClone.innerHTML = "";
-
-    if (!dataUrl) {
-        console.warn("No QR data URL available for clone");
-        return;
+    if (!latestQrDataUrl) {
+        throw new Error("QR not ready: latestQrDataUrl is empty");
     }
-
     const img = doc.createElement("img");
-    img.src = dataUrl;
-    const ticketNumberText = (doc.getElementById("numeroTicket")?.textContent || document.getElementById("numeroTicket")?.textContent || "").trim();
-    img.alt = ticketNumberText ? `Código QR del ticket ${ticketNumberText}` : "Código QR del ticket";
-    img.width = 128;
-    img.height = 128;
+    img.src = latestQrDataUrl;
+    img.alt = "Código QR del ticket";
+    img.width = 128; img.height = 128;
     img.style.display = "block";
     img.style.margin = "10px auto 30px auto";
-    img.style.backgroundColor = "transparent";
-    img.style.visibility = "visible";
-    img.style.opacity = "1";
-    img.style.maxWidth = "128px";
-    img.style.maxHeight = "128px";
-
-    qrInClone.style.visibility = "visible";
-    qrInClone.style.opacity = "1";
-    qrInClone.style.display = "block";
-    qrInClone.style.width = "128px";
-    qrInClone.style.height = "128px";
-    qrInClone.style.backgroundColor = "transparent";
-    qrInClone.style.margin = "10px auto 30px auto";
-    qrInClone.style.padding = "10px";
-    qrInClone.style.border = "none";
-    qrInClone.style.position = "relative";
-    qrInClone.style.overflow = "visible";
-    qrInClone.style.zIndex = "1000";
-
     qrInClone.appendChild(img);
 }
+
 
 // Cutoff times (remains unchanged)
 const cutoffTimes = {
