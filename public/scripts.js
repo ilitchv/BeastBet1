@@ -22,8 +22,7 @@ window.copiedAmounts = {};
 // re-rendering (helps preserve the QR code).
 let latestTicketDataUrl = null;
 let latestTicketBlob = null;
-let latestQrDataUrl = null;
-const ENABLE_QR_DEBUG = false;
+let const ENABLE_QR_DEBUG = false;
 
 function dataUrlToBlob(dataUrl) {
     if (!dataUrl) return null;
@@ -47,7 +46,7 @@ async function renderTicketQr(uniqueTicket) {
         return null;
     }
 
-    // NO reset of latestQrDataUrl here to avoid races
+    latestQrDataUrl = null;
     qrTarget.innerHTML = "";
 
     if (typeof QRCode === 'undefined') {
@@ -55,7 +54,6 @@ async function renderTicketQr(uniqueTicket) {
         return null;
     }
 
-    // Off-screen container
     const offscreenContainer = document.createElement("div");
     offscreenContainer.style.position = "absolute";
     offscreenContainer.style.left = "-9999px";
@@ -65,6 +63,7 @@ async function renderTicketQr(uniqueTicket) {
     document.body.appendChild(offscreenContainer);
 
     try {
+        offscreenContainer.innerHTML = "";
         new QRCode(offscreenContainer, {
             text: uniqueTicket,
             width: 128,
@@ -74,35 +73,33 @@ async function renderTicketQr(uniqueTicket) {
             correctLevel: QRCode.CorrectLevel.M
         });
 
-        return waitForQrDataUrl(offscreenContainer, 3000).then((dataUrl) => {
-            if (!dataUrl) throw new Error("QR canvas not generated in time");
-            latestQrDataUrl = dataUrl;
-            const qrImg = document.createElement("img");
-            qrImg.src = dataUrl;
-            qrImg.alt = `Código QR del ticket ${uniqueTicket}`;
-            qrImg.style.setProperty("width", "128px", "important");
-            qrImg.style.setProperty("height", "128px", "important");
-            qrImg.style.setProperty("transform", "none", "important");
-            qrImg.style.display = "block";
-            qrImg.style.margin = "0 auto";
-            qrImg.style.backgroundColor = "#fff";
-            qrImg.dataset.ticketCode = uniqueTicket;
-            qrTarget.replaceChildren(qrImg);
-            return dataUrl;
-        }).catch((err) => {
-            console.error("Error generating QR Code:", err);
-            return null;
-        }).finally(() => {
-            offscreenContainer.remove();
-        });
+        const dataUrl = await waitForQrDataUrl(offscreenContainer);
+        if (!dataUrl) {
+            throw new Error("QR canvas not generated in time");
+        }
+
+        latestQrDataUrl = dataUrl;
+
+        const qrImg = document.createElement("img");
+        qrImg.src = dataUrl;
+        qrImg.alt = `Código QR del ticket ${uniqueTicket}`;
+        qrImg.width = 128;
+        qrImg.height = 128;
+        qrImg.style.display = "block";
+        qrImg.style.margin = "0 auto";
+        qrImg.dataset.ticketCode = uniqueTicket;
+
+        qrTarget.replaceChildren(qrImg);
+        return dataUrl;
     } catch (error) {
         console.error("Error generating QR Code:", error);
-        offscreenContainer.remove();
         return null;
+    } finally {
+        offscreenContainer.remove();
     }
 }
 
-function waitForQrDataUrl(container, timeout = 3000) {
+function waitForQrDataUrl(container, timeout = 2000) {
     return new Promise((resolve) => {
         const start = Date.now();
 
@@ -110,7 +107,7 @@ function waitForQrDataUrl(container, timeout = 3000) {
             const canvas = container.querySelector("canvas");
             if (canvas) {
                 try {
-                    // Ensure html2canvas ignores this offscreen canvas
+                    // Ensure html2canvas ignores this off-screen canvas
                     canvas.setAttribute("data-html2canvas-ignore", "true");
                     const dataUrl = canvas.toDataURL("image/png");
                     if (dataUrl) {
@@ -121,18 +118,23 @@ function waitForQrDataUrl(container, timeout = 3000) {
                     console.error("Error extracting QR canvas data URL:", error);
                 }
             }
+
             if (Date.now() - start > timeout) {
                 resolve(null);
                 return;
             }
+
             requestAnimationFrame(tryResolve);
         }
-        tryResolve();
+
+        requestAnimationFrame(tryResolve);
     });
+
 }
 
 function prepareQrInClone(doc) {
     if (!doc) return;
+
     const qrInClone = doc.getElementById("qrcode");
     if (!qrInClone) return;
 
@@ -144,26 +146,38 @@ function prepareQrInClone(doc) {
 
     const img = doc.createElement("img");
     img.src = latestQrDataUrl;
-    img.alt = "Código QR del ticket";
-    img.style.setProperty("width", "128px", "important");
-    img.style.setProperty("height", "128px", "important");
-    img.style.setProperty("max-width", "128px", "important");
-    img.style.setProperty("max-height", "128px", "important");
-    img.style.setProperty("transform", "none", "important");
+    const ticketNumberText = (doc.getElementById("numeroTicket")?.textContent || "").trim();
+    img.alt = ticketNumberText ? `Código QR del ticket ${ticketNumberText}` : "Código QR del ticket";
+    img.width = 128;
+    img.height = 128;
     img.style.display = "block";
     img.style.margin = "10px auto 30px auto";
     img.style.backgroundColor = "#fff";
+    img.style.visibility = "visible";
+    img.style.opacity = "1";
+    img.style.maxWidth = "128px";
+    img.style.maxHeight = "128px";
+    img.style.setProperty("width", "128px", "important");
+    img.style.setProperty("height", "128px", "important");
+    img.style.setProperty("transform", "none", "important");
 
-    qrInClone.style.setProperty("width", "128px", "important");
-    qrInClone.style.setProperty("height", "128px", "important");
-    qrInClone.style.setProperty("overflow", "hidden", "important");
-    qrInClone.style.setProperty("transform", "none", "important");
+    qrInClone.style.visibility = "visible";
+    qrInClone.style.opacity = "1";
+    qrInClone.style.display = "block";
+    qrInClone.style.width = "128px";
+    qrInClone.style.height = "128px";
+    qrInClone.style.maxWidth = "128px";
+    qrInClone.style.maxHeight = "128px";
+    qrInClone.style.backgroundColor = "transparent";
     qrInClone.style.margin = "10px auto 30px auto";
     qrInClone.style.padding = "10px";
-    qrInClone.style.backgroundColor = "transparent";
     qrInClone.style.border = "none";
+    qrInClone.style.position = "relative";
+    qrInClone.style.overflow = "visible";
+    qrInClone.style.zIndex = "1000";
 
     qrInClone.appendChild(img);
+
 }
 
 // Cutoff times (remains unchanged)
@@ -2346,4 +2360,4 @@ function setupThemeToggle() {
     });
 }
 
-console.log("End of scripts.js reached"); 
+console.log("End of scripts.js reached");
