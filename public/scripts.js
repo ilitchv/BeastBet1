@@ -2346,4 +2346,4 @@ function setupThemeToggle() {
     });
 }
 
-console.log("End of scripts.js reached");
+console.log("End of scripts.js reached"); 
