@@ -1,3 +1,5 @@
+// Feature flag: disable QR rendering temporarily
+const QR_MODE = "off";
 // Global variable for OCR modal instance
 let modalOcrInstance = null;
 let wizardModalInstance = null;
@@ -22,7 +24,8 @@ window.copiedAmounts = {};
 // re-rendering (helps preserve the QR code).
 let latestTicketDataUrl = null;
 let latestTicketBlob = null;
-let const ENABLE_QR_DEBUG = false;
+let latestQrDataUrl = null;
+const ENABLE_QR_DEBUG = false;
 
 function dataUrlToBlob(dataUrl) {
     if (!dataUrl) return null;
@@ -40,6 +43,29 @@ function dataUrlToBlob(dataUrl) {
 }
 
 async function renderTicketQr(uniqueTicket) {
+  if (typeof QR_MODE !== "undefined" && QR_MODE === "off") {
+    const qrBox = document.getElementById("qrcode");
+    if (!qrBox) { return null; }
+    let totalText = "";
+    const totalCandidates = ["#ticketTotal", ".ticket-total", "#totalTicket", "#totalAmount"];
+    for (const sel of totalCandidates) {
+      const n = document.querySelector(sel);
+      if (n && n.textContent.trim()) { totalText = n.textContent.trim(); break; }
+    }
+    if (!totalText) {
+      const footerCells = document.querySelectorAll("tfoot td, tfoot th");
+      if (footerCells && footerCells.length) totalText = footerCells[footerCells.length - 1].textContent.trim();
+    }
+    const ticketNum = (document.getElementById("numeroTicket")?.textContent || String(uniqueTicket)).trim();
+    qrBox.innerHTML = '<div class="qr-off-panel" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:140px;background:#fff;padding:12px;box-sizing:border-box;">' +
+      '<div class="qr-off-title" style="font-weight:700;margin-bottom:4px;">Ticket Summary</div>' +
+      `<div class="qr-off-line" style="margin:2px 0;">Ticket #: <strong>${ticketNum}</strong></div>` +
+      `<div class="qr-off-line" style="margin:2px 0;">Total: <strong>${totalText || "$0.00"}</strong></div>` +
+      '</div>';
+    if (typeof latestQrDataUrl !== "undefined") latestQrDataUrl = null;
+    return null;
+  }
+
     const qrTarget = document.getElementById("qrcode");
     if (!qrTarget) {
         console.error("QR target container not found");
@@ -107,8 +133,6 @@ function waitForQrDataUrl(container, timeout = 2000) {
             const canvas = container.querySelector("canvas");
             if (canvas) {
                 try {
-                    // Ensure html2canvas ignores this off-screen canvas
-                    canvas.setAttribute("data-html2canvas-ignore", "true");
                     const dataUrl = canvas.toDataURL("image/png");
                     if (dataUrl) {
                         resolve(dataUrl);
@@ -117,6 +141,12 @@ function waitForQrDataUrl(container, timeout = 2000) {
                 } catch (error) {
                     console.error("Error extracting QR canvas data URL:", error);
                 }
+            }
+
+            const img = container.querySelector("img");
+            if (img && img.src && img.src.startsWith("data:")) {
+                resolve(img.src);
+                return;
             }
 
             if (Date.now() - start > timeout) {
@@ -129,45 +159,61 @@ function waitForQrDataUrl(container, timeout = 2000) {
 
         requestAnimationFrame(tryResolve);
     });
-
 }
 
 function prepareQrInClone(doc) {
+  if (typeof QR_MODE !== "undefined" && QR_MODE === "off") { return; }
+
     if (!doc) return;
 
     const qrInClone = doc.getElementById("qrcode");
     if (!qrInClone) return;
 
+    let dataUrl = latestQrDataUrl;
+    if (!dataUrl) {
+        const liveImg = document.querySelector("#qrcode img");
+        if (liveImg && liveImg.src && liveImg.src.startsWith("data:")) {
+            dataUrl = liveImg.src;
+            latestQrDataUrl = dataUrl;
+        } else {
+            const liveCanvas = document.querySelector("#qrcode canvas");
+            if (liveCanvas) {
+                try {
+                    dataUrl = liveCanvas.toDataURL("image/png");
+                    latestQrDataUrl = dataUrl;
+                } catch (error) {
+                    console.error("Error regenerating QR data URL from canvas:", error);
+                }
+            }
+        }
+    }
+
     qrInClone.innerHTML = "";
 
-    if (!latestQrDataUrl) {
-        throw new Error("QR not ready: latestQrDataUrl is empty");
+    if (!dataUrl) {
+        console.warn("No QR data URL available for clone");
+        return;
     }
 
     const img = doc.createElement("img");
-    img.src = latestQrDataUrl;
-    const ticketNumberText = (doc.getElementById("numeroTicket")?.textContent || "").trim();
+    img.src = dataUrl;
+    const ticketNumberText = (doc.getElementById("numeroTicket")?.textContent || document.getElementById("numeroTicket")?.textContent || "").trim();
     img.alt = ticketNumberText ? `Código QR del ticket ${ticketNumberText}` : "Código QR del ticket";
     img.width = 128;
     img.height = 128;
     img.style.display = "block";
     img.style.margin = "10px auto 30px auto";
-    img.style.backgroundColor = "#fff";
+    img.style.backgroundColor = "transparent";
     img.style.visibility = "visible";
     img.style.opacity = "1";
     img.style.maxWidth = "128px";
     img.style.maxHeight = "128px";
-    img.style.setProperty("width", "128px", "important");
-    img.style.setProperty("height", "128px", "important");
-    img.style.setProperty("transform", "none", "important");
 
     qrInClone.style.visibility = "visible";
     qrInClone.style.opacity = "1";
     qrInClone.style.display = "block";
     qrInClone.style.width = "128px";
     qrInClone.style.height = "128px";
-    qrInClone.style.maxWidth = "128px";
-    qrInClone.style.maxHeight = "128px";
     qrInClone.style.backgroundColor = "transparent";
     qrInClone.style.margin = "10px auto 30px auto";
     qrInClone.style.padding = "10px";
@@ -177,7 +223,6 @@ function prepareQrInClone(doc) {
     qrInClone.style.zIndex = "1000";
 
     qrInClone.appendChild(img);
-
 }
 
 // Cutoff times (remains unchanged)
