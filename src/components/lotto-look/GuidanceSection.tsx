@@ -17,7 +17,7 @@ export function GuidanceSection() {
         </div>
         <div className="flex items-start gap-3">
           <ImageIcon className="h-5 w-5 mt-1 text-primary flex-shrink-0" />
-          <p><span className="font-semibold">Full View:</span> Capture the entire ticket in the frame. Don't cut off edges or corners.</p>
+          <p><span className="font-semibold">Full View:</span> Capture the entire ticket in the frame. Don&apos;t cut off edges or corners.</p>
         </div>
         <div className="flex items-start gap-3">
           <Text className="h-5 w-5 mt-1 text-primary flex-shrink-0" />
