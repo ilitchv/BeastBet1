@@ -27,6 +27,14 @@ let latestTicketBlob = null;
 let latestQrDataUrl = null;
 const ENABLE_QR_DEBUG = false;
 
+const BTCPAY_POLL_INTERVAL_MS = 5000;
+const BTCPAY_BUTTON_DEFAULT_TEXT = "Pay with Crypto";
+let btcpayInvoiceId = null;
+let btcpayCheckoutUrl = null;
+let btcpayPollingTimer = null;
+let btcpayPollingInFlight = false;
+let btcpayPaymentConfirmed = false;
+
 function dataUrlToBlob(dataUrl) {
     if (!dataUrl) return null;
     const parts = dataUrl.split(',');
@@ -159,6 +167,272 @@ function waitForQrDataUrl(container, timeout = 2000) {
 
         requestAnimationFrame(tryResolve);
     });
+}
+
+// --- BTCPay Helpers ---
+function sanitizeBtcpayUrl(url) {
+    if (typeof url !== "string" || !url.trim()) {
+        return null;
+    }
+
+    try {
+        const parsed = new URL(url, window.location.href);
+        if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+            return parsed.toString();
+        }
+    } catch (error) {
+        console.warn("Invalid BTCPay URL provided", url, error);
+    }
+
+    return null;
+}
+
+function updateBtcpayButtonState(options = {}) {
+    const $button = $("#btcpayPayButton");
+    if (!$button.length) return;
+
+    if (Object.prototype.hasOwnProperty.call(options, "disabled")) {
+        $button.prop("disabled", Boolean(options.disabled));
+    }
+
+    if (Object.prototype.hasOwnProperty.call(options, "text")) {
+        const nextText = options.text;
+        if (typeof nextText === "string" && nextText.length > 0) {
+            $button.text(nextText);
+        } else {
+            $button.text(BTCPAY_BUTTON_DEFAULT_TEXT);
+        }
+    }
+}
+
+function setBtcpayStatus(message, variant = "info") {
+    const $status = $("#btcpayStatusMessage");
+    if (!$status.length) return;
+
+    const variants = ["info", "success", "warning", "error"];
+    for (const variantName of variants) {
+        $status.removeClass(`payment-status--${variantName}`);
+    }
+
+    if (variant && variants.includes(variant)) {
+        $status.addClass(`payment-status--${variant}`);
+    }
+
+    if (typeof message === "string") {
+        $status.html(message);
+    } else {
+        $status.empty();
+    }
+}
+
+function getTicketTotalAmount() {
+    const candidates = [
+        document.getElementById("ticketTotal"),
+        document.getElementById("totalJugadas"),
+    ];
+
+    for (const el of candidates) {
+        if (!el || !el.textContent) continue;
+        const sanitized = el.textContent.replace(/[^0-9.,-]/g, "").replace(/,/g, "");
+        if (!sanitized) continue;
+        const value = Number(sanitized);
+        if (Number.isFinite(value)) {
+            return value;
+        }
+    }
+
+    return 0;
+}
+
+function stopBtcpayPolling() {
+    if (btcpayPollingTimer) {
+        clearInterval(btcpayPollingTimer);
+        btcpayPollingTimer = null;
+    }
+    btcpayPollingInFlight = false;
+}
+
+function prepareBtcpayForNewTicket() {
+    stopBtcpayPolling();
+    btcpayInvoiceId = null;
+    btcpayCheckoutUrl = null;
+    btcpayPaymentConfirmed = false;
+
+    const totalAmount = getTicketTotalAmount();
+    $("#confirmarTicket").prop("disabled", true);
+
+    if (totalAmount > 0) {
+        updateBtcpayButtonState({ disabled: false, text: BTCPAY_BUTTON_DEFAULT_TEXT });
+        setBtcpayStatus(
+            `Ticket total $${totalAmount.toFixed(2)}. Click "Pay with Crypto" to open the BTCPay checkout.`,
+            "info",
+        );
+    } else {
+        updateBtcpayButtonState({ disabled: true, text: BTCPAY_BUTTON_DEFAULT_TEXT });
+        setBtcpayStatus("Add at least one play with a wager to enable crypto payments.", "warning");
+    }
+}
+
+async function refreshBtcpayInvoiceStatus() {
+    if (!btcpayInvoiceId || btcpayPollingInFlight) {
+        return;
+    }
+
+    btcpayPollingInFlight = true;
+
+    try {
+        const response = await fetch(`/api/btcpay/invoice-status?invoiceId=${encodeURIComponent(btcpayInvoiceId)}`);
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => "");
+            console.error("Failed to refresh BTCPay invoice status", response.status, errorText);
+            setBtcpayStatus("Unable to check invoice status. Create a new invoice to continue.", "error");
+            updateBtcpayButtonState({ disabled: false, text: BTCPAY_BUTTON_DEFAULT_TEXT });
+            $("#confirmarTicket").prop("disabled", true);
+            btcpayInvoiceId = null;
+            btcpayCheckoutUrl = null;
+            stopBtcpayPolling();
+            return;
+        }
+
+        const data = await response.json();
+        if (data && data.checkoutLink) {
+            const sanitized = sanitizeBtcpayUrl(data.checkoutLink);
+            if (sanitized) {
+                btcpayCheckoutUrl = sanitized;
+            }
+        }
+        handleBtcpayStatusUpdate(data || {});
+    } catch (error) {
+        console.error("Error polling BTCPay invoice status", error);
+        setBtcpayStatus("Unable to reach BTCPay. Retrying shortly…", "warning");
+    } finally {
+        btcpayPollingInFlight = false;
+    }
+}
+
+function startBtcpayPolling(immediate = false) {
+    stopBtcpayPolling();
+
+    if (!btcpayInvoiceId) {
+        return;
+    }
+
+    if (immediate) {
+        refreshBtcpayInvoiceStatus();
+    }
+
+    btcpayPollingTimer = setInterval(() => {
+        refreshBtcpayInvoiceStatus();
+    }, BTCPAY_POLL_INTERVAL_MS);
+}
+
+function buildInvoiceLinkHtml() {
+    const link = sanitizeBtcpayUrl(btcpayCheckoutUrl);
+    if (!link) return "";
+    return ` <a href="${link}" target="_blank" rel="noopener" class="btcpay-checkout-link">Open invoice</a>`;
+}
+
+function handleBtcpayStatusUpdate(invoice = {}) {
+    const normalizedStatus = (invoice.normalizedStatus || invoice.status || "").toString().toLowerCase();
+    const normalizedAdditional = (invoice.normalizedAdditionalStatus || invoice.additionalStatus || "")
+        .toString()
+        .toLowerCase();
+
+    if (normalizedStatus === "settled" || normalizedAdditional === "confirmed" || normalizedAdditional === "completed") {
+        btcpayPaymentConfirmed = true;
+        setBtcpayStatus("Payment confirmed! You can now Confirm & Print.", "success");
+        updateBtcpayButtonState({ disabled: true, text: "Payment Confirmed" });
+        $("#confirmarTicket").prop("disabled", false);
+        stopBtcpayPolling();
+        return;
+    }
+
+    if (normalizedStatus === "expired" || normalizedStatus === "invalid") {
+        const message =
+            normalizedStatus === "expired"
+                ? "Invoice expired before payment confirmation."
+                : "BTCPay marked this invoice as invalid.";
+        setBtcpayStatus(`${message} Create a new invoice to continue.`, "error");
+        btcpayInvoiceId = null;
+        btcpayCheckoutUrl = null;
+        btcpayPaymentConfirmed = false;
+        updateBtcpayButtonState({ disabled: false, text: BTCPAY_BUTTON_DEFAULT_TEXT });
+        $("#confirmarTicket").prop("disabled", true);
+        stopBtcpayPolling();
+        return;
+    }
+
+    if (
+        normalizedAdditional === "paid" ||
+        normalizedAdditional === "pending" ||
+        normalizedAdditional === "awaitingpayment" ||
+        normalizedStatus === "processing"
+    ) {
+        setBtcpayStatus(`Payment received. Waiting for blockchain confirmation…${buildInvoiceLinkHtml()}`, "warning");
+        updateBtcpayButtonState({ disabled: true, text: "Awaiting Confirmation" });
+        return;
+    }
+
+    setBtcpayStatus(`Invoice created. Complete the payment to unlock printing.${buildInvoiceLinkHtml()}`, "info");
+    updateBtcpayButtonState({ disabled: true, text: "Invoice Pending" });
+}
+
+async function handleBtcpayCreateInvoice() {
+    if (btcpayPaymentConfirmed) {
+        setBtcpayStatus("Payment already confirmed for this ticket.", "success");
+        return;
+    }
+
+    const amount = getTicketTotalAmount();
+    if (amount <= 0) {
+        setBtcpayStatus("Add at least one play with a wager to enable crypto payments.", "warning");
+        updateBtcpayButtonState({ disabled: true, text: BTCPAY_BUTTON_DEFAULT_TEXT });
+        return;
+    }
+
+    updateBtcpayButtonState({ disabled: true, text: "Creating Invoice…" });
+    setBtcpayStatus("Creating BTCPay invoice…", "info");
+
+    try {
+        const response = await fetch("/api/btcpay/create-invoice", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ amount }),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => "");
+            throw new Error(errorText || `Server responded with status ${response.status}`);
+        }
+
+        const invoice = await response.json();
+        btcpayInvoiceId = invoice.id || null;
+        btcpayCheckoutUrl = sanitizeBtcpayUrl(invoice.checkoutLink || btcpayCheckoutUrl);
+
+        if (!btcpayInvoiceId) {
+            setBtcpayStatus("BTCPay did not return an invoice ID. Please try again.", "error");
+            updateBtcpayButtonState({ disabled: false, text: BTCPAY_BUTTON_DEFAULT_TEXT });
+            btcpayCheckoutUrl = null;
+            return;
+        }
+
+        const linkHtml = buildInvoiceLinkHtml();
+        setBtcpayStatus(`Invoice created. Complete the payment to unlock printing.${linkHtml}`, "info");
+
+        if (btcpayCheckoutUrl) {
+            window.open(btcpayCheckoutUrl, "_blank", "noopener");
+        }
+
+        startBtcpayPolling(true);
+    } catch (error) {
+        console.error("Error creating BTCPay invoice", error);
+        setBtcpayStatus("Could not create invoice. Please try again.", "error");
+        updateBtcpayButtonState({ disabled: false, text: BTCPAY_BUTTON_DEFAULT_TEXT });
+        btcpayInvoiceId = null;
+        btcpayCheckoutUrl = null;
+    }
 }
 
 function prepareQrInClone(doc) {
@@ -672,6 +946,16 @@ $(document).ready(function() {
             } catch (error) {
                 console.error("Error al inicializar modal #ticketModal:", error);
             }
+
+            $('#ticketModal').on('hidden.bs.modal', function () {
+                stopBtcpayPolling();
+                btcpayInvoiceId = null;
+                btcpayCheckoutUrl = null;
+                btcpayPaymentConfirmed = false;
+                updateBtcpayButtonState({ disabled: false, text: BTCPAY_BUTTON_DEFAULT_TEXT });
+                setBtcpayStatus("", null);
+                $("#confirmarTicket").prop("disabled", true);
+            });
         } else {
             console.error("Modal #ticketModal not found in HTML!");
         }
@@ -711,6 +995,16 @@ $(document).ready(function() {
     // // Removed d-none class to make it always visible
     // $("#formButtons").append('<button type="button" id="pasteAmountsButton" class="btn btn-dark ml-2"><i class="bi bi-clipboard-fill"></i> Paste Wagers</button>');
     // }
+
+    const $btcpayButton = $("#btcpayPayButton");
+    if ($btcpayButton.length) {
+        $btcpayButton.on('click', function(event) {
+            event.preventDefault();
+            handleBtcpayCreateInvoice();
+        });
+    }
+
+    prepareBtcpayForNewTicket();
 
     dayjs.extend(window.dayjs_plugin_customParseFormat);
     dayjs.extend(window.dayjs_plugin_arraySupport);
@@ -928,8 +1222,22 @@ $(document).ready(function() {
     });
 
     $("#confirmarTicket").click(async function() {
+        if (!btcpayPaymentConfirmed) {
+            alert("Please complete the crypto payment before confirming the ticket.");
+            return;
+        }
+
         const $confirmButton = $(this);
+        if ($confirmButton.prop("disabled")) {
+            return;
+        }
+
         $confirmButton.prop("disabled", true);
+        stopBtcpayPolling();
+        btcpayInvoiceId = null;
+        btcpayCheckoutUrl = null;
+        setBtcpayStatus("Payment confirmed. Generating ticket…", "success");
+
         $("#editButton").addClass("d-none");
 
         const uniqueTicket = generateUniqueTicketNumber();
@@ -2071,7 +2379,7 @@ function doGenerateTicket() {
     if (ticketModalInstance) {
         $("#editButton").removeClass("d-none");
         $("#shareTicket").addClass("d-none");
-        $("#confirmarTicket").prop("disabled", false);
+        prepareBtcpayForNewTicket();
         ticketModalInstance.show();
     } else {
         console.error("Ticket modal instance not available in doGenerateTicket");
