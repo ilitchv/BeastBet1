@@ -1,50 +1,46 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ilich Vasquez - Professional Resume</title>
     <style>
         @media print {
-            body { margin: 0; padding: 0; }
-            .page { page-break-after: always; }
+            @page { size: letter; margin: 0.5in; }
+            body { margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .no-print { display: none !important; }
         }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f5f5f5;
             padding: 20px;
             line-height: 1.6;
         }
-        
+
         .container {
             max-width: 850px;
             margin: 0 auto;
             background: white;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
         }
-        
+
         .header {
             background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
             color: white;
             padding: 40px;
             text-align: center;
         }
-        
+
         .header h1 {
             font-size: 42px;
             font-weight: 700;
             margin-bottom: 10px;
             letter-spacing: 2px;
         }
-        
+
         .contact-info {
             display: flex;
             justify-content: center;
@@ -53,21 +49,17 @@
             margin-top: 15px;
             font-size: 14px;
         }
-        
+
         .contact-info span {
             display: flex;
             align-items: center;
             gap: 5px;
         }
-        
-        .content {
-            padding: 40px;
-        }
-        
-        .section {
-            margin-bottom: 35px;
-        }
-        
+
+        .content { padding: 40px; }
+
+        .section { margin-bottom: 35px; }
+
         .section-title {
             font-size: 20px;
             font-weight: 700;
@@ -78,37 +70,35 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        
+
         .summary {
             font-size: 15px;
             color: #374151;
             line-height: 1.8;
             text-align: justify;
         }
-        
+
         .skills-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
         }
-        
+
         .skill-category h4 {
             color: #1e3a8a;
             font-size: 14px;
             margin-bottom: 5px;
             font-weight: 600;
         }
-        
+
         .skill-category p {
             color: #6b7280;
             font-size: 13px;
             line-height: 1.6;
         }
-        
-        .job {
-            margin-bottom: 30px;
-        }
-        
+
+        .job { margin-bottom: 30px; }
+
         .job-header {
             display: flex;
             justify-content: space-between;
@@ -116,31 +106,31 @@
             margin-bottom: 8px;
             flex-wrap: wrap;
         }
-        
+
         .job-title {
             font-size: 16px;
             font-weight: 700;
             color: #1e3a8a;
         }
-        
+
         .job-date {
             font-size: 13px;
             color: #6b7280;
             font-weight: 600;
         }
-        
+
         .company {
             font-size: 14px;
             color: #374151;
             font-weight: 600;
             margin-bottom: 10px;
         }
-        
+
         .achievements {
             list-style: none;
             padding-left: 0;
         }
-        
+
         .achievements li {
             padding-left: 20px;
             margin-bottom: 8px;
@@ -149,7 +139,7 @@
             color: #4b5563;
             line-height: 1.7;
         }
-        
+
         .achievements li:before {
             content: "▸";
             position: absolute;
@@ -157,39 +147,35 @@
             color: #3b82f6;
             font-weight: bold;
         }
-        
-        .achievements strong {
-            color: #1e3a8a;
-        }
-        
-        .education-item, .cert-item {
-            margin-bottom: 12px;
-        }
-        
-        .education-item h4, .cert-item h4 {
+
+        .achievements strong { color: #1e3a8a; }
+
+        .education-item { margin-bottom: 12px; }
+
+        .education-item h4 {
             font-size: 14px;
             color: #1e3a8a;
             margin-bottom: 3px;
         }
-        
-        .education-item p, .cert-item p {
+
+        .education-item p {
             font-size: 13px;
             color: #6b7280;
         }
-        
+
         .cert-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 10px;
         }
-        
+
         .cert-item {
             font-size: 13px;
             color: #4b5563;
             padding-left: 15px;
             position: relative;
         }
-        
+
         .cert-item:before {
             content: "✓";
             position: absolute;
@@ -197,17 +183,15 @@
             color: #3b82f6;
             font-weight: bold;
         }
-        
+
         .languages, .technical {
             display: flex;
             gap: 30px;
             font-size: 14px;
         }
-        
-        .languages strong, .technical strong {
-            color: #1e3a8a;
-        }
-        
+
+        .languages strong, .technical strong { color: #1e3a8a; }
+
         .button-container {
             position: fixed;
             top: 20px;
@@ -217,7 +201,7 @@
             gap: 10px;
             z-index: 1000;
         }
-        
+
         .download-btn {
             background: #3b82f6;
             color: white;
@@ -228,42 +212,29 @@
             font-size: 14px;
             font-weight: 600;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: all 0.3s;
+            transition: all 0.2s;
         }
-        
+
         .download-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 8px rgba(0,0,0,0.15);
         }
 
-        .download-btn.edit {
-            background: #059669;
+        .download-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+            transform: none;
         }
 
-        .download-btn.edit:hover {
-            background: #047857;
-        }
+        .download-btn.edit { background: #059669; }
+        .download-btn.edit:hover { background: #047857; }
+        .download-btn.edit.active { background: #dc2626; }
+        .download-btn.edit.active:hover { background: #b91c1c; }
 
-        .download-btn.edit.active {
-            background: #dc2626;
-        }
+        .download-btn.word { background: #2b5797; }
+        .download-btn.word:hover { background: #1e3a6d; }
 
-        .download-btn.edit.active:hover {
-            background: #b91c1c;
-        }
-
-        .download-btn.word {
-            background: #2b5797;
-        }
-
-        .download-btn.word:hover {
-            background: #1e3a6d;
-        }
-
-        .editable {
-            outline: none;
-            transition: background-color 0.2s;
-        }
+        .editable { outline: none; transition: background-color 0.2s; }
 
         .editable:focus {
             background-color: #fef3c7;
@@ -293,8 +264,22 @@
             z-index: 1000;
         }
 
-        .edit-instructions.show {
-            display: block;
+        .edit-instructions.show { display: block; }
+
+        /* Simple toast */
+        .toast {
+            position: fixed;
+            left: 20px;
+            bottom: 20px;
+            max-width: 420px;
+            padding: 12px 14px;
+            border-radius: 6px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 2000;
+            display: none;
+            color: #fff;
         }
     </style>
 </head>
@@ -304,12 +289,14 @@
         <button class="download-btn" id="pdfBtn">📄 Download PDF</button>
         <button class="download-btn word" id="wordBtn">📝 Download Word</button>
     </div>
-    
+
     <div class="edit-instructions no-print" id="editInstructions">
-        <strong>✏️ Edit Mode Active</strong><br>
+        <strong>✏️ Edit Mode Active</strong><br />
         Click on any text to edit it directly. Click "Edit Mode" again to save your changes.
     </div>
-    
+
+    <div class="toast no-print" id="toast"></div>
+
     <div class="container">
         <div class="header">
             <h1 class="editable">ILICH VASQUEZ</h1>
@@ -320,7 +307,7 @@
                 <span class="editable">🇺🇸 Authorized to work in the U.S. without sponsorship</span>
             </div>
         </div>
-        
+
         <div class="content">
             <div class="section">
                 <h2 class="section-title">Professional Summary</h2>
@@ -328,7 +315,7 @@
                     Award-winning Operations Leader with 15+ years of progressive experience managing large-scale contact center operations across multiple countries in Latin America. Consistently recognized as "Exceeds Expectations" in annual performance reviews throughout management tenure, with proven track record of achieving operational targets year-over-year. Expertise in operational excellence, quality assurance, workforce optimization, and cross-functional leadership. Known for building high-performing teams that consistently surpass KPIs while delivering exceptional customer outcomes in complex, multi-site environments.
                 </p>
             </div>
-            
+
             <div class="section">
                 <h2 class="section-title">Core Competencies</h2>
                 <div class="skills-grid">
@@ -350,10 +337,10 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="section">
                 <h2 class="section-title">Professional Experience</h2>
-                
+
                 <div class="job">
                     <div class="job-header">
                         <div class="job-title editable">Senior Operations Manager, Regional Contact Center Operations</div>
@@ -369,7 +356,7 @@
                         <li class="editable">Drove audit readiness achieving <strong>zero critical findings</strong> in internal and external audits through meticulous documentation</li>
                     </ul>
                 </div>
-                
+
                 <div class="job">
                     <div class="job-header">
                         <div class="job-title editable">Assistant Manager, Quality Assurance & Operations</div>
@@ -385,7 +372,7 @@
                         <li class="editable">Recognized with <strong>"Exceeds Expectations"</strong> performance rating for consistent delivery of operational excellence</li>
                     </ul>
                 </div>
-                
+
                 <div class="job">
                     <div class="job-header">
                         <div class="job-title editable">Assistant Manager, Quality Assurance & Operations</div>
@@ -400,7 +387,7 @@
                         <li class="editable">Provided guidance that reduced escalations and improved first-call resolution rates</li>
                     </ul>
                 </div>
-                
+
                 <div class="job">
                     <div class="job-header">
                         <div class="job-title editable">Sales & Customer Service Team Leader</div>
@@ -417,10 +404,10 @@
                     </ul>
                 </div>
             </div>
-            
+
             <div class="section">
                 <h2 class="section-title">U.S. Experience</h2>
-                
+
                 <div class="job">
                     <div class="job-header">
                         <div class="job-title editable">Multi-Unit Business Administrator / Operations Manager</div>
@@ -434,7 +421,7 @@
                     </ul>
                 </div>
             </div>
-            
+
             <div class="section">
                 <h2 class="section-title">Education</h2>
                 <div class="education-item">
@@ -443,7 +430,7 @@
                     <p class="editable">Coursework toward Bachelor of Business Administration</p>
                 </div>
             </div>
-            
+
             <div class="section">
                 <h2 class="section-title">Certifications & Professional Development</h2>
                 <div class="cert-grid">
@@ -456,7 +443,7 @@
                     <div class="cert-item editable">Microsoft Office Suite (Advanced)</div>
                 </div>
             </div>
-            
+
             <div class="section">
                 <h2 class="section-title">Languages & Technical Skills</h2>
                 <div class="languages">
@@ -470,232 +457,250 @@
     </div>
 
     <script>
-        let editMode = false;
+        // -----------------------
+        // Utilities
+        // -----------------------
+        const toast = document.getElementById('toast');
+        function showToast(message, kind = 'info') {
+            const bg = kind === 'error' ? '#b91c1c' : kind === 'warn' ? '#b45309' : '#1f2937';
+            toast.style.background = bg;
+            toast.textContent = message;
+            toast.style.display = 'block';
+            clearTimeout(showToast._t);
+            showToast._t = setTimeout(() => (toast.style.display = 'none'), 4200);
+        }
 
-        // Edit Mode Toggle
-        document.getElementById('editBtn').addEventListener('click', function() {
+        function safeDisable(btn, text) {
+            btn.dataset._orig = btn.textContent;
+            btn.textContent = text;
+            btn.disabled = true;
+        }
+
+        function safeEnable(btn) {
+            btn.textContent = btn.dataset._orig || btn.textContent;
+            btn.disabled = false;
+        }
+
+        // -----------------------
+        // Edit Mode
+        // -----------------------
+        let editMode = false;
+        const editBtn = document.getElementById('editBtn');
+        const editInstructions = document.getElementById('editInstructions');
+        const mainContainer = document.querySelector('.container');
+
+        editBtn.addEventListener('click', () => {
             editMode = !editMode;
-            const container = document.querySelector('.container');
-            const instructions = document.getElementById('editInstructions');
-            const editBtn = document.getElementById('editBtn');
-            
+
             if (editMode) {
-                container.classList.add('edit-mode');
-                instructions.classList.add('show');
+                mainContainer.classList.add('edit-mode');
+                editInstructions.classList.add('show');
                 editBtn.classList.add('active');
                 editBtn.textContent = '💾 Save Changes';
-                
-                // Make all editable elements contenteditable
-                document.querySelectorAll('.editable').forEach(element => {
-                    element.setAttribute('contenteditable', 'true');
-                });
+
+                document.querySelectorAll('.editable').forEach(el => el.setAttribute('contenteditable', 'true'));
             } else {
-                container.classList.remove('edit-mode');
-                instructions.classList.remove('show');
+                mainContainer.classList.remove('edit-mode');
+                editInstructions.classList.remove('show');
                 editBtn.classList.remove('active');
                 editBtn.textContent = '✏️ Edit Mode';
-                
-                // Remove contenteditable from all elements
-                document.querySelectorAll('.editable').forEach(element => {
-                    element.removeAttribute('contenteditable');
-                });
+
+                document.querySelectorAll('.editable').forEach(el => el.removeAttribute('contenteditable'));
             }
         });
 
-        // PDF Download
-        document.getElementById('pdfBtn').addEventListener('click', function() {
-            // Temporarily disable edit mode for clean print
-            const wasInEditMode = editMode;
-            if (editMode) {
-                document.getElementById('editBtn').click();
-            }
-            
-            setTimeout(() => {
-                window.print();
-                // Restore edit mode if it was active
-                if (wasInEditMode) {
-                    setTimeout(() => document.getElementById('editBtn').click(), 500);
-                }
-            }, 100);
-        });
+        // -----------------------
+        // Export: PDF (Print -> Save as PDF)
+        // -----------------------
+        const pdfBtn = document.getElementById('pdfBtn');
 
-        // Word Download
-        document.getElementById('wordBtn').addEventListener('click', function() {
-            const container = document.querySelector('.container');
-            const clone = container.cloneNode(true);
-            
-            // Remove edit mode classes and contenteditable from clone
+        function buildPrintableHTML() {
+            const clone = mainContainer.cloneNode(true);
+
             clone.classList.remove('edit-mode');
-            const editables = clone.querySelectorAll('.editable');
-            editables.forEach(el => {
-                el.removeAttribute('contenteditable');
-                el.classList.remove('editable');
-            });
-            
-            const content = clone.innerHTML;
-            
-            // Create complete HTML for Word with inline styles
-            const wordHTML = `<!DOCTYPE html>
-<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+            clone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+
+            // Remove interactive-only styles (optional)
+            clone.querySelectorAll('.editable').forEach(el => el.classList.remove('editable'));
+
+            // Copy CSS from the main style tag
+            const css = document.querySelector('style') ? document.querySelector('style').innerHTML : '';
+
+            return `<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset='UTF-8'>
-    <xml>
-        <w:WordDocument>
-            <w:View>Print</w:View>
-            <w:Zoom>100</w:Zoom>
-        </w:WordDocument>
-    </xml>
-    <style>
-        body { 
-            font-family: 'Calibri', 'Segoe UI', sans-serif; 
-            line-height: 1.6; 
-            margin: 0;
-            padding: 0;
-        }
-        .header { 
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-            color: white !important; 
-            padding: 40px; 
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        h1 { 
-            font-size: 42px; 
-            font-weight: 700; 
-            margin: 0 0 10px 0; 
-            letter-spacing: 2px;
-            color: white !important;
-        }
-        .contact-info { 
-            text-align: center;
-            margin-top: 15px; 
-            font-size: 14px;
-            color: white !important;
-        }
-        .contact-info span {
-            margin: 0 10px;
-            color: white !important;
-        }
-        .content { padding: 40px; }
-        .section { margin-bottom: 30px; }
-        .section-title { 
-            font-size: 20px; 
-            font-weight: 700; 
-            color: #1e3a8a !important; 
-            border-bottom: 3px solid #3b82f6; 
-            padding-bottom: 8px; 
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .summary { 
-            font-size: 15px; 
-            color: #374151; 
-            line-height: 1.8; 
-            text-align: justify;
-            margin-bottom: 15px;
-        }
-        .skill-category { margin-bottom: 10px; }
-        .skill-category h4 { 
-            color: #1e3a8a; 
-            font-size: 14px; 
-            margin: 5px 0; 
-            font-weight: 600; 
-        }
-        .skill-category p { 
-            color: #6b7280; 
-            font-size: 13px; 
-            line-height: 1.6; 
-            margin: 0;
-        }
-        .job { margin-bottom: 25px; }
-        .job-title { 
-            font-size: 16px; 
-            font-weight: 700; 
-            color: #1e3a8a; 
-            margin-bottom: 3px;
-        }
-        .job-date { 
-            font-size: 13px; 
-            color: #6b7280; 
-            font-weight: 600; 
-        }
-        .company { 
-            font-size: 14px; 
-            color: #374151; 
-            font-weight: 600; 
-            margin-bottom: 8px; 
-        }
-        .achievements { 
-            list-style: none; 
-            padding-left: 0; 
-            margin: 0;
-        }
-        .achievements li { 
-            padding-left: 20px; 
-            margin-bottom: 6px; 
-            position: relative; 
-            font-size: 13px; 
-            color: #4b5563; 
-            line-height: 1.7;
-        }
-        .achievements li:before { 
-            content: "▸"; 
-            position: absolute; 
-            left: 0; 
-            color: #3b82f6; 
-            font-weight: bold; 
-        }
-        strong { color: #1e3a8a !important; font-weight: 600; }
-        .education-item h4 { 
-            font-size: 14px; 
-            color: #1e3a8a; 
-            margin: 3px 0; 
-        }
-        .education-item p { 
-            font-size: 13px; 
-            color: #6b7280; 
-            margin: 2px 0;
-        }
-        .cert-item { 
-            font-size: 13px; 
-            color: #4b5563; 
-            padding-left: 15px; 
-            position: relative; 
-            margin-bottom: 5px;
-        }
-        .cert-item:before { 
-            content: "✓"; 
-            position: absolute; 
-            left: 0; 
-            color: #3b82f6; 
-            font-weight: bold; 
-        }
-        .languages, .technical { 
-            font-size: 14px; 
-            margin-bottom: 5px;
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Resume - Ilich Vasquez</title>
+<style>
+@page { size: letter; margin: 0.5in; }
+html, body { background: #ffffff !important; }
+.container { box-shadow: none !important; }
+${css}
+</style>
 </head>
 <body>
-    ${content}
+${clone.outerHTML}
 </body>
 </html>`;
-            
-            // Create blob and download
-            const blob = new Blob(['\ufeff', wordHTML], {
-                type: 'application/msword;charset=utf-8'
-            });
-            
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'Ilich_Vasquez_Resume.doc';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+        }
+
+        function exportPdfViaPrint() {
+            const html = buildPrintableHTML();
+            const w = window.open('', '_blank');
+            if (!w) {
+                showToast('Popup blocked. Allow popups to export PDF (Print → Save as PDF).', 'warn');
+                return;
+            }
+
+            // Write the HTML into the new window
+            w.document.open();
+            w.document.write(html);
+            w.document.close();
+
+            w.onload = () => {
+                w.focus();
+                w.print();
+            };
+        }
+
+        pdfBtn.addEventListener('click', () => {
+            safeDisable(pdfBtn, '⏳ Opening Print...');
+            try {
+                // In many sandboxes, true programmatic PDF download is restricted.
+                // Print -> Save as PDF is the most reliable path.
+                exportPdfViaPrint();
+            } finally {
+                setTimeout(() => safeEnable(pdfBtn), 600);
+            }
         });
+
+        // -----------------------
+        // Export: Word (.doc HTML)
+        // -----------------------
+        const wordBtn = document.getElementById('wordBtn');
+
+        function buildWordHTML() {
+            const clone = mainContainer.cloneNode(true);
+
+            clone.classList.remove('edit-mode');
+            clone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+            clone.querySelectorAll('.editable').forEach(el => el.classList.remove('editable'));
+
+            const content = clone.innerHTML;
+
+            // Note: Many Word versions accept HTML packaged as .doc.
+            return `<!DOCTYPE html>
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+<meta charset='UTF-8'>
+<xml>
+<w:WordDocument>
+<w:View>Print</w:View>
+<w:Zoom>100</w:Zoom>
+</w:WordDocument>
+</xml>
+<style>
+body { font-family: Calibri, 'Segoe UI', sans-serif; line-height: 1.6; margin: 0; padding: 0; }
+.header { background: #1e3a8a; color: #fff !important; padding: 40px; text-align: center; margin-bottom: 20px; }
+h1 { font-size: 42px; font-weight: 700; margin: 0 0 10px 0; letter-spacing: 2px; color: #fff !important; }
+.contact-info { text-align: center; margin-top: 15px; font-size: 14px; color: #fff !important; }
+.contact-info span { margin: 0 10px; color: #fff !important; }
+.content { padding: 40px; }
+.section { margin-bottom: 30px; }
+.section-title { font-size: 20px; font-weight: 700; color: #1e3a8a !important; border-bottom: 3px solid #3b82f6; padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+.summary { font-size: 15px; color: #374151; line-height: 1.8; text-align: justify; margin-bottom: 15px; }
+.skill-category h4 { color: #1e3a8a; font-size: 14px; margin: 5px 0; font-weight: 600; }
+.skill-category p { color: #6b7280; font-size: 13px; line-height: 1.6; margin: 0; }
+.job { margin-bottom: 25px; }
+.job-title { font-size: 16px; font-weight: 700; color: #1e3a8a; margin-bottom: 3px; }
+.job-date { font-size: 13px; color: #6b7280; font-weight: 600; }
+.company { font-size: 14px; color: #374151; font-weight: 600; margin-bottom: 8px; }
+.achievements { list-style: none; padding-left: 0; margin: 0; }
+.achievements li { padding-left: 20px; margin-bottom: 6px; position: relative; font-size: 13px; color: #4b5563; line-height: 1.7; }
+.achievements li:before { content: "▸"; position: absolute; left: 0; color: #3b82f6; font-weight: bold; }
+strong { color: #1e3a8a !important; font-weight: 600; }
+.education-item h4 { font-size: 14px; color: #1e3a8a; margin: 3px 0; }
+.education-item p { font-size: 13px; color: #6b7280; margin: 2px 0; }
+.cert-item { font-size: 13px; color: #4b5563; padding-left: 15px; position: relative; margin-bottom: 5px; }
+.cert-item:before { content: "✓"; position: absolute; left: 0; color: #3b82f6; font-weight: bold; }
+.languages, .technical { font-size: 14px; margin-bottom: 5px; }
+</style>
+</head>
+<body>
+${content}
+</body>
+</html>`;
+        }
+
+        function exportWordDoc(filename = 'Ilich_Vasquez_Resume.doc') {
+            const wordHTML = buildWordHTML();
+            const blob = new Blob(['\ufeff', wordHTML], { type: 'application/msword;charset=utf-8' });
+
+            // IE / legacy
+            if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+                window.navigator.msSaveOrOpenBlob(blob, filename);
+                return;
+            }
+
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            // Some embedded previews block downloads; open in a new tab as a fallback.
+            const w = window.open(url, '_blank');
+            if (!w) {
+                showToast('Download blocked. Allow popups/downloads, then re-try Word export.', 'warn');
+            } else {
+                showToast('Word opened in a new tab. Use File → Save As if needed.', 'info');
+            }
+
+            setTimeout(() => URL.revokeObjectURL(url), 15000);
+        }
+
+        wordBtn.addEventListener('click', () => {
+            safeDisable(wordBtn, '⏳ Preparing...');
+            try {
+                exportWordDoc('Ilich_Vasquez_Resume.doc');
+            } catch (e) {
+                console.error(e);
+                showToast('Word export failed. Check popup/download settings.', 'error');
+            } finally {
+                setTimeout(() => safeEnable(wordBtn), 600);
+            }
+        });
+
+        // -----------------------
+        // Minimal self-tests (console)
+        // -----------------------
+        function assert(condition, message) {
+            if (!condition) throw new Error(message);
+        }
+
+        function runTests() {
+            const results = [];
+            try {
+                assert(!!document.getElementById('editBtn'), 'Missing editBtn');
+                assert(!!document.getElementById('pdfBtn'), 'Missing pdfBtn');
+                assert(!!document.getElementById('wordBtn'), 'Missing wordBtn');
+                const p = buildPrintableHTML();
+                const w = buildWordHTML();
+                assert(typeof p === 'string' && p.includes('<!DOCTYPE html>'), 'Printable HTML not built');
+                assert(typeof w === 'string' && w.includes('<w:WordDocument>'), 'Word HTML not built');
+                results.push('✅ Tests passed');
+            } catch (err) {
+                console.error(err);
+                results.push('❌ Tests failed: ' + err.message);
+            }
+            console.log(results.join('\n'));
+        }
+
+        // Run tests after DOM is ready
+        window.addEventListener('DOMContentLoaded', runTests);
     </script>
 </body>
 </html>
