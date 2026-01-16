@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ilich Vasquez - Professional Resume</title>
+    <style>
+        @media print {
+            body { margin: 0; padding: 0; }
+            .page { page-break-after: always; }
+            .no-print { display: none !important; }
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+        
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        
+        .contact-info span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 35px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e3a8a;
+            border-bottom: 3px solid #3b82f6;
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .summary {
+            font-size: 15px;
+            color: #374151;
+            line-height: 1.8;
+            text-align: justify;
+        }
+        
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .skill-category h4 {
+            color: #1e3a8a;
+            font-size: 14px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .skill-category p {
+            color: #6b7280;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        
+        .job {
+            margin-bottom: 30px;
+        }
+        
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .job-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e3a8a;
+        }
+        
+        .job-date {
+            font-size: 13px;
+            color: #6b7280;
+            font-weight: 600;
+        }
+        
+        .company {
+            font-size: 14px;
+            color: #374151;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .achievements {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .achievements li {
+            padding-left: 20px;
+            margin-bottom: 8px;
+            position: relative;
+            font-size: 13px;
+            color: #4b5563;
+            line-height: 1.7;
+        }
+        
+        .achievements li:before {
+            content: "▸";
+            position: absolute;
+            left: 0;
+            color: #3b82f6;
+            font-weight: bold;
+        }
+        
+        .achievements strong {
+            color: #1e3a8a;
+        }
+        
+        .education-item, .cert-item {
+            margin-bottom: 12px;
+        }
+        
+        .education-item h4, .cert-item h4 {
+            font-size: 14px;
+            color: #1e3a8a;
+            margin-bottom: 3px;
+        }
+        
+        .education-item p, .cert-item p {
+            font-size: 13px;
+            color: #6b7280;
+        }
+        
+        .cert-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        .cert-item {
+            font-size: 13px;
+            color: #4b5563;
+            padding-left: 15px;
+            position: relative;
+        }
+        
+        .cert-item:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #3b82f6;
+            font-weight: bold;
+        }
+        
+        .languages, .technical {
+            display: flex;
+            gap: 30px;
+            font-size: 14px;
+        }
+        
+        .languages strong, .technical strong {
+            color: #1e3a8a;
+        }
+        
+        .button-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+        
+        .download-btn {
+            background: #3b82f6;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+        }
+
+        .download-btn.edit {
+            background: #059669;
+        }
+
+        .download-btn.edit:hover {
+            background: #047857;
+        }
+
+        .download-btn.edit.active {
+            background: #dc2626;
+        }
+
+        .download-btn.edit.active:hover {
+            background: #b91c1c;
+        }
+
+        .download-btn.word {
+            background: #2b5797;
+        }
+
+        .download-btn.word:hover {
+            background: #1e3a6d;
+        }
+
+        .editable {
+            outline: none;
+            transition: background-color 0.2s;
+        }
+
+        .editable:focus {
+            background-color: #fef3c7;
+            padding: 2px;
+            border-radius: 2px;
+        }
+
+        .edit-mode .editable {
+            cursor: text;
+            border: 1px dashed #d1d5db;
+            padding: 2px;
+            border-radius: 2px;
+        }
+
+        .edit-instructions {
+            position: fixed;
+            top: 150px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            font-size: 13px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: none;
+            max-width: 300px;
+            z-index: 1000;
+        }
+
+        .edit-instructions.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="button-container no-print">
+        <button class="download-btn edit" id="editBtn">✏️ Edit Mode</button>
+        <button class="download-btn" id="pdfBtn">📄 Download PDF</button>
+        <button class="download-btn word" id="wordBtn">📝 Download Word</button>
+    </div>
+    
+    <div class="edit-instructions no-print" id="editInstructions">
+        <strong>✏️ Edit Mode Active</strong><br>
+        Click on any text to edit it directly. Click "Edit Mode" again to save your changes.
+    </div>
+    
+    <div class="container">
+        <div class="header">
+            <h1 class="editable">ILICH VASQUEZ</h1>
+            <div class="contact-info">
+                <span class="editable">📍 Brooklyn, NY</span>
+                <span class="editable">📞 864-749-1054</span>
+                <span class="editable">✉️ ilitchvasquez@gmail.com</span>
+                <span class="editable">🇺🇸 Authorized to work in the U.S. without sponsorship</span>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h2 class="section-title">Professional Summary</h2>
+                <p class="summary editable">
+                    Award-winning Operations Leader with 15+ years of progressive experience managing large-scale contact center operations across multiple countries in Latin America. Consistently recognized as "Exceeds Expectations" in annual performance reviews throughout management tenure, with proven track record of achieving operational targets year-over-year. Expertise in operational excellence, quality assurance, workforce optimization, and cross-functional leadership. Known for building high-performing teams that consistently surpass KPIs while delivering exceptional customer outcomes in complex, multi-site environments.
+                </p>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title">Core Competencies</h2>
+                <div class="skills-grid">
+                    <div class="skill-category">
+                        <h4>Operations Leadership</h4>
+                        <p class="editable">Contact Center Management • Multi-Site Operations • Business Continuity Planning • Process Optimization</p>
+                    </div>
+                    <div class="skill-category">
+                        <h4>Workforce Management</h4>
+                        <p class="editable">Forecasting & Capacity Planning • Scheduling & Real-Time Management • Adherence Monitoring • Resource Allocation</p>
+                    </div>
+                    <div class="skill-category">
+                        <h4>Quality & Compliance</h4>
+                        <p class="editable">Quality Assurance Frameworks • Regulatory Compliance • Internal Controls • Audit Readiness • Performance Management</p>
+                    </div>
+                    <div class="skill-category">
+                        <h4>Strategic Planning</h4>
+                        <p class="editable">KPI/SLA Management • Budget Development • Vendor & Stakeholder Management • Change Management • Project Leadership</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title">Professional Experience</h2>
+                
+                <div class="job">
+                    <div class="job-header">
+                        <div class="job-title editable">Senior Operations Manager, Regional Contact Center Operations</div>
+                        <div class="job-date editable">2020 – 2023</div>
+                    </div>
+                    <div class="company editable">Scotiabank | Santo Domingo, Dominican Republic</div>
+                    <ul class="achievements">
+                        <li class="editable"><strong>Consistently exceeded annual performance targets by 15-20%</strong>, achieving "Exceeds Expectations" rating in 100% of annual performance reviews during management tenure</li>
+                        <li class="editable"><strong>Achieved 98%+ SLA compliance</strong> across all service metrics year-over-year while maintaining superior customer satisfaction scores</li>
+                        <li class="editable">Directed contact center operations spanning <strong>3 regions and 10 countries</strong> with 200+ team members, ensuring adherence to regulatory requirements and internal control standards</li>
+                        <li class="editable">Partnered with Workforce Management and senior leadership to develop staffing strategies that <strong>improved agent productivity by 18%</strong> through optimized forecasting and scheduling protocols</li>
+                        <li class="editable">Led cross-functional initiatives that enhanced operational efficiency through technology upgrades and process improvements</li>
+                        <li class="editable">Drove audit readiness achieving <strong>zero critical findings</strong> in internal and external audits through meticulous documentation</li>
+                    </ul>
+                </div>
+                
+                <div class="job">
+                    <div class="job-header">
+                        <div class="job-title editable">Assistant Manager, Quality Assurance & Operations</div>
+                        <div class="job-date editable">2017 – 2020</div>
+                    </div>
+                    <div class="company editable">Scotiabank | Santo Domingo, Dominican Republic</div>
+                    <ul class="achievements">
+                        <li class="editable"><strong>Achieved 97%+ schedule adherence</strong> through real-time workforce management and scheduling optimization that maximized productivity</li>
+                        <li class="editable"><strong>Improved forecasting accuracy by 20%</strong>, resulting in better resource allocation and enhanced service level performance</li>
+                        <li class="editable">Managed comprehensive workforce planning for 100+ agent contact center, improving operational efficiency and service delivery</li>
+                        <li class="editable">Coordinated platform upgrades that <strong>reduced system downtime by 30%</strong></li>
+                        <li class="editable">Created operational reporting frameworks enabling data-driven decisions that contributed to improved departmental performance</li>
+                        <li class="editable">Recognized with <strong>"Exceeds Expectations"</strong> performance rating for consistent delivery of operational excellence</li>
+                    </ul>
+                </div>
+                
+                <div class="job">
+                    <div class="job-header">
+                        <div class="job-title editable">Assistant Manager, Quality Assurance & Operations</div>
+                        <div class="job-date editable">2015 – 2017</div>
+                    </div>
+                    <div class="company editable">Scotiabank | Santo Domingo, Dominican Republic</div>
+                    <ul class="achievements">
+                        <li class="editable">Designed quality calibration processes that improved overall quality scores and reduced compliance violations</li>
+                        <li class="editable">Achieved strong quality assurance scores across all evaluation categories through consistent training and performance monitoring</li>
+                        <li class="editable">Established accountability structures that increased team performance and operational effectiveness</li>
+                        <li class="editable">Achieved <strong>100% audit compliance</strong> through comprehensive operational reporting and metrics tracking</li>
+                        <li class="editable">Provided guidance that reduced escalations and improved first-call resolution rates</li>
+                    </ul>
+                </div>
+                
+                <div class="job">
+                    <div class="job-header">
+                        <div class="job-title editable">Sales & Customer Service Team Leader</div>
+                        <div class="job-date editable">2009 – 2015</div>
+                    </div>
+                    <div class="company editable">Scotiabank | Santo Domingo, Dominican Republic</div>
+                    <ul class="achievements">
+                        <li class="editable"><strong>Consistently exceeded sales and service targets by 10-15%</strong> through effective team coaching and skill development</li>
+                        <li class="editable"><strong>Achieved 90%+ customer satisfaction scores</strong> while maintaining quality standards in fast-paced environment</li>
+                        <li class="editable">Managed front-line teams of <strong>15-25 customer service representatives</strong> balancing sales objectives with exceptional service delivery</li>
+                        <li class="editable">Implemented effective engagement strategies and career development programs that improved team retention</li>
+                        <li class="editable">Implemented sales techniques that improved conversion rates and overall team performance</li>
+                        <li class="editable">Recognized for developing high-performing agents who advanced to leadership positions within the organization</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title">U.S. Experience</h2>
+                
+                <div class="job">
+                    <div class="job-header">
+                        <div class="job-title editable">Multi-Unit Business Administrator / Operations Manager</div>
+                        <div class="job-date editable">2024 – Present</div>
+                    </div>
+                    <div class="company editable">Family-Owned Retail Group | Brooklyn, NY</div>
+                    <ul class="achievements">
+                        <li class="editable">Direct operations for portfolio of four businesses (grocery, variety store, barbershop, laundromat), <strong>improving operational efficiency by 15%</strong></li>
+                        <li class="editable"><strong>Reduced inventory discrepancies by 25%</strong> through implementation of systematic tracking and control procedures</li>
+                        <li class="editable">Implement operational improvements enhancing customer experience and service delivery across multiple locations</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title">Education</h2>
+                <div class="education-item">
+                    <h4 class="editable">Business Administration</h4>
+                    <p class="editable">Universidad Tecnológica de Santiago (UTESA) | Dominican Republic</p>
+                    <p class="editable">Coursework toward Bachelor of Business Administration</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title">Certifications & Professional Development</h2>
+                <div class="cert-grid">
+                    <div class="cert-item editable">Workforce Management: Planning & Forecasting</div>
+                    <div class="cert-item editable">Workforce Management: Intraday Management</div>
+                    <div class="cert-item editable">Skills-Based Routing</div>
+                    <div class="cert-item editable">Agile Project Management</div>
+                    <div class="cert-item editable">Process Optimization</div>
+                    <div class="cert-item editable">Anti-Money Laundering (AML) Compliance</div>
+                    <div class="cert-item editable">Microsoft Office Suite (Advanced)</div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title">Languages & Technical Skills</h2>
+                <div class="languages">
+                    <div class="editable"><strong>Languages:</strong> English (Fluent) | Spanish (Native)</div>
+                </div>
+                <div class="technical" style="margin-top: 10px;">
+                    <div class="editable"><strong>Technical:</strong> Contact Center Platforms | WFM Systems | CRM Systems | MS Office Suite | Reporting & Analytics Tools | Quality Management Systems | AI Prompt Engineering | Process Automation & Coding</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let editMode = false;
+
+        // Edit Mode Toggle
+        document.getElementById('editBtn').addEventListener('click', function() {
+            editMode = !editMode;
+            const container = document.querySelector('.container');
+            const instructions = document.getElementById('editInstructions');
+            const editBtn = document.getElementById('editBtn');
+            
+            if (editMode) {
+                container.classList.add('edit-mode');
+                instructions.classList.add('show');
+                editBtn.classList.add('active');
+                editBtn.textContent = '💾 Save Changes';
+                
+                // Make all editable elements contenteditable
+                document.querySelectorAll('.editable').forEach(element => {
+                    element.setAttribute('contenteditable', 'true');
+                });
+            } else {
+                container.classList.remove('edit-mode');
+                instructions.classList.remove('show');
+                editBtn.classList.remove('active');
+                editBtn.textContent = '✏️ Edit Mode';
+                
+                // Remove contenteditable from all elements
+                document.querySelectorAll('.editable').forEach(element => {
+                    element.removeAttribute('contenteditable');
+                });
+            }
+        });
+
+        // PDF Download
+        document.getElementById('pdfBtn').addEventListener('click', function() {
+            // Temporarily disable edit mode for clean print
+            const wasInEditMode = editMode;
+            if (editMode) {
+                document.getElementById('editBtn').click();
+            }
+            
+            setTimeout(() => {
+                window.print();
+                // Restore edit mode if it was active
+                if (wasInEditMode) {
+                    setTimeout(() => document.getElementById('editBtn').click(), 500);
+                }
+            }, 100);
+        });
+
+        // Word Download
+        document.getElementById('wordBtn').addEventListener('click', function() {
+            const container = document.querySelector('.container');
+            const clone = container.cloneNode(true);
+            
+            // Remove edit mode classes and contenteditable from clone
+            clone.classList.remove('edit-mode');
+            const editables = clone.querySelectorAll('.editable');
+            editables.forEach(el => {
+                el.removeAttribute('contenteditable');
+                el.classList.remove('editable');
+            });
+            
+            const content = clone.innerHTML;
+            
+            // Create complete HTML for Word with inline styles
+            const wordHTML = `<!DOCTYPE html>
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+    <meta charset='UTF-8'>
+    <xml>
+        <w:WordDocument>
+            <w:View>Print</w:View>
+            <w:Zoom>100</w:Zoom>
+        </w:WordDocument>
+    </xml>
+    <style>
+        body { 
+            font-family: 'Calibri', 'Segoe UI', sans-serif; 
+            line-height: 1.6; 
+            margin: 0;
+            padding: 0;
+        }
+        .header { 
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white !important; 
+            padding: 40px; 
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        h1 { 
+            font-size: 42px; 
+            font-weight: 700; 
+            margin: 0 0 10px 0; 
+            letter-spacing: 2px;
+            color: white !important;
+        }
+        .contact-info { 
+            text-align: center;
+            margin-top: 15px; 
+            font-size: 14px;
+            color: white !important;
+        }
+        .contact-info span {
+            margin: 0 10px;
+            color: white !important;
+        }
+        .content { padding: 40px; }
+        .section { margin-bottom: 30px; }
+        .section-title { 
+            font-size: 20px; 
+            font-weight: 700; 
+            color: #1e3a8a !important; 
+            border-bottom: 3px solid #3b82f6; 
+            padding-bottom: 8px; 
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .summary { 
+            font-size: 15px; 
+            color: #374151; 
+            line-height: 1.8; 
+            text-align: justify;
+            margin-bottom: 15px;
+        }
+        .skill-category { margin-bottom: 10px; }
+        .skill-category h4 { 
+            color: #1e3a8a; 
+            font-size: 14px; 
+            margin: 5px 0; 
+            font-weight: 600; 
+        }
+        .skill-category p { 
+            color: #6b7280; 
+            font-size: 13px; 
+            line-height: 1.6; 
+            margin: 0;
+        }
+        .job { margin-bottom: 25px; }
+        .job-title { 
+            font-size: 16px; 
+            font-weight: 700; 
+            color: #1e3a8a; 
+            margin-bottom: 3px;
+        }
+        .job-date { 
+            font-size: 13px; 
+            color: #6b7280; 
+            font-weight: 600; 
+        }
+        .company { 
+            font-size: 14px; 
+            color: #374151; 
+            font-weight: 600; 
+            margin-bottom: 8px; 
+        }
+        .achievements { 
+            list-style: none; 
+            padding-left: 0; 
+            margin: 0;
+        }
+        .achievements li { 
+            padding-left: 20px; 
+            margin-bottom: 6px; 
+            position: relative; 
+            font-size: 13px; 
+            color: #4b5563; 
+            line-height: 1.7;
+        }
+        .achievements li:before { 
+            content: "▸"; 
+            position: absolute; 
+            left: 0; 
+            color: #3b82f6; 
+            font-weight: bold; 
+        }
+        strong { color: #1e3a8a !important; font-weight: 600; }
+        .education-item h4 { 
+            font-size: 14px; 
+            color: #1e3a8a; 
+            margin: 3px 0; 
+        }
+        .education-item p { 
+            font-size: 13px; 
+            color: #6b7280; 
+            margin: 2px 0;
+        }
+        .cert-item { 
+            font-size: 13px; 
+            color: #4b5563; 
+            padding-left: 15px; 
+            position: relative; 
+            margin-bottom: 5px;
+        }
+        .cert-item:before { 
+            content: "✓"; 
+            position: absolute; 
+            left: 0; 
+            color: #3b82f6; 
+            font-weight: bold; 
+        }
+        .languages, .technical { 
+            font-size: 14px; 
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    ${content}
+</body>
+</html>`;
+            
+            // Create blob and download
+            const blob = new Blob(['\ufeff', wordHTML], {
+                type: 'application/msword;charset=utf-8'
+            });
+            
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'Ilich_Vasquez_Resume.doc';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        });
+    </script>
+</body>
+</html>
