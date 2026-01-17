@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -6,9 +6,19 @@
     <title>Ilich Vasquez - Professional Resume</title>
     <style>
         @media print {
-            @page { size: letter; margin: 0.5in; }
+            /* Print tuning: prevent bottom clipping and keep layout clean */
+            @page { size: letter; margin: 0.4in; }
+            html, body { background: #ffffff !important; }
             body { margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .no-print { display: none !important; }
+
+            .container { box-shadow: none !important; }
+            .header { padding: 28px !important; }
+            .content { padding: 26px !important; }
+            .section { margin-bottom: 22px !important; }
+            .section-title { margin-bottom: 14px !important; padding-bottom: 6px !important; }
+            .achievements li { margin-bottom: 6px !important; line-height: 1.55 !important; }
+            .cert-grid { gap: 8px !important; }
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -41,13 +51,35 @@
             letter-spacing: 2px;
         }
 
+        .tagline {
+            margin-top: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            opacity: 0.95;
+        }
+
         .contact-info {
             display: flex;
             justify-content: center;
-            gap: 20px;
             flex-wrap: wrap;
             margin-top: 15px;
             font-size: 14px;
+            gap: 0; /* separators handle spacing */
+        }
+
+        .contact-info span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 0;
+        }
+
+        /* visual dividers like your tagline */
+        .contact-info span:not(:last-child)::after {
+            content: "|";
+            opacity: 0.85;
+            margin: 0 14px;
         }
 
         .contact-info span {
@@ -281,10 +313,90 @@
             display: none;
             color: #fff;
         }
+    
+        /* Theme selector UI */
+        .theme-select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background: #111827;
+            color: #ffffff;
+            padding: 10px 12px;
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.12);
+        }
+        .theme-select:focus { outline: 2px solid rgba(59,130,246,0.45); outline-offset: 2px; }
+
+        /* Theme overrides (no changes to your content) */
+        body[data-theme="classic"] { }
+
+        body[data-theme="charcoal"] .header { background: linear-gradient(135deg, #111827 0%, #374151 100%); }
+        body[data-theme="charcoal"] .section-title,
+        body[data-theme="charcoal"] .job-title,
+        body[data-theme="charcoal"] .skill-category h4,
+        body[data-theme="charcoal"] .education-item h4,
+        body[data-theme="charcoal"] .achievements strong,
+        body[data-theme="charcoal"] .languages strong,
+        body[data-theme="charcoal"] .technical strong { color: #111827; }
+        body[data-theme="charcoal"] .section-title { border-bottom-color: #6b7280; }
+        body[data-theme="charcoal"] .achievements li:before,
+        body[data-theme="charcoal"] .cert-item:before { color: #6b7280; }
+        body[data-theme="charcoal"] .download-btn { background: #6b7280; }
+
+        body[data-theme="emerald"] .header { background: linear-gradient(135deg, #065f46 0%, #10b981 100%); }
+        body[data-theme="emerald"] .section-title,
+        body[data-theme="emerald"] .job-title,
+        body[data-theme="emerald"] .skill-category h4,
+        body[data-theme="emerald"] .education-item h4,
+        body[data-theme="emerald"] .achievements strong,
+        body[data-theme="emerald"] .languages strong,
+        body[data-theme="emerald"] .technical strong { color: #065f46; }
+        body[data-theme="emerald"] .section-title { border-bottom-color: #10b981; }
+        body[data-theme="emerald"] .achievements li:before,
+        body[data-theme="emerald"] .cert-item:before { color: #10b981; }
+        body[data-theme="emerald"] .download-btn { background: #10b981; }
+
+        body[data-theme="burgundy"] .header { background: linear-gradient(135deg, #7f1d1d 0%, #ef4444 100%); }
+        body[data-theme="burgundy"] .section-title,
+        body[data-theme="burgundy"] .job-title,
+        body[data-theme="burgundy"] .skill-category h4,
+        body[data-theme="burgundy"] .education-item h4,
+        body[data-theme="burgundy"] .achievements strong,
+        body[data-theme="burgundy"] .languages strong,
+        body[data-theme="burgundy"] .technical strong { color: #7f1d1d; }
+        body[data-theme="burgundy"] .section-title { border-bottom-color: #ef4444; }
+        body[data-theme="burgundy"] .achievements li:before,
+        body[data-theme="burgundy"] .cert-item:before { color: #ef4444; }
+        body[data-theme="burgundy"] .download-btn { background: #ef4444; }
+
+        body[data-theme="slate"] .header { background: linear-gradient(135deg, #0f172a 0%, #64748b 100%); }
+        body[data-theme="slate"] .section-title,
+        body[data-theme="slate"] .job-title,
+        body[data-theme="slate"] .skill-category h4,
+        body[data-theme="slate"] .education-item h4,
+        body[data-theme="slate"] .achievements strong,
+        body[data-theme="slate"] .languages strong,
+        body[data-theme="slate"] .technical strong { color: #0f172a; }
+        body[data-theme="slate"] .section-title { border-bottom-color: #64748b; }
+        body[data-theme="slate"] .achievements li:before,
+        body[data-theme="slate"] .cert-item:before { color: #64748b; }
+        body[data-theme="slate"] .download-btn { background: #64748b; }
+
     </style>
 </head>
 <body>
     <div class="button-container no-print">
+        <select class="theme-select" id="themeSelect" aria-label="Theme selector" title="Theme">
+            <option value="classic">Classic Blue</option>
+            <option value="charcoal">Modern Charcoal</option>
+            <option value="emerald">Emerald</option>
+            <option value="burgundy">Burgundy</option>
+            <option value="slate">Slate</option>
+        </select>
         <button class="download-btn edit" id="editBtn">✏️ Edit Mode</button>
         <button class="download-btn" id="pdfBtn">📄 Download PDF</button>
         <button class="download-btn word" id="wordBtn">📝 Download Word</button>
@@ -300,11 +412,12 @@
     <div class="container">
         <div class="header">
             <h1 class="editable">ILICH VASQUEZ</h1>
+            <div class="tagline editable">Bilingual Operations Leader | Contact Center Operations | Quality & Compliance | Workforce Optimization</div>
             <div class="contact-info">
                 <span class="editable">📍 Brooklyn, NY</span>
                 <span class="editable">📞 864-749-1054</span>
                 <span class="editable">✉️ ilitchvasquez@gmail.com</span>
-                <span class="editable">🇺🇸 Authorized to work in the U.S. without sponsorship</span>
+                <span class="editable">Authorized to work in the U.S. without sponsorship</span>
             </div>
         </div>
 
@@ -312,7 +425,7 @@
             <div class="section">
                 <h2 class="section-title">Professional Summary</h2>
                 <p class="summary editable">
-                    Award-winning Operations Leader with 15+ years of progressive experience managing large-scale contact center operations across multiple countries in Latin America. Consistently recognized as "Exceeds Expectations" in annual performance reviews throughout management tenure, with proven track record of achieving operational targets year-over-year. Expertise in operational excellence, quality assurance, workforce optimization, and cross-functional leadership. Known for building high-performing teams that consistently surpass KPIs while delivering exceptional customer outcomes in complex, multi-site environments.
+                    Bilingual (English/Spanish) Operations Leader with 15+ years of progressive experience leading large-scale contact center operations across Latin America. Proven track record managing multi-country, multi-site teams and consistently exceeding KPIs/SLA targets through operational excellence, workforce optimization, quality governance, and cross-functional leadership. Recognized for building high-performing teams, driving audit-ready processes in regulated environments, and bridging corporate strategy with disciplined execution.
                 </p>
             </div>
 
@@ -321,19 +434,27 @@
                 <div class="skills-grid">
                     <div class="skill-category">
                         <h4>Operations Leadership</h4>
-                        <p class="editable">Contact Center Management • Multi-Site Operations • Business Continuity Planning • Process Optimization</p>
+                        <p class="editable">Contact Center Operations • Multi-Site / Multi-Country Leadership • Process Optimization • Continuous Improvement</p>
                     </div>
                     <div class="skill-category">
-                        <h4>Workforce Management</h4>
-                        <p class="editable">Forecasting & Capacity Planning • Scheduling & Real-Time Management • Adherence Monitoring • Resource Allocation</p>
+                        <h4>Workforce & Performance</h4>
+                        <p class="editable">Forecasting & Capacity Planning • Scheduling & Intraday Management • Adherence • Productivity & KPI Management</p>
                     </div>
                     <div class="skill-category">
-                        <h4>Quality & Compliance</h4>
-                        <p class="editable">Quality Assurance Frameworks • Regulatory Compliance • Internal Controls • Audit Readiness • Performance Management</p>
+                        <h4>Quality, Risk & Compliance</h4>
+                        <p class="editable">Quality Assurance • Calibration & Coaching • Internal Controls • Audit Readiness • Regulated Operations</p>
                     </div>
                     <div class="skill-category">
-                        <h4>Strategic Planning</h4>
-                        <p class="editable">KPI/SLA Management • Budget Development • Vendor & Stakeholder Management • Change Management • Project Leadership</p>
+                        <h4>Stakeholders & Execution</h4>
+                        <p class="editable">Stakeholder Management • SLA / Service Performance • Change Management • Project Leadership • Executive Reporting • Budget Planning</p>
+                    </div>
+                    <div class="skill-category">
+                        <h4>Talent & Culture</h4>
+                        <p class="editable">Team Leadership • Training & Coaching • Performance Management • Engagement & Retention • Cross-Cultural Collaboration</p>
+                    </div>
+                    <div class="skill-category">
+                        <h4>Data & Reporting</h4>
+                        <p class="editable">Operational Dashboards • Root-Cause Analysis • Trend Reporting • Excel (Advanced) • Data-Driven Decision-Making</p>
                     </div>
                 </div>
             </div>
@@ -341,10 +462,26 @@
             <div class="section">
                 <h2 class="section-title">Professional Experience</h2>
 
+                <!-- Most recent first (Reverse Chronological) -->
+
                 <div class="job">
                     <div class="job-header">
-                        <div class="job-title editable">Senior Operations Manager, Regional Contact Center Operations</div>
-                        <div class="job-date editable">2020 – 2023</div>
+                        <div class="job-title editable">Multi-Unit Operations Manager (Retail &amp; Services)</div>
+                        <div class="job-date editable">01/2024 – Present</div>
+                    </div>
+                    <div class="company editable">Family-Owned Retail Group | Brooklyn, NY</div>
+                    <ul class="achievements">
+                        <li class="editable">Led day-to-day operations across a multi-location portfolio, coordinating staffing, scheduling, customer experience, and vendor support to stabilize execution and service consistency</li>
+                        <li class="editable"><strong>Improved operational efficiency by 15%</strong> by standardizing workflows (open/close routines, service flow, task prioritization) and reinforcing accountability</li>
+                        <li class="editable"><strong>Reduced inventory discrepancies by 25%</strong> through inventory control procedures (cycle counts, receiving checks, and variance tracking)</li>
+                        <li class="editable">Implemented basic operational controls (cash handling discipline, issue logging, simple SOPs) to reduce recurring errors and improve team reliability</li>
+                    </ul>
+                </div>
+
+                <div class="job">
+                    <div class="job-header">
+                        <div class="job-title editable">Senior Manager, Regional Contact Center Operations</div>
+                        <div class="job-date editable">11/2021 – 10/2023</div>
                     </div>
                     <div class="company editable">Scotiabank | Santo Domingo, Dominican Republic</div>
                     <ul class="achievements">
@@ -353,35 +490,20 @@
                         <li class="editable">Directed contact center operations spanning <strong>3 regions and 10 countries</strong> with 200+ team members, ensuring adherence to regulatory requirements and internal control standards</li>
                         <li class="editable">Partnered with Workforce Management and senior leadership to develop staffing strategies that <strong>improved agent productivity by 18%</strong> through optimized forecasting and scheduling protocols</li>
                         <li class="editable">Led cross-functional initiatives that enhanced operational efficiency through technology upgrades and process improvements</li>
-                        <li class="editable">Drove audit readiness achieving <strong>zero critical findings</strong> in internal and external audits through meticulous documentation</li>
+                        <li class="editable"><strong>Served as budget owner</strong> for the contact center, leading annual budgeting and financial planning for <strong>headcount, overtime, and vendor spend</strong>, including variance analysis and resource alignment to service targets</li>
+                        <li class="editable"><strong>Led internal audit readiness and compliance</strong> by maintaining controls, documentation, and evidence; <strong>owned remediation action plans</strong> and closure tracking after audit findings to keep operations audit-ready</li>
                     </ul>
                 </div>
 
                 <div class="job">
                     <div class="job-header">
-                        <div class="job-title editable">Assistant Manager, Quality Assurance & Operations</div>
-                        <div class="job-date editable">2017 – 2020</div>
+                        <div class="job-title editable">Operations &amp; Administration Manager</div>
+                        <div class="job-date editable">11/2019 – 10/2021</div>
                     </div>
                     <div class="company editable">Scotiabank | Santo Domingo, Dominican Republic</div>
                     <ul class="achievements">
                         <li class="editable"><strong>Achieved 97%+ schedule adherence</strong> through real-time workforce management and scheduling optimization that maximized productivity</li>
                         <li class="editable"><strong>Improved forecasting accuracy by 20%</strong>, resulting in better resource allocation and enhanced service level performance</li>
-                        <li class="editable">Managed comprehensive workforce planning for 100+ agent contact center, improving operational efficiency and service delivery</li>
-                        <li class="editable">Coordinated platform upgrades that <strong>reduced system downtime by 30%</strong></li>
-                        <li class="editable">Created operational reporting frameworks enabling data-driven decisions that contributed to improved departmental performance</li>
-                        <li class="editable">Recognized with <strong>"Exceeds Expectations"</strong> performance rating for consistent delivery of operational excellence</li>
-                    </ul>
-                </div>
-
-                <div class="job">
-                    <div class="job-header">
-                        <div class="job-title editable">Assistant Manager, Quality Assurance & Operations</div>
-                        <div class="job-date editable">2015 – 2017</div>
-                    </div>
-                    <div class="company editable">Scotiabank | Santo Domingo, Dominican Republic</div>
-                    <ul class="achievements">
-                        <li class="editable">Designed quality calibration processes that improved overall quality scores and reduced compliance violations</li>
-                        <li class="editable">Achieved strong quality assurance scores across all evaluation categories through consistent training and performance monitoring</li>
                         <li class="editable">Established accountability structures that increased team performance and operational effectiveness</li>
                         <li class="editable">Achieved <strong>100% audit compliance</strong> through comprehensive operational reporting and metrics tracking</li>
                         <li class="editable">Provided guidance that reduced escalations and improved first-call resolution rates</li>
@@ -390,8 +512,24 @@
 
                 <div class="job">
                     <div class="job-header">
-                        <div class="job-title editable">Sales & Customer Service Team Leader</div>
-                        <div class="job-date editable">2009 – 2015</div>
+                        <div class="job-title editable">Assistant Manager, Quality Assurance &amp; Operations</div>
+                        <div class="job-date editable">11/2014 – 10/2016</div>
+                    </div>
+                    <div class="company editable">Scotiabank | Santo Domingo, Dominican Republic</div>
+                    <ul class="achievements">
+                        <li class="editable">Achieved strong quality assurance scores across all evaluation categories through consistent training and performance monitoring</li>
+                        <li class="editable">Managed comprehensive workforce planning for 100+ agent contact center, improving operational efficiency and service delivery</li>
+                        <li class="editable">Coordinated platform upgrades that <strong>reduced system downtime by 30%</strong></li>
+                        <li class="editable">Created operational reporting frameworks enabling data-driven decisions that contributed to improved departmental performance</li>
+                        <li class="editable"><strong>Supported budget planning and expense governance</strong> by tracking spend trends and staffing drivers to inform leadership decisions and resource allocation</li>
+                        <li class="editable">Recognized with <strong>"Exceeds Expectations"</strong> performance rating for consistent delivery of operational excellence</li>
+                    </ul>
+                </div>
+
+<div class="job">
+                    <div class="job-header">
+                        <div class="job-title editable">Sales &amp; Customer Service Team Leader</div>
+                        <div class="job-date editable">10/2009 – 10/2014</div>
                     </div>
                     <div class="company editable">Scotiabank | Santo Domingo, Dominican Republic</div>
                     <ul class="achievements">
@@ -406,23 +544,6 @@
             </div>
 
             <div class="section">
-                <h2 class="section-title">U.S. Experience</h2>
-
-                <div class="job">
-                    <div class="job-header">
-                        <div class="job-title editable">Multi-Unit Business Administrator / Operations Manager</div>
-                        <div class="job-date editable">2024 – Present</div>
-                    </div>
-                    <div class="company editable">Family-Owned Retail Group | Brooklyn, NY</div>
-                    <ul class="achievements">
-                        <li class="editable">Direct operations for portfolio of four businesses (grocery, variety store, barbershop, laundromat), <strong>improving operational efficiency by 15%</strong></li>
-                        <li class="editable"><strong>Reduced inventory discrepancies by 25%</strong> through implementation of systematic tracking and control procedures</li>
-                        <li class="editable">Implement operational improvements enhancing customer experience and service delivery across multiple locations</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="section">
                 <h2 class="section-title">Education</h2>
                 <div class="education-item">
                     <h4 class="editable">Business Administration</h4>
@@ -432,25 +553,36 @@
             </div>
 
             <div class="section">
-                <h2 class="section-title">Certifications & Professional Development</h2>
+                <h2 class="section-title">Professional Expertise</h2>
                 <div class="cert-grid">
                     <div class="cert-item editable">Workforce Management: Planning & Forecasting</div>
-                    <div class="cert-item editable">Workforce Management: Intraday Management</div>
-                    <div class="cert-item editable">Skills-Based Routing</div>
-                    <div class="cert-item editable">Agile Project Management</div>
-                    <div class="cert-item editable">Process Optimization</div>
-                    <div class="cert-item editable">Anti-Money Laundering (AML) Compliance</div>
+                    <div class="cert-item editable">Workforce Management: Intraday / Real-Time Management</div>
+                    <div class="cert-item editable">Quality Assurance: Calibration, Coaching & Performance Improvement</div>
+                    <div class="cert-item editable">Skills-Based Routing & Queue Strategy</div>
+                    <div class="cert-item editable">Business Continuity Planning (BCP) & Operational Resilience</div>
+                    <div class="cert-item editable">Budgeting & Financial Planning (Contact Center Operations)</div>
+                    <div class="cert-item editable">Audit Readiness, Internal Controls & Compliance Governance</div>
                     <div class="cert-item editable">Microsoft Office Suite (Advanced)</div>
                 </div>
             </div>
 
             <div class="section">
-                <h2 class="section-title">Languages & Technical Skills</h2>
-                <div class="languages">
+                <h2 class="section-title">Languages &amp; Tools</h2>
+
+                <div class="technical" style="margin-top: 6px;">
                     <div class="editable"><strong>Languages:</strong> English (Fluent) | Spanish (Native)</div>
                 </div>
-                <div class="technical" style="margin-top: 10px;">
-                    <div class="editable"><strong>Technical:</strong> Contact Center Platforms | WFM Systems | CRM Systems | MS Office Suite | Reporting & Analytics Tools | Quality Management Systems | AI Prompt Engineering | Process Automation & Coding</div>
+                <div class="technical" style="margin-top: 8px;">
+                    <div class="editable"><strong>CRM / Ticketing:</strong> Salesforce • Customer Access Tool</div>
+                </div>
+                <div class="technical" style="margin-top: 8px;">
+                    <div class="editable"><strong>Banking Systems:</strong> FDR • AS/400</div>
+                </div>
+                <div class="technical" style="margin-top: 8px;">
+                    <div class="editable"><strong>Data &amp; Reporting:</strong> Excel (Advanced) • PowerPoint • SQL • HTML • CSS</div>
+                </div>
+                <div class="technical" style="margin-top: 8px;">
+                    <div class="editable"><strong>Automation / AI:</strong> AI Prompt Engineering (process documentation, reporting, analysis)</div>
                 </div>
             </div>
         </div>
@@ -514,6 +646,28 @@
         // -----------------------
         const pdfBtn = document.getElementById('pdfBtn');
 
+        // -----------------------
+        // Theme Switcher
+        // -----------------------
+        const themeSelect = document.getElementById('themeSelect');
+        const THEME_KEY = 'cv_theme_v1';
+
+        function applyTheme(theme) {
+            const t = theme || 'classic';
+            document.body.dataset.theme = t;
+            try { localStorage.setItem(THEME_KEY, t); } catch (_) {}
+        }
+
+        (function initTheme() {
+            let saved = 'classic';
+            try { saved = localStorage.getItem(THEME_KEY) || 'classic'; } catch (_) {}
+            applyTheme(saved);
+            if (themeSelect) themeSelect.value = saved;
+            if (themeSelect) {
+                themeSelect.addEventListener('change', (e) => applyTheme(e.target.value));
+            }
+        })();
+
         function buildPrintableHTML() {
             const clone = mainContainer.cloneNode(true);
 
@@ -533,13 +687,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Resume - Ilich Vasquez</title>
 <style>
-@page { size: letter; margin: 0.5in; }
+@page { size: letter; margin: 0.4in; }
 html, body { background: #ffffff !important; }
 .container { box-shadow: none !important; }
 ${css}
 </style>
 </head>
-<body>
+<body data-theme="${document.body.dataset.theme || 'classic'}">
 ${clone.outerHTML}
 </body>
 </html>`;
@@ -547,21 +701,38 @@ ${clone.outerHTML}
 
         function exportPdfViaPrint() {
             const html = buildPrintableHTML();
-            const w = window.open('', '_blank');
-            if (!w) {
-                showToast('Popup blocked. Allow popups to export PDF (Print → Save as PDF).', 'warn');
-                return;
-            }
 
-            // Write the HTML into the new window
-            w.document.open();
-            w.document.write(html);
-            w.document.close();
+            // Use a hidden iframe to avoid popup blockers
+            const iframe = document.createElement('iframe');
+            iframe.style.position = 'fixed';
+            iframe.style.right = '0';
+            iframe.style.bottom = '0';
+            iframe.style.width = '0';
+            iframe.style.height = '0';
+            iframe.style.border = '0';
+            iframe.setAttribute('aria-hidden', 'true');
+            document.body.appendChild(iframe);
 
-            w.onload = () => {
-                w.focus();
-                w.print();
+            const doc = iframe.contentDocument || iframe.contentWindow.document;
+            doc.open();
+            doc.write(html);
+            doc.close();
+
+            const doPrint = () => {
+                try {
+                    iframe.contentWindow.focus();
+                    iframe.contentWindow.print();
+                } finally {
+                    // Cleanup after the print dialog opens
+                    setTimeout(() => {
+                        if (iframe && iframe.parentNode) iframe.parentNode.removeChild(iframe);
+                    }, 1000);
+                }
             };
+
+            // Some browsers won't fire iframe.onload reliably after document.write
+            iframe.onload = doPrint;
+            setTimeout(doPrint, 350);
         }
 
         pdfBtn.addEventListener('click', () => {
@@ -651,13 +822,7 @@ ${content}
             a.click();
             document.body.removeChild(a);
 
-            // Some embedded previews block downloads; open in a new tab as a fallback.
-            const w = window.open(url, '_blank');
-            if (!w) {
-                showToast('Download blocked. Allow popups/downloads, then re-try Word export.', 'warn');
-            } else {
-                showToast('Word opened in a new tab. Use File → Save As if needed.', 'info');
-            }
+            showToast('Downloading Word file… If it does not start, check your browser\'s blocked downloads icon and allow downloads for this site.', 'info');
 
             setTimeout(() => URL.revokeObjectURL(url), 15000);
         }
